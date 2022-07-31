@@ -63,6 +63,11 @@ function visitFilterOperator(
   switch (v.Condition.Kind) {
     case SyntaxKind.AndExpression:
     case SyntaxKind.OrExpression:
+    case SyntaxKind.GreaterThanExpression:
+    case SyntaxKind.GreaterThanOrEqualExpression:
+    case SyntaxKind.LessThanExpression:
+    case SyntaxKind.LessThanOrEqualExpression:
+    case SyntaxKind.NotEqualExpression:
       visitBinaryExpression(qb, v.Condition as Syntax.BinaryExpression);
       break;
     default:
@@ -128,6 +133,7 @@ export function toSQL(kql: string): string {
 
   const k = knex({
     client: 'sqlite3',
+    useNullAsDefault: true,
     connection: {
       filename: ':memory:',
     },
