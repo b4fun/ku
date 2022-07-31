@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/b4fun/ku/server/internal/db"
 	"github.com/spf13/cobra"
 )
 
@@ -19,15 +21,28 @@ func main() {
 }
 
 type logBuf struct {
+	session db.Session
 }
 
-func newLogBuf() *logBuf {
-	return &logBuf{}
+func newLogBuf(session db.Session) *logBuf {
+	return &logBuf{session: session}
 }
 
-func (logBuf) Write(data []byte) (int, error) {
-	fmt.Println("[write] ", string(data))
-	fmt.Printf("[write] %d\n", int(data[len(data)-1]))
+func (b *logBuf) Write(data []byte) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	err := b.session.WriteLogLine(
+		ctx,
+		db.WriteLogLinePayload{
+			Timestamp: time.Now(),
+			// FIXME: just assuming the data is a full line
+			Line: strings.TrimSuffix(string(data), "\n"),
+		},
+	)
+	if err != nil {
+		return -1, err
+	}
 
 	return len(data), nil
 }
@@ -42,8 +57,17 @@ func createCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			stdoutLogBuf := newLogBuf()
-			stderrLogBuf := newLogBuf()
+			sessionProvider, err := db.NewSqliteProvider("./db.sqlite")
+			if err != nil {
+				return err
+			}
+			session, err := sessionProvider.CreateSession(ctx)
+			if err != nil {
+				return err
+			}
+
+			stdoutLogBuf := newLogBuf(session)
+			stderrLogBuf := newLogBuf(session)
 
 			childCmd := exec.CommandContext(
 				ctx,
