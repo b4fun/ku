@@ -1,6 +1,6 @@
 import '@kusto/language-service-next/bridge';
 import '@kusto/language-service-next/Kusto.Language.Bridge';
-import { knex, Knex } from 'knex';
+import { knex, type Knex } from 'knex';
 
 import SyntaxKind = Kusto.Language.Syntax.SyntaxKind;
 import Syntax = Kusto.Language.Syntax;
@@ -15,7 +15,7 @@ function getEnumKeyByEnumValue<
   return keys.length > 0 ? keys[0] : '';
 }
 
-export function getSyntaxKindName(v: number): string {
+function getSyntaxKindName(v: number): string {
   return getEnumKeyByEnumValue(SyntaxKind, v);
 }
 

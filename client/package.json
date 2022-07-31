@@ -14,7 +14,7 @@
     ],
     "splitting": false,
     "sourcemap": false,
-    "dts": true,
+    "dts": false,
     "clean": true
   },
   "devDependencies": {

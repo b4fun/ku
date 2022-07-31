@@ -3,6 +3,10 @@ import { toSQL } from './index';
 describe('toSQL', () => {
   [
     [
+      'source',
+      'select * from `{{source}}`',
+    ],
+    [
       'source | project name',
       'select `name` from `{{source}}`',
     ],
