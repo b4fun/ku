@@ -1,6 +1,6 @@
 /// <reference path="../../node_modules/@kusto/language-service-next/bridge.d.ts" />
 /// <reference path="../../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
-import QueryInterface, { QueryBuilder } from "./QueryBuilder";
+import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
 
 if (typeof document === 'undefined') {
   // non-browser environment, import the script
@@ -106,7 +106,7 @@ function visit(
 ) {
   indent = indent || '';
 
-  printElement(v, indent);
+  // printElement(v, indent);
 
   switch (v.Kind) {
     case SyntaxKind.FilterOperator:
@@ -131,7 +131,7 @@ function visit(
 
 const parseKQL = Kusto.Language.KustoCode.Parse;
 
-export function toSQL(kql: string): string {
+export function toSQL(kql: string): SQLResult {
   const parsedKQL = parseKQL(kql);
   if (!parsedKQL?.Syntax) {
     throw new Error(`failed to parse input KQL`);
@@ -141,5 +141,5 @@ export function toSQL(kql: string): string {
 
   visit(qb, parsedKQL.Syntax);
 
-  return qb.toSQL().sql;
+  return qb.toSQL();
 }
