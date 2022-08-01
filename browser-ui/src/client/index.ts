@@ -1,6 +1,12 @@
-import '@kusto/language-service-next/bridge';
-import '@kusto/language-service-next/Kusto.Language.Bridge';
-import { knex, type Knex } from 'knex';
+/// <reference path="../../node_modules/@kusto/language-service-next/bridge.d.ts" />
+/// <reference path="../../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
+import QueryInterface, { QueryBuilder } from "./QueryBuilder";
+
+if (typeof document === 'undefined') {
+  // non-browser environment, import the script
+  require('@kusto/language-service-next/bridge');
+  require('@kusto/language-service-next/Kusto.Language.Bridge');
+}
 
 import SyntaxKind = Kusto.Language.Syntax.SyntaxKind;
 import Syntax = Kusto.Language.Syntax;
@@ -40,7 +46,7 @@ function toSQLString(v: Syntax.SyntaxElement): string {
 }
 
 function visitBinaryExpression(
-  qb: Knex.QueryBuilder,
+  qb: QueryInterface,
   v: Syntax.BinaryExpression,
 ) {
   // TODO: recursive visit
@@ -53,7 +59,7 @@ function visitBinaryExpression(
 }
 
 function visitFilterOperator(
-  qb: Knex.QueryBuilder,
+  qb: QueryInterface,
   v: Syntax.FilterOperator,
 ) {
   if (!v.Condition) {
@@ -76,7 +82,7 @@ function visitFilterOperator(
 }
 
 function visitProjectOperator(
-  qb: Knex.QueryBuilder,
+  qb: QueryInterface,
   v: Syntax.ProjectOperator,
 ) {
   v.Expressions?.WalkNodes((node) => {
@@ -87,20 +93,20 @@ function visitProjectOperator(
 }
 
 function visitSortOperator(
-  qb: Knex.QueryBuilder,
+  qb: QueryInterface,
   v: Syntax.SortOperator,
 ) {
   qb.orderByRaw(toSQLString(v.Expressions!));
 }
 
 function visit(
-  qb: Knex.QueryBuilder,
+  qb: QueryInterface,
   v: Syntax.SyntaxElement,
   indent?: string,
 ) {
   indent = indent || '';
 
-  // printElement(v, indent);
+  printElement(v, indent);
 
   switch (v.Kind) {
     case SyntaxKind.FilterOperator:
@@ -131,15 +137,8 @@ export function toSQL(kql: string): string {
     throw new Error(`failed to parse input KQL`);
   }
 
-  const k = knex({
-    client: 'sqlite3',
-    useNullAsDefault: true,
-    connection: {
-      filename: ':memory:',
-    },
-  });
+  const qb = new QueryBuilder().from('{{source}}');
 
-  const qb = k.queryBuilder().from('{{source}}');
   visit(qb, parsedKQL.Syntax);
 
   return qb.toSQL().sql;
