@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
+	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -10,6 +13,7 @@ import (
 	"time"
 
 	"github.com/b4fun/ku/server/internal/db"
+	"github.com/b4fun/ku/server/internal/svc"
 	"github.com/spf13/cobra"
 )
 
@@ -47,6 +51,51 @@ func (b *logBuf) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
+func startAPIServer(queryService svc.QueryService) {
+	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("request start")
+		defer log.Println("request end")
+
+		if !strings.EqualFold(r.Method, "POST") {
+			w.WriteHeader(400)
+			return
+		}
+		if r.Body == nil {
+			w.WriteHeader(400)
+			return
+		}
+
+		defer r.Body.Close()
+
+		incomingQuery := new(svc.QueryRequest)
+		if err := json.NewDecoder(r.Body).Decode(incomingQuery); err != nil {
+			log.Printf("failed to decode query request: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		queryResp, err := queryService.Query(r.Context(), incomingQuery)
+		if err != nil {
+			log.Printf("failed to query: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(queryResp); err != nil {
+			log.Printf("failed to response: %v", err)
+			w.WriteHeader(500)
+			return
+		}
+	})
+
+	_ = http.ListenAndServe(":8080", nil)
+}
+
 func createCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                "ku",
@@ -57,11 +106,18 @@ func createCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			sessionProvider, err := db.NewSqliteProvider("./db.sqlite")
+			dbProvider, err := db.NewSqliteProvider("./db.sqlite")
 			if err != nil {
 				return err
 			}
-			session, err := sessionProvider.CreateSession(ctx)
+
+			queryService, err := dbProvider.CreateQueryService()
+			if err != nil {
+				return err
+			}
+			go startAPIServer(queryService)
+
+			session, err := dbProvider.CreateSession(ctx)
 			if err != nil {
 				return err
 			}
