@@ -6,6 +6,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mattn/go-sqlite3 v1.14.14
+	github.com/rs/cors v1.8.2
 	github.com/spf13/cobra v1.5.0
 )
 

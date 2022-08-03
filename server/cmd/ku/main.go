@@ -14,6 +14,7 @@ import (
 
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/b4fun/ku/server/internal/svc"
+	"github.com/rs/cors"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,9 @@ func (b *logBuf) Write(data []byte) (int, error) {
 }
 
 func startAPIServer(queryService svc.QueryService) {
-	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("request start")
 		defer log.Println("request end")
 
@@ -93,7 +96,8 @@ func startAPIServer(queryService svc.QueryService) {
 		}
 	})
 
-	_ = http.ListenAndServe(":8080", nil)
+	handler := cors.AllowAll().Handler(mux)
+	_ = http.ListenAndServe(":8080", handler)
 }
 
 func createCmd() *cobra.Command {
