@@ -1,4 +1,4 @@
-import Editor, { loader, useMonaco } from '@monaco-editor/react';
+import Editor, { loader, Monaco, useMonaco } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { toSQL } from './client';
@@ -94,12 +94,63 @@ export default function KustoEditor() {
         language='kusto'
         defaultValue={`
 source
-| where x > 1
+| where ts > ago(10h)
         `.trim()}
         onMount={(editor, monaco) => {
           editorRef.current = editor;
+
+          setSchema(editor, monaco)
+            .then(() => {
+              console.log('schema set');
+            })
+            .catch((err) => {
+              console.error(err);
+            });
         }}
       />
     </div>
   )
+}
+
+async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
+  const kusto = (monaco.languages as any).kusto as any;
+  const workerAccessor = await kusto.getKustoWorker();
+  const model = editor.getModel();
+  if (!model) {
+    throw new Error('no model');
+  }
+  const worker = await workerAccessor(model.uri);
+  console.log(worker);
+  worker.setSchemaFromShowSchema(
+    {
+      Plugins: [
+        { Name: 'pivot' },
+      ],
+      Databases: {
+        Ku: {
+          Name: 'Ku',
+          Tables: {
+            source: {
+              Name: 'source',
+              OrderedColumns: [
+                {
+                  Name: 'ts',
+                  Type: 'System.DateTime',
+                  CslType: 'datetime',
+                },
+                {
+                  Name: 'lines',
+                  Type: 'System.String',
+                  CslType: 'string',
+                }
+              ],
+            },
+          },
+          Functions: {},
+        },
+      },
+    },
+    "https://demo.example.com",
+    "Ku",
+  );
 }

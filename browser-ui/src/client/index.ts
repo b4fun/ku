@@ -137,7 +137,7 @@ export function toSQL(kql: string): SQLResult {
     throw new Error(`failed to parse input KQL`);
   }
 
-  const qb = new QueryBuilder().from('{{source}}');
+  const qb = new QueryBuilder().from('session_T82xvAT3LfGuvbhFS268U7_raw');
 
   visit(qb, parsedKQL.Syntax);
 
