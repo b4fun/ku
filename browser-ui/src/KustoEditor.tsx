@@ -2,6 +2,7 @@ import Editor, { loader, useMonaco } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { toSQL } from './client';
+import * as api from './client/api';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -48,6 +49,20 @@ export default function KustoEditor() {
     console.log(toSQL(value));
   }
 
+  function doQuery() {
+    const value = editorRef.current?.getValue();
+    if (!value) {
+      alert('no query');
+      return;
+    }
+
+    const query = toSQL(value);
+
+    api.query(query).then((result) => {
+      console.log(result);
+    })
+  }
+
   useEffect(() => {
     if (!monaco) {
       return;
@@ -67,10 +82,20 @@ export default function KustoEditor() {
         <a href="#" onClick={() => getValue()}>
           getValue
         </a>
+        &nbsp;
+        &nbsp;
+        &nbsp;
+        <a href="#" onClick={() => doQuery()}>
+          query
+        </a>
       </div>
       <Editor
         height="90vh"
         language='kusto'
+        defaultValue={`
+source
+| where x > 1
+        `.trim()}
         onMount={(editor, monaco) => {
           editorRef.current = editor;
         }}
