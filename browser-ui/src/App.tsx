@@ -3,6 +3,8 @@ import './App.css'
 import SessionNav from './component/SessionNav';
 import EditorPane from './component/EditorPane';
 import KuLogo from './component/KuLogo';
+import { APIServiceClient } from '@b4fun/ku-protos';
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 function AppNavbar() {
   return (
@@ -37,6 +39,13 @@ function AppNavbar() {
 }
 
 function App() {
+  const transport = new GrpcWebFetchTransport({
+    baseUrl: '',
+  });
+
+  const client = new APIServiceClient(transport);
+  console.log(client.listSessions);
+
   return (
     <AppShell
       padding={0}

@@ -1,0 +1,26 @@
+{
+  "name": "@b4fun/ku-protos",
+  "version": "0.0.1",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup api/v1/*.ts"
+  },
+  "tsup": {
+    "dts": true,
+    "clean": true,
+    "minify": true,
+    "format": [
+      "esm"
+    ]
+  },
+  "dependencies": {
+    "@protobuf-ts/grpcweb-transport": "^2.7.0",
+    "@protobuf-ts/runtime": "^2.7.0",
+    "@protobuf-ts/runtime-rpc": "^2.7.0"
+  },
+  "devDependencies": {
+    "@protobuf-ts/plugin": "^2.7.0",
+    "tsup": "^6.2.1"
+  }
+}
