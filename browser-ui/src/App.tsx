@@ -1,7 +1,8 @@
 import { AppShell, Navbar, Text } from '@mantine/core';
 import './App.css'
 import SessionNav from './component/SessionNav';
-import KustoEditor from './KustoEditor';
+import EditorPane from './component/EditorPane';
+import KuLogo from './component/KuLogo';
 
 function AppNavbar() {
   return (
@@ -11,7 +12,9 @@ function AppNavbar() {
     >
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
-          {/* TODO: logo */}
+          <a href="#">
+            <KuLogo />
+          </a>
         </div>
       </Navbar.Section>
       <Navbar.Section grow mt='md'>
@@ -40,7 +43,7 @@ function App() {
       navbar={<AppNavbar />}
       className='h-screen'
     >
-      foobar
+      <EditorPane className='h-screen' />
     </AppShell>
   )
 }

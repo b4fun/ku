@@ -1,8 +1,9 @@
 import Editor, { loader, Monaco, useMonaco } from '@monaco-editor/react';
+import classNames from 'classnames';
 import { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
-import { toSQL } from './client';
-import * as api from './client/api';
+import { toSQL } from '../client';
+import * as api from '../client/api';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -35,7 +36,13 @@ loader.init().then(() => {
   loadMonacoKusto();
 });
 
-export default function KustoEditor() {
+export interface KustoEditorProps {
+  height: number;
+}
+
+export default function KustoEditor(props: KustoEditorProps) {
+  const { height } = props;
+
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
@@ -77,20 +84,9 @@ export default function KustoEditor() {
   }
 
   return (
-    <div>
-      <div>
-        <a href="#" onClick={() => getValue()}>
-          getValue
-        </a>
-        &nbsp;
-        &nbsp;
-        &nbsp;
-        <a href="#" onClick={() => doQuery()}>
-          query
-        </a>
-      </div>
+    <div style={{ height }}>
       <Editor
-        height="90vh"
+        className='mt-1'
         language='kusto'
         defaultValue={`
 source

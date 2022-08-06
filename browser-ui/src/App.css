@@ -1,3 +1,6 @@
 :root {
-  --header-height: 64px;
+  --header-height: 48px;
+
+  --border-color-light: #e9ecef;
+  --separator-border: var(var(--border-color-light));
 }
