@@ -1,0 +1,11 @@
+version: v1
+plugins:
+  - name: go
+    path: bin/protoc-gen-go
+    out: .
+  - name: go-grpc
+    path: bin/protoc-gen-go-grpc
+    out: .
+  - name: ts
+    path: node_modules/.bin/protoc-gen-ts
+    out: .

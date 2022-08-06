@@ -7,3 +7,7 @@ indent_style = space
 [*.css]
 indent_size = 2
 indent_style = space
+
+[*.proto]
+indent_size = 2
+indent_style = space

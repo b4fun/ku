@@ -1,0 +1,8 @@
+{
+  "name": "ku",
+  "version": "0.0.1",
+  "workspaces": [
+    "protos/",
+    "browser-ui/"
+  ]
+}
