@@ -135,12 +135,10 @@ async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
               OrderedColumns: [
                 {
                   Name: 'ts',
-                  Type: 'System.DateTime',
                   CslType: 'datetime',
                 },
                 {
                   Name: 'lines',
-                  Type: 'System.String',
                   CslType: 'string',
                 }
               ],
