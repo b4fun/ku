@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/b4fun/ku/server/internal/applog"
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/b4fun/ku/server/internal/svc"
 	"github.com/rs/cors"
@@ -110,6 +111,8 @@ func createCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
+			logger := applog.MustNew()
+
 			dbProvider, err := db.NewSqliteProvider("./db.sqlite")
 			if err != nil {
 				return err
@@ -120,6 +123,17 @@ func createCmd() *cobra.Command {
 				return err
 			}
 			go startAPIServer(queryService)
+
+			svcOpts := &svc.Options{
+				Logger: logger,
+			}
+			apiServer, err := svc.New(svcOpts)
+			if err != nil {
+				return err
+			}
+			if true {
+				return apiServer.Start(ctx)
+			}
 
 			session, err := dbProvider.CreateSession(ctx)
 			if err != nil {
