@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SQLResult } from "./QueryBuilder";
+import { SQLResult } from '@b4fun/kql';
 
 const apiClient = axios.create({
   baseURL: "http://localhost:8080/",

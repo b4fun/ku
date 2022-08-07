@@ -1,6 +1,7 @@
-/// <reference path="../../node_modules/@kusto/language-service-next/bridge.d.ts" />
-/// <reference path="../../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
+/// <reference path="../node_modules/@kusto/language-service-next/bridge.d.ts" />
+/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
 import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
+export { SQLResult } from './QueryBuilder';
 
 if (typeof document === 'undefined') {
   // non-browser environment, import the script
