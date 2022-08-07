@@ -1,8 +1,7 @@
 import Editor, { loader, Monaco, useMonaco } from '@monaco-editor/react';
-import classNames from 'classnames';
 import { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
-import { toSQL } from '../client';
+import { toSQL } from '@b4fun/kql';
 import * as api from '../client/api';
 
 let promiseResolve: (v: any) => void;
@@ -76,7 +75,6 @@ export default function KustoEditor(props: KustoEditorProps) {
     }
 
     monacoKustoInitPromise.then(() => setLoading(false));
-
   }, [monaco]);
 
   if (loading) {
