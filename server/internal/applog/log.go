@@ -1,6 +1,8 @@
 package applog
 
 import (
+	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
@@ -14,12 +16,25 @@ func newLogger() (logr.Logger, error) {
 	return zapr.NewLogger(zapLog), nil
 }
 
-// MustNew creates a logger. It panics on error.
-func MustNew() logr.Logger {
+var Setup logr.Logger
+
+func init() {
 	logger, err := newLogger()
 	if err != nil {
 		panic(err.Error())
 	}
+	Setup = logger.WithName("setup")
+}
 
-	return logger
+func NewLogger(sessionPrefix string) (logr.Logger, error) {
+	config := zap.NewDevelopmentConfig()
+	config.OutputPaths = []string{
+		fmt.Sprintf("%s://%s", logSinkScheme, sessionPrefix),
+	}
+
+	zapLog, err := config.Build()
+	if err != nil {
+		return logr.Logger{}, err
+	}
+	return zapr.NewLogger(zapLog), nil
 }

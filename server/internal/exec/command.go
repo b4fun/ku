@@ -12,6 +12,7 @@ import (
 
 	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
+	"github.com/b4fun/ku/server/internal/utils"
 	"github.com/go-logr/logr"
 )
 
@@ -94,14 +95,14 @@ func Command(opts *Opts) (base.Runnable, error) {
 			wg,
 			errCh,
 			stdout,
-			newSessionLog(ctx, session, 100*time.Millisecond),
+			db.SessionLogWriteCloser(ctx, session, 100*time.Millisecond),
 			opts.Stdout,
 		)
 		go streamLogAsync(
 			wg,
 			errCh,
 			stderr,
-			newSessionLog(ctx, session, 100*time.Millisecond),
+			db.SessionLogWriteCloser(ctx, session, 100*time.Millisecond),
 			opts.Stderr,
 		)
 
@@ -124,4 +125,28 @@ func Command(opts *Opts) (base.Runnable, error) {
 	})
 
 	return runnable, nil
+}
+
+func streamLogAsync(
+	wg *sync.WaitGroup,
+	errCh chan<- error,
+	src io.Reader,
+	dest io.Writer,
+	destRemains ...io.Writer,
+) {
+	defer wg.Done()
+
+	destRemains = utils.Filter(destRemains, func(w io.Writer) bool {
+		return w != nil
+	})
+
+	var destWriter io.Writer
+	if len(destRemains) < 1 {
+		destWriter = dest
+	} else {
+		destWriter = io.MultiWriter(append([]io.Writer{dest}, destRemains...)...)
+	}
+
+	_, err := io.Copy(destWriter, src)
+	errCh <- err
 }

@@ -81,10 +81,20 @@ func createCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			logger := applog.MustNew()
-
 			dbProvider, err := db.NewSqliteProvider("./db.sqlite")
 			if err != nil {
+				applog.Setup.Error(err, "create db")
+				return err
+			}
+
+			if err := applog.InstallDBLogger(ctx, dbProvider); err != nil {
+				applog.Setup.Error(err, "install db logger")
+				return err
+			}
+
+			logger, err := applog.NewLogger("ku_cli")
+			if err != nil {
+				applog.Setup.Error(err, "new db logger")
 				return err
 			}
 
