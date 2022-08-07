@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/b4fun/ku/server/internal/applog"
 	"github.com/b4fun/ku/server/internal/db"
+	"github.com/b4fun/ku/server/internal/exec"
 	"github.com/b4fun/ku/server/internal/svc"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
@@ -24,33 +21,6 @@ func main() {
 	if cmd.Execute() != nil {
 		os.Exit(1)
 	}
-}
-
-type logBuf struct {
-	session db.Session
-}
-
-func newLogBuf(session db.Session) *logBuf {
-	return &logBuf{session: session}
-}
-
-func (b *logBuf) Write(data []byte) (int, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	defer cancel()
-
-	err := b.session.WriteLogLine(
-		ctx,
-		db.WriteLogLinePayload{
-			Timestamp: time.Now(),
-			// FIXME: just assuming the data is a full line
-			Line: strings.TrimSuffix(string(data), "\n"),
-		},
-	)
-	if err != nil {
-		return -1, err
-	}
-
-	return len(data), nil
 }
 
 func startAPIServer(queryService svc.QueryService) {
@@ -131,64 +101,22 @@ func createCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if true {
-				return apiServer.Start(ctx)
-			}
+			go apiServer.Start(ctx)
 
-			session, err := dbProvider.CreateSession(ctx)
+			childCmd, err := exec.Command(&exec.Opts{
+				Logger:          logger,
+				Command:         args[0],
+				Args:            args[1:],
+				Stdout:          cmd.OutOrStdout(),
+				Stderr:          cmd.ErrOrStderr(),
+				SessionProvider: dbProvider,
+			})
 			if err != nil {
 				return err
 			}
+			go childCmd.Start(ctx)
 
-			stdoutLogBuf := newLogBuf(session)
-			stderrLogBuf := newLogBuf(session)
-
-			childCmd := exec.CommandContext(
-				ctx,
-				args[0],
-				args[1:]...,
-			)
-			stdout, err := childCmd.StdoutPipe()
-			if err != nil {
-				return err
-			}
-			stderr, err := childCmd.StderrPipe()
-			if err != nil {
-				return err
-			}
-			if err := childCmd.Start(); err != nil {
-				return err
-			}
-
-			wg := new(sync.WaitGroup)
-
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-
-				writer := io.MultiWriter(
-					stdoutLogBuf,
-					cmd.OutOrStdout(),
-				)
-
-				io.Copy(writer, stdout)
-			}()
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-
-				writer := io.MultiWriter(
-					stderrLogBuf,
-					cmd.ErrOrStderr(),
-				)
-
-				io.Copy(writer, stderr)
-			}()
-
-			wg.Wait()
-			if err := childCmd.Wait(); err != nil {
-				return err
-			}
+			<-ctx.Done()
 
 			return nil
 		},
