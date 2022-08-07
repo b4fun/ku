@@ -43,7 +43,26 @@ function printElement(v: Syntax.SyntaxElement, indent: string) {
 }
 
 function toSQLString(v: Syntax.SyntaxElement): string {
-  return v.ToString(Syntax.IncludeTrivia.Minimal) || '';
+  switch (v.Kind) {
+    case SyntaxKind.StringLiteralExpression:
+    case SyntaxKind.StringLiteralToken:
+    case SyntaxKind.CompoundStringLiteralExpression:
+      // string literals
+      return getTokenValue(v);
+    default:
+      return v.ToString(Syntax.IncludeTrivia.Minimal) || '';
+  }
+}
+
+function getTokenValue(v: Syntax.SyntaxElement): string {
+  const values: string[] = [];
+  v.WalkTokens(t => {
+    if (t.ValueText) {
+      values.push(t.ValueText);
+    }
+  });
+
+  return values.join('');
 }
 
 function visitBinaryExpression(
@@ -57,6 +76,32 @@ function visitBinaryExpression(
 
   const raw = `${left} ${op} ${right}`;
   qb.andWhereRaw(raw);
+}
+
+function visitContainsExpression(
+  qb: QueryInterface,
+  v: Syntax.BinaryExpression,
+) {
+  const left = toSQLString(v.Left!);
+  const right = toSQLString(v.Right!);
+  const op = toSQLString(v.Operator!).toLowerCase();
+
+  let raw: string;
+
+  switch (op) {
+    case 'contains':
+      raw = `${left} LIKE '%${right}%'`;
+      qb.andWhereRaw(raw);
+      break;
+    case '!contains':
+      raw = `${left} NOT LIKE '%${right}%'`;
+      qb.andWhereRaw(raw);
+      break
+    case 'contains_cs':
+      throw new Error(`contains_cs not implemented`);
+    case '!contains_cs':
+      throw new Error(`!contains_cs not implemented`);
+  }
 }
 
 function visitFilterOperator(
@@ -77,6 +122,12 @@ function visitFilterOperator(
     case SyntaxKind.NotEqualExpression:
       visitBinaryExpression(qb, v.Condition as Syntax.BinaryExpression);
       break;
+    case SyntaxKind.ContainsExpression:
+    case SyntaxKind.ContainsCsExpression:
+    case SyntaxKind.NotContainsExpression:
+    case SyntaxKind.NotContainsCsExpression:
+      visitContainsExpression(qb, v.Condition as Syntax.BinaryExpression);
+      break
     default:
       throw new Error(`unsupported condition type ${getSyntaxKindName(v.Condition.Kind)}`);
   }

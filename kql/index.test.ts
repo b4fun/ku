@@ -58,6 +58,27 @@ describe('toSQL', () => {
         whereClauses: ['x > 2', 'y < 3'],
       }),
     ],
+    [
+      `
+      source
+      | where x contains 'foo'
+      | where y !contains 'bar'
+      `,
+      testSQLResult({
+        whereClauses: ["x LIKE '%foo%'", "y NOT LIKE '%bar%'"],
+      }),
+    ],
+    [
+      `
+      source
+      | where y > ago(5h)
+      `,
+      testSQLResult({
+        // TODO(hbc): for duration literals, we might need to quote it as string
+        //            before passing to the server: ago(5h) -> ago('5h')
+        whereClauses: ['y > ago(5h)'],
+      }),
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 
