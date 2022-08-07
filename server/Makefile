@@ -26,3 +26,6 @@ fmt: ## Run go fmt against code.
 
 vet: ## Run go vet against code.
 	@go vet ./...
+
+test: fmt vet ## Run unit tests
+	@go test -v ./...

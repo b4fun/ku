@@ -24,6 +24,7 @@ func (sink *zapSessionSink) Sync() error {
 
 const logSinkScheme = "ku"
 
+// InstallDBLogger installs logger sink for database driver.
 func InstallDBLogger(ctx context.Context, sessionProvider db.Provider) error {
 	return zap.RegisterSink(
 		logSinkScheme,

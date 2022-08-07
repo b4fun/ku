@@ -8,24 +8,22 @@ import (
 	"go.uber.org/zap"
 )
 
-func newLogger() (logr.Logger, error) {
+func mustNewSetupLogger() logr.Logger {
 	zapLog, err := zap.NewDevelopment()
-	if err != nil {
-		return logr.Logger{}, err
-	}
-	return zapr.NewLogger(zapLog), nil
-}
-
-var Setup logr.Logger
-
-func init() {
-	logger, err := newLogger()
 	if err != nil {
 		panic(err.Error())
 	}
-	Setup = logger.WithName("setup")
+	return zapr.NewLogger(zapLog).WithName("setup")
 }
 
+// Setup creates the logger for setup usage.
+var Setup logr.Logger
+
+func init() {
+	Setup = mustNewSetupLogger()
+}
+
+// NewLogger creates a logger with database driver enabled.
 func NewLogger(sessionPrefix string) (logr.Logger, error) {
 	config := zap.NewDevelopmentConfig()
 	config.OutputPaths = []string{
