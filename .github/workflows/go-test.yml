@@ -3,8 +3,8 @@ name: Unit Test - Go
 on:
   pull_request:
     paths:
-      - "server"
-      - "protos"
+      - "server/**"
+      - "protos/**"
 
 jobs:
   unit-test:
