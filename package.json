@@ -11,9 +11,8 @@
     "build:kql": "npm run build -w kql",
     "build:protos": "npm run build -w protos",
     "build": "npm-run-all build:kql build:protos build:browser-ui",
-    "test:browser-ui": "npm run test -w browser-ui",
     "test:kql": "npm run test -w kql",
-    "test": "npm-run-all test:kql test:browser-ui"
+    "test": "npm-run-all test:kql"
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",

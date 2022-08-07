@@ -132,13 +132,29 @@ function visit(
 
 const parseKQL = Kusto.Language.KustoCode.Parse;
 
-export function toSQL(kql: string): SQLResult {
+export interface ToSQLOptions {
+  tableName: string;
+}
+
+function defaultToSQLOptions(): ToSQLOptions {
+  return {
+    tableName: 'source',
+  };
+}
+
+export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
+  if (!opts) {
+    opts = defaultToSQLOptions();
+  } else {
+    opts = { ...defaultToSQLOptions(), ...opts };
+  }
+
   const parsedKQL = parseKQL(kql);
   if (!parsedKQL?.Syntax) {
     throw new Error(`failed to parse input KQL`);
   }
 
-  const qb = new QueryBuilder().from('session_T82xvAT3LfGuvbhFS268U7_raw');
+  const qb = new QueryBuilder().from(opts.tableName);
 
   visit(qb, parsedKQL.Syntax);
 
