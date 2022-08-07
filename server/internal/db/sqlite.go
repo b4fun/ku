@@ -26,19 +26,22 @@ func NewSqliteProvider(dbPath string) (*SqliteProvider, error) {
 	return &SqliteProvider{db: db}, nil
 }
 
-func (p *SqliteProvider) CreateSession(ctx context.Context) (Session, error) {
+func (p *SqliteProvider) CreateSession(
+	ctx context.Context,
+	opts *CreateSessionOpts,
+) (string, Session, error) {
 	sessionID := shortuuid.New()
 
 	session := &SqliteSession{
-		TableName: fmt.Sprintf("session_%s", sessionID),
+		TableName: fmt.Sprintf("%s_%s", opts.Prefix, sessionID),
 		db:        p.db,
 	}
 
 	if err := session.bootstrap(ctx); err != nil {
-		return nil, fmt.Errorf("bootstrap session %s: %w", sessionID, err)
+		return sessionID, nil, fmt.Errorf("bootstrap session %s: %w", sessionID, err)
 	}
 
-	return session, nil
+	return sessionID, session, nil
 }
 
 type SqliteSession struct {

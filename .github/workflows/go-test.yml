@@ -1,0 +1,19 @@
+name: Unit Test - Go
+
+on:
+  pull_request:
+    paths:
+      - "server"
+      - "protos"
+
+jobs:
+  unit-test:
+    name: Unit test - Go
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18"
+      - run: make -C server test

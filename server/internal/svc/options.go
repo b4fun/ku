@@ -1,8 +1,7 @@
 package svc
 
 import (
-	"context"
-
+	"github.com/b4fun/ku/server/internal/base"
 	"github.com/go-logr/logr"
 )
 
@@ -23,11 +22,7 @@ func (opts *Options) defaults() error {
 	return nil
 }
 
-type Runnable interface {
-	Start(context.Context) error
-}
-
-func New(opts *Options) (Runnable, error) {
+func New(opts *Options) (base.Runnable, error) {
 	if err := opts.defaults(); err != nil {
 		return nil, err
 	}

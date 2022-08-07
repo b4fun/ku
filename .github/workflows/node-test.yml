@@ -1,9 +1,11 @@
-name: Unit Test
+name: Unit Test - Node
 
 on:
   pull_request:
-    paths-ignore:
-      - "server"
+    paths:
+      - "browser-ui"
+      - "kql"
+      - "protos"
 
 jobs:
   unit-test:
