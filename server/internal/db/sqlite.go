@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/b4fun/ku/server/internal/svc"
+	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/shortuuid"
 	_ "github.com/mattn/go-sqlite3"
@@ -185,7 +185,7 @@ func (s *SqliteSession) WriteLogLine(ctx context.Context, payload WriteLogLinePa
 	return nil
 }
 
-func (p *SqliteProvider) CreateQueryService() (svc.QueryService, error) {
+func (p *SqliteProvider) CreateQueryService() (base.QueryService, error) {
 	rv := &SqliteQueryService{db: p.db}
 
 	return rv, nil
@@ -195,10 +195,10 @@ type SqliteQueryService struct {
 	db *sqlx.DB
 }
 
-var _ svc.QueryService = (*SqliteQueryService)(nil)
+var _ base.QueryService = (*SqliteQueryService)(nil)
 
-func newTableRow(vals map[string]interface{}) (*svc.TableRow, error) {
-	rv := &svc.TableRow{
+func newTableRow(vals map[string]interface{}) (*base.TableRow, error) {
+	rv := &base.TableRow{
 		Values: map[string]json.RawMessage{},
 	}
 
@@ -215,8 +215,8 @@ func newTableRow(vals map[string]interface{}) (*svc.TableRow, error) {
 
 func (qs *SqliteQueryService) Query(
 	ctx context.Context,
-	req *svc.QueryRequest,
-) (*svc.QueryResponse, error) {
+	req *base.QueryRequest,
+) (*base.QueryResponse, error) {
 	q := fmt.Sprintf(
 		"SELECT %s FROM %s",
 		req.Query.CompileColumns(),
@@ -237,7 +237,7 @@ func (qs *SqliteQueryService) Query(
 	}
 	defer rows.Close()
 
-	rv := &svc.QueryResponse{}
+	rv := &base.QueryResponse{}
 	for rows.Next() {
 		vals := map[string]interface{}{}
 		if err := rows.MapScan(vals); err != nil {

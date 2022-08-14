@@ -1,16 +1,24 @@
 package svc
 
 import (
+	"fmt"
+
 	"github.com/b4fun/ku/server/internal/base"
+	"github.com/b4fun/ku/server/internal/db"
 	"github.com/go-logr/logr"
 )
 
 type Options struct {
-	Logger   logr.Logger
-	HTTPAddr string
+	Logger     logr.Logger
+	HTTPAddr   string
+	DBProvider db.Provider
 }
 
 func (opts *Options) defaults() error {
+	if opts.DBProvider == nil {
+		return fmt.Errorf(".DBProvider is required")
+	}
+
 	if opts.Logger.GetSink() == nil {
 		opts.Logger = logr.Discard()
 	}
@@ -28,7 +36,8 @@ func New(opts *Options) (base.Runnable, error) {
 	}
 
 	grpcServer := newGRPCServer(&grpcServerParams{
-		logger: opts.Logger.WithName("grpc-server"),
+		logger:     opts.Logger.WithName("grpc-server"),
+		dbProvider: opts.DBProvider,
 	})
 	httpServer := newHTTPServer(&httpServerParams{
 		logger:     opts.Logger.WithName("http-server"),

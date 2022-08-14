@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b4fun/ku/server/internal/svc"
+	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 )
@@ -72,8 +72,8 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.NotNil(tc, qs)
 
-		queryResp, err := qs.Query(ctx, &svc.QueryRequest{
-			Query: svc.SQLQuery{
+		queryResp, err := qs.Query(ctx, &base.QueryRequest{
+			Query: base.SQLQuery{
 				Table:   sqliteSession.rawTableName(),
 				Columns: []string{"lines"},
 			},
