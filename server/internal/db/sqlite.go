@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/b4fun/ku/server/internal/svc"
 	"github.com/jmoiron/sqlx"
@@ -11,26 +12,100 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const sqliteSessionTableName = "ku_session_metadata"
+
+type sqliteSessionBookkeeper struct {
+	db               *sqlx.DB
+	sessionTableName string
+}
+
+// Bootstrap bootstraps the session book keeper.
+func (bk *sqliteSessionBookkeeper) Bootstrap(ctx context.Context) error {
+	const createTableTmpl = `
+CREATE TABLE IF NOT EXISTS %s (
+	session_id text
+);
+`
+
+	_, err := bk.db.ExecContext(ctx, fmt.Sprintf(createTableTmpl, bk.sessionTableName))
+	if err != nil {
+		return fmt.Errorf("failed to create session table: %w", err)
+	}
+
+	return nil
+}
+
+// CreateSession book keeps a new session and returns its id.
+func (bk *sqliteSessionBookkeeper) CreateSession(ctx context.Context) (string, error) {
+	const insertStmtTmpl = `
+INSERT INTO %s (session_id) VALUES (?)
+`
+
+	sessionID := shortuuid.New()
+	if _, err := bk.db.ExecContext(
+		ctx,
+		fmt.Sprintf(insertStmtTmpl, sqliteSessionTableName),
+		sessionID,
+	); err != nil {
+		return "", fmt.Errorf("failed to insert session id: %w", err)
+	}
+
+	return sessionID, nil
+}
+
 type SqliteProvider struct {
 	db *sqlx.DB
+
+	sessionBookkeeper *sqliteSessionBookkeeper
 }
 
 var _ Provider = (*SqliteProvider)(nil)
 
+// NewSqliteProvider creates a sqlite based provider.
 func NewSqliteProvider(dbPath string) (*SqliteProvider, error) {
 	db, err := sqlx.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SqliteProvider{db: db}, nil
+	provider := &SqliteProvider{
+		db: db,
+
+		sessionBookkeeper: &sqliteSessionBookkeeper{
+			db:               db,
+			sessionTableName: sqliteSessionTableName,
+		},
+	}
+
+	bootstrapCtx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer cancel()
+
+	if err := provider.bootstrap(bootstrapCtx); err != nil {
+		return nil, err
+	}
+
+	return provider, nil
+}
+
+func (p *SqliteProvider) bootstrap(ctx context.Context) error {
+	if err := p.sessionBookkeeper.Bootstrap(ctx); err != nil {
+		return fmt.Errorf("sqliteSessionBookkeeper bootstrap: %w", err)
+	}
+
+	return nil
 }
 
 func (p *SqliteProvider) CreateSession(
 	ctx context.Context,
 	opts *CreateSessionOpts,
 ) (string, Session, error) {
-	sessionID := shortuuid.New()
+	sessionID, err := p.sessionBookkeeper.CreateSession(ctx)
+	if err != nil {
+		return "", nil, fmt.Errorf("sqliteSessionBookkeeper create session: %w", err)
+	}
 
 	session := &SqliteSession{
 		TableName: fmt.Sprintf("%s_%s", opts.Prefix, sessionID),
