@@ -3,8 +3,13 @@ import './App.css'
 import SessionNav from './component/SessionNav';
 import EditorPane from './component/EditorPane';
 import KuLogo from './component/KuLogo';
-import { APIServiceClient } from '@b4fun/ku-protos';
-import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+import { grpcClient } from './client/api';
+import { useEffect, useState } from 'react';
+
+async function bootstrap() {
+  const resp = await grpcClient.listSessions({});
+  console.log(resp);
+}
 
 function AppNavbar() {
   return (
@@ -39,12 +44,17 @@ function AppNavbar() {
 }
 
 function App() {
-  const transport = new GrpcWebFetchTransport({
-    baseUrl: '',
-  });
+  const [isLoading, setLoading] = useState(false);
 
-  const client = new APIServiceClient(transport);
-  console.log(client.listSessions);
+  useEffect(() => {
+    bootstrap().
+      then(() => {
+        setLoading(false);
+      }).
+      catch((err) => {
+        console.error(`bootstrap failed ${err}`);
+      })
+  }, []);
 
   return (
     <AppShell
