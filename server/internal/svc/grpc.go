@@ -15,7 +15,8 @@ func newGRPCServer(params *grpcServerParams) *grpc.Server {
 	grpcServer := grpc.NewServer()
 
 	apiServerParams{
-		logger: params.logger,
+		logger:     params.logger,
+		dbProvider: params.dbProvider,
 	}.createAndRegister(grpcServer)
 
 	return grpcServer
