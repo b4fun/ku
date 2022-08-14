@@ -44,13 +44,31 @@ INSERT INTO %s (session_id) VALUES (?)
 	sessionID := shortuuid.New()
 	if _, err := bk.db.ExecContext(
 		ctx,
-		fmt.Sprintf(insertStmtTmpl, sqliteSessionTableName),
+		fmt.Sprintf(insertStmtTmpl, bk.sessionTableName),
 		sessionID,
 	); err != nil {
 		return "", fmt.Errorf("failed to insert session id: %w", err)
 	}
 
 	return sessionID, nil
+}
+
+// ListSessionIDs lists all known session ids.
+func (bk *sqliteSessionBookkeeper) ListSessionIDs(ctx context.Context) ([]string, error) {
+	const listQueryTmpl = `
+SELECT session_id from %s order by session_id asc
+`
+	var rv []string
+	err := bk.db.SelectContext(
+		ctx,
+		&rv,
+		fmt.Sprintf(listQueryTmpl, bk.sessionTableName),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query session ids: %w", err)
+	}
+
+	return rv, nil
 }
 
 type SqliteProvider struct {
@@ -117,6 +135,10 @@ func (p *SqliteProvider) CreateSession(
 	}
 
 	return sessionID, session, nil
+}
+
+func (p *SqliteProvider) ListSessionIDs(ctx context.Context) ([]string, error) {
+	return p.sessionBookkeeper.ListSessionIDs(ctx)
 }
 
 type SqliteSession struct {
