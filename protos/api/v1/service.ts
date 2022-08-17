@@ -12,6 +12,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { TableRow } from "./model";
+import { TableQuery } from "./model";
 import { Session } from "./model";
 /**
  * @generated from protobuf message api.v1.ListSessionsRequest
@@ -26,6 +28,24 @@ export interface ListSessionsResponse {
      * @generated from protobuf field: repeated api.v1.Session sessions = 1;
      */
     sessions: Session[];
+}
+/**
+ * @generated from protobuf message api.v1.QueryTableRequest
+ */
+export interface QueryTableRequest {
+    /**
+     * @generated from protobuf field: api.v1.TableQuery query = 1;
+     */
+    query?: TableQuery;
+}
+/**
+ * @generated from protobuf message api.v1.QueryTableResponse
+ */
+export interface QueryTableResponse {
+    /**
+     * @generated from protobuf field: repeated api.v1.TableRow rows = 1;
+     */
+    rows: TableRow[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ListSessionsRequest$Type extends MessageType<ListSessionsRequest> {
@@ -100,9 +120,104 @@ class ListSessionsResponse$Type extends MessageType<ListSessionsResponse> {
  * @generated MessageType for protobuf message api.v1.ListSessionsResponse
  */
 export const ListSessionsResponse = new ListSessionsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
+    constructor() {
+        super("api.v1.QueryTableRequest", [
+            { no: 1, name: "query", kind: "message", T: () => TableQuery }
+        ]);
+    }
+    create(value?: PartialMessage<QueryTableRequest>): QueryTableRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QueryTableRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryTableRequest): QueryTableRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* api.v1.TableQuery query */ 1:
+                    message.query = TableQuery.internalBinaryRead(reader, reader.uint32(), options, message.query);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QueryTableRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* api.v1.TableQuery query = 1; */
+        if (message.query)
+            TableQuery.internalBinaryWrite(message.query, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.QueryTableRequest
+ */
+export const QueryTableRequest = new QueryTableRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
+    constructor() {
+        super("api.v1.QueryTableResponse", [
+            { no: 1, name: "rows", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableRow }
+        ]);
+    }
+    create(value?: PartialMessage<QueryTableResponse>): QueryTableResponse {
+        const message = { rows: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QueryTableResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QueryTableResponse): QueryTableResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated api.v1.TableRow rows */ 1:
+                    message.rows.push(TableRow.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QueryTableResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated api.v1.TableRow rows = 1; */
+        for (let i = 0; i < message.rows.length; i++)
+            TableRow.internalBinaryWrite(message.rows[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.QueryTableResponse
+ */
+export const QueryTableResponse = new QueryTableResponse$Type();
 /**
  * @generated ServiceType for protobuf service api.v1.APIService
  */
 export const APIService = new ServiceType("api.v1.APIService", [
-    { name: "ListSessions", options: {}, I: ListSessionsRequest, O: ListSessionsResponse }
+    { name: "ListSessions", options: {}, I: ListSessionsRequest, O: ListSessionsResponse },
+    { name: "QueryTable", options: {}, I: QueryTableRequest, O: QueryTableResponse }
 ]);

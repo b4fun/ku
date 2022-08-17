@@ -4,7 +4,37 @@ package api.v1;
 
 option go_package = 'api/v1';
 
+// sessions -(many)-> tables
+
 message Session {
   // id - id of the session.
   string id = 1;
+}
+
+message TableQuery {
+  // table - name of the table to query.
+  string table = 1;
+  // columns - columns to return.
+  repeated string columns = 2;
+  // where_clauses - where clause to filter results.
+  repeated string where_clauses = 3;
+  // order_by_clauses - order by clause.
+  repeated string order_by_clauses = 4;
+}
+
+message TableKeyVaule {
+  // key - key of the table column.
+  string key = 1;
+  // value - value of the table column.
+  bytes value = 2;
+}
+
+message TableKey {
+  // key - key of the table column.
+  string key = 1;
+  // TODO: type
+}
+
+message TableRow {
+  repeated TableKeyVaule columns = 1;
 }

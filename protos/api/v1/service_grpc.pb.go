@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type APIServiceClient interface {
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	QueryTable(ctx context.Context, in *QueryTableRequest, opts ...grpc.CallOption) (*QueryTableResponse, error)
 }
 
 type aPIServiceClient struct {
@@ -42,11 +43,21 @@ func (c *aPIServiceClient) ListSessions(ctx context.Context, in *ListSessionsReq
 	return out, nil
 }
 
+func (c *aPIServiceClient) QueryTable(ctx context.Context, in *QueryTableRequest, opts ...grpc.CallOption) (*QueryTableResponse, error) {
+	out := new(QueryTableResponse)
+	err := c.cc.Invoke(ctx, "/api.v1.APIService/QueryTable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // APIServiceServer is the server API for APIService service.
 // All implementations must embed UnimplementedAPIServiceServer
 // for forward compatibility
 type APIServiceServer interface {
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	QueryTable(context.Context, *QueryTableRequest) (*QueryTableResponse, error)
 	mustEmbedUnimplementedAPIServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedAPIServiceServer struct {
 
 func (UnimplementedAPIServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSessions not implemented")
+}
+func (UnimplementedAPIServiceServer) QueryTable(context.Context, *QueryTableRequest) (*QueryTableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryTable not implemented")
 }
 func (UnimplementedAPIServiceServer) mustEmbedUnimplementedAPIServiceServer() {}
 
@@ -88,6 +102,24 @@ func _APIService_ListSessions_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _APIService_QueryTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryTableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APIServiceServer).QueryTable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.v1.APIService/QueryTable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APIServiceServer).QueryTable(ctx, req.(*QueryTableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // APIService_ServiceDesc is the grpc.ServiceDesc for APIService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var APIService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSessions",
 			Handler:    _APIService_ListSessions_Handler,
+		},
+		{
+			MethodName: "QueryTable",
+			Handler:    _APIService_QueryTable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

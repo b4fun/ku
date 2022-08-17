@@ -68,14 +68,259 @@ func (x *Session) GetId() string {
 	return ""
 }
 
+type TableQuery struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// table - name of the table to query.
+	Table string `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
+	// columns - columns to return.
+	Columns []string `protobuf:"bytes,2,rep,name=columns,proto3" json:"columns,omitempty"`
+	// where_clauses - where clause to filter results.
+	WhereClauses []string `protobuf:"bytes,3,rep,name=where_clauses,json=whereClauses,proto3" json:"where_clauses,omitempty"`
+	// order_by_clauses - order by clause.
+	OrderByClauses []string `protobuf:"bytes,4,rep,name=order_by_clauses,json=orderByClauses,proto3" json:"order_by_clauses,omitempty"`
+}
+
+func (x *TableQuery) Reset() {
+	*x = TableQuery{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_model_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TableQuery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TableQuery) ProtoMessage() {}
+
+func (x *TableQuery) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_model_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TableQuery.ProtoReflect.Descriptor instead.
+func (*TableQuery) Descriptor() ([]byte, []int) {
+	return file_api_v1_model_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *TableQuery) GetTable() string {
+	if x != nil {
+		return x.Table
+	}
+	return ""
+}
+
+func (x *TableQuery) GetColumns() []string {
+	if x != nil {
+		return x.Columns
+	}
+	return nil
+}
+
+func (x *TableQuery) GetWhereClauses() []string {
+	if x != nil {
+		return x.WhereClauses
+	}
+	return nil
+}
+
+func (x *TableQuery) GetOrderByClauses() []string {
+	if x != nil {
+		return x.OrderByClauses
+	}
+	return nil
+}
+
+type TableKeyVaule struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// key - key of the table column.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// value - value of the table column.
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *TableKeyVaule) Reset() {
+	*x = TableKeyVaule{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_model_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TableKeyVaule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TableKeyVaule) ProtoMessage() {}
+
+func (x *TableKeyVaule) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_model_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TableKeyVaule.ProtoReflect.Descriptor instead.
+func (*TableKeyVaule) Descriptor() ([]byte, []int) {
+	return file_api_v1_model_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TableKeyVaule) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *TableKeyVaule) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type TableKey struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// key - key of the table column.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"` // TODO: type
+}
+
+func (x *TableKey) Reset() {
+	*x = TableKey{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_model_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TableKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TableKey) ProtoMessage() {}
+
+func (x *TableKey) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_model_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TableKey.ProtoReflect.Descriptor instead.
+func (*TableKey) Descriptor() ([]byte, []int) {
+	return file_api_v1_model_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TableKey) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+type TableRow struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Columns []*TableKeyVaule `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
+}
+
+func (x *TableRow) Reset() {
+	*x = TableRow{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_v1_model_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TableRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TableRow) ProtoMessage() {}
+
+func (x *TableRow) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_model_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TableRow.ProtoReflect.Descriptor instead.
+func (*TableRow) Descriptor() ([]byte, []int) {
+	return file_api_v1_model_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *TableRow) GetColumns() []*TableKeyVaule {
+	if x != nil {
+		return x.Columns
+	}
+	return nil
+}
+
 var File_api_v1_model_proto protoreflect.FileDescriptor
 
 var file_api_v1_model_proto_rawDesc = []byte{
 	0x0a, 0x12, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x06, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x22, 0x19, 0x0a, 0x07,
 	0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x42, 0x08, 0x5a, 0x06, 0x61, 0x70, 0x69, 0x2f, 0x76,
-	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x8b, 0x01, 0x0a, 0x0a, 0x54, 0x61, 0x62, 0x6c,
+	0x65, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x18, 0x0a, 0x07,
+	0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x63,
+	0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x77, 0x68, 0x65, 0x72, 0x65, 0x5f,
+	0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c, 0x77,
+	0x68, 0x65, 0x72, 0x65, 0x43, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x73, 0x12, 0x28, 0x0a, 0x10, 0x6f,
+	0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x73, 0x18,
+	0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0e, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x42, 0x79, 0x43, 0x6c,
+	0x61, 0x75, 0x73, 0x65, 0x73, 0x22, 0x37, 0x0a, 0x0d, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65,
+	0x79, 0x56, 0x61, 0x75, 0x6c, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1c,
+	0x0a, 0x08, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x3b, 0x0a, 0x08,
+	0x54, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x6f, 0x77, 0x12, 0x2f, 0x0a, 0x07, 0x63, 0x6f, 0x6c, 0x75,
+	0x6d, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x76, 0x31, 0x2e, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x56, 0x61, 0x75, 0x6c, 0x65,
+	0x52, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x42, 0x08, 0x5a, 0x06, 0x61, 0x70, 0x69,
+	0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -90,16 +335,21 @@ func file_api_v1_model_proto_rawDescGZIP() []byte {
 	return file_api_v1_model_proto_rawDescData
 }
 
-var file_api_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_api_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_v1_model_proto_goTypes = []interface{}{
-	(*Session)(nil), // 0: api.v1.Session
+	(*Session)(nil),       // 0: api.v1.Session
+	(*TableQuery)(nil),    // 1: api.v1.TableQuery
+	(*TableKeyVaule)(nil), // 2: api.v1.TableKeyVaule
+	(*TableKey)(nil),      // 3: api.v1.TableKey
+	(*TableRow)(nil),      // 4: api.v1.TableRow
 }
 var file_api_v1_model_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: api.v1.TableRow.columns:type_name -> api.v1.TableKeyVaule
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_model_proto_init() }
@@ -120,6 +370,54 @@ func file_api_v1_model_proto_init() {
 				return nil
 			}
 		}
+		file_api_v1_model_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TableQuery); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_model_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TableKeyVaule); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_model_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TableKey); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_v1_model_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TableRow); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -127,7 +425,7 @@ func file_api_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_v1_model_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
