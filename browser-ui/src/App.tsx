@@ -7,7 +7,7 @@ import { grpcClient } from './client/api';
 import { useEffect, useState } from 'react';
 
 async function bootstrap() {
-  const resp = await grpcClient.listSessions({});
+  const resp = await grpcClient().listSessions({});
   console.log(resp);
 }
 
