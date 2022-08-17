@@ -2,18 +2,12 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"log"
-	"net/http"
 	"os"
-	"strings"
 
 	"github.com/b4fun/ku/server/internal/applog"
-	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/b4fun/ku/server/internal/exec"
 	"github.com/b4fun/ku/server/internal/svc"
-	"github.com/rs/cors"
 	"github.com/spf13/cobra"
 )
 
@@ -23,55 +17,6 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-func startAPIServer(queryService base.QueryService) {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("request start")
-		defer log.Println("request end")
-
-		if !strings.EqualFold(r.Method, "POST") {
-			w.WriteHeader(400)
-			return
-		}
-		if r.Body == nil {
-			w.WriteHeader(400)
-			return
-		}
-
-		defer r.Body.Close()
-
-		incomingQuery := new(base.QueryRequest)
-		if err := json.NewDecoder(r.Body).Decode(incomingQuery); err != nil {
-			log.Printf("failed to decode query request: %v", err)
-			w.WriteHeader(500)
-			return
-		}
-
-		queryResp, err := queryService.Query(r.Context(), incomingQuery)
-		if err != nil {
-			log.Printf("failed to query: %v", err)
-			w.WriteHeader(500)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-
-		enc := json.NewEncoder(w)
-		enc.SetIndent("", "  ")
-		if err := enc.Encode(queryResp); err != nil {
-			log.Printf("failed to response: %v", err)
-			w.WriteHeader(500)
-			return
-		}
-	})
-
-	handler := cors.AllowAll().Handler(mux)
-	_ = http.ListenAndServe(":8080", handler)
-}
-
 func createCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                "ku",
@@ -103,7 +48,6 @@ func createCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			go startAPIServer(queryService)
 
 			svcOpts := &svc.Options{
 				Logger:       logger,
