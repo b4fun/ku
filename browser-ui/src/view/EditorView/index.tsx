@@ -25,6 +25,7 @@ function EditorNavBar(props: { viewModel: ViewModel }) {
     sessionItems = viewModel.sessions.map((session, idx) => {
       return (
         <SessionNav.Link
+          key={session.id}
           active={idx === 0}
           onClick={() => { console.log('here') }}
         >
@@ -79,7 +80,7 @@ function EditorView() {
       className='h-screen relative'
     >
       <LoadingOverlay visible={viewModel.isLoading} />
-      <EditorPane />
+      <EditorPane className="h-screen" />
     </AppShell>
   )
 }
