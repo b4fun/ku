@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/b4fun/ku/server/internal/applog"
+	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/b4fun/ku/server/internal/exec"
 	"github.com/b4fun/ku/server/internal/svc"
@@ -23,7 +24,7 @@ func main() {
 	}
 }
 
-func startAPIServer(queryService svc.QueryService) {
+func startAPIServer(queryService base.QueryService) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +42,7 @@ func startAPIServer(queryService svc.QueryService) {
 
 		defer r.Body.Close()
 
-		incomingQuery := new(svc.QueryRequest)
+		incomingQuery := new(base.QueryRequest)
 		if err := json.NewDecoder(r.Body).Decode(incomingQuery); err != nil {
 			log.Printf("failed to decode query request: %v", err)
 			w.WriteHeader(500)
@@ -105,7 +106,8 @@ func createCmd() *cobra.Command {
 			go startAPIServer(queryService)
 
 			svcOpts := &svc.Options{
-				Logger: logger,
+				Logger:     logger,
+				DBProvider: dbProvider,
 			}
 			apiServer, err := svc.New(svcOpts)
 			if err != nil {

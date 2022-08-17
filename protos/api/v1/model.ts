@@ -16,21 +16,21 @@ import { MessageType } from "@protobuf-ts/runtime";
  */
 export interface Session {
     /**
-     * name - name of the sesion.
+     * id - id of the session.
      *
-     * @generated from protobuf field: string name = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    name: string;
+    id: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Session$Type extends MessageType<Session> {
     constructor() {
         super("api.v1.Session", [
-            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Session>): Session {
-        const message = { name: "" };
+        const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Session>(this, message, value);
@@ -41,8 +41,8 @@ class Session$Type extends MessageType<Session> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string name */ 1:
-                    message.name = reader.string();
+                case /* string id */ 1:
+                    message.id = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -56,9 +56,9 @@ class Session$Type extends MessageType<Session> {
         return message;
     }
     internalBinaryWrite(message: Session, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string name = 1; */
-        if (message.name !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

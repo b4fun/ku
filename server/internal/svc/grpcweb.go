@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/rs/cors"
 	"google.golang.org/grpc"
 )
 
@@ -38,16 +39,20 @@ func (s *httpServer) Start(ctx context.Context) error {
 		}),
 	)
 
-	server := &http.Server{
-		Addr: s.addr,
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if grpcHandler.IsGrpcWebRequest(r) {
-				grpcHandler.ServeHTTP(w, r)
-				return
-			}
+	var httpHandler http.Handler
+	httpHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if grpcHandler.IsGrpcWebRequest(r) {
+			grpcHandler.ServeHTTP(w, r)
+			return
+		}
 
-			http.NotFound(w, r)
-		}),
+		http.NotFound(w, r)
+	})
+	httpHandler = cors.AllowAll().Handler(httpHandler)
+
+	server := &http.Server{
+		Addr:    s.addr,
+		Handler: httpHandler,
 	}
 
 	startErrC := make(chan error, 1)

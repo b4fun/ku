@@ -20,4 +20,6 @@ type CreateSessionOpts struct {
 
 type Provider interface {
 	CreateSession(ctx context.Context, opts *CreateSessionOpts) (string, Session, error)
+
+	ListSessionIDs(ctx context.Context) ([]string, error)
 }
