@@ -22,7 +22,7 @@ message TableQuery {
   repeated string order_by_clauses = 4;
 }
 
-message TableKeyVaule {
+message TableKeyValue {
   // key - key of the table column.
   string key = 1;
   // value - value of the table column.
@@ -36,5 +36,5 @@ message TableKey {
 }
 
 message TableRow {
-  repeated TableKeyVaule columns = 1;
+  repeated TableKeyValue columns = 1;
 }

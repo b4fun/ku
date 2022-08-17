@@ -54,9 +54,9 @@ export interface TableQuery {
     orderByClauses: string[];
 }
 /**
- * @generated from protobuf message api.v1.TableKeyVaule
+ * @generated from protobuf message api.v1.TableKeyValue
  */
-export interface TableKeyVaule {
+export interface TableKeyValue {
     /**
      * key - key of the table column.
      *
@@ -86,9 +86,9 @@ export interface TableKey {
  */
 export interface TableRow {
     /**
-     * @generated from protobuf field: repeated api.v1.TableKeyVaule columns = 1;
+     * @generated from protobuf field: repeated api.v1.TableKeyValue columns = 1;
      */
-    columns: TableKeyVaule[];
+    columns: TableKeyValue[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Session$Type extends MessageType<Session> {
@@ -206,21 +206,21 @@ class TableQuery$Type extends MessageType<TableQuery> {
  */
 export const TableQuery = new TableQuery$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class TableKeyVaule$Type extends MessageType<TableKeyVaule> {
+class TableKeyValue$Type extends MessageType<TableKeyValue> {
     constructor() {
-        super("api.v1.TableKeyVaule", [
+        super("api.v1.TableKeyValue", [
             { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "value", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
-    create(value?: PartialMessage<TableKeyVaule>): TableKeyVaule {
+    create(value?: PartialMessage<TableKeyValue>): TableKeyValue {
         const message = { key: "", value: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<TableKeyVaule>(this, message, value);
+            reflectionMergePartial<TableKeyValue>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableKeyVaule): TableKeyVaule {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableKeyValue): TableKeyValue {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -242,7 +242,7 @@ class TableKeyVaule$Type extends MessageType<TableKeyVaule> {
         }
         return message;
     }
-    internalBinaryWrite(message: TableKeyVaule, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: TableKeyValue, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string key = 1; */
         if (message.key !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.key);
@@ -256,9 +256,9 @@ class TableKeyVaule$Type extends MessageType<TableKeyVaule> {
     }
 }
 /**
- * @generated MessageType for protobuf message api.v1.TableKeyVaule
+ * @generated MessageType for protobuf message api.v1.TableKeyValue
  */
-export const TableKeyVaule = new TableKeyVaule$Type();
+export const TableKeyValue = new TableKeyValue$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TableKey$Type extends MessageType<TableKey> {
     constructor() {
@@ -310,7 +310,7 @@ export const TableKey = new TableKey$Type();
 class TableRow$Type extends MessageType<TableRow> {
     constructor() {
         super("api.v1.TableRow", [
-            { no: 1, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableKeyVaule }
+            { no: 1, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableKeyValue }
         ]);
     }
     create(value?: PartialMessage<TableRow>): TableRow {
@@ -325,8 +325,8 @@ class TableRow$Type extends MessageType<TableRow> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated api.v1.TableKeyVaule columns */ 1:
-                    message.columns.push(TableKeyVaule.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated api.v1.TableKeyValue columns */ 1:
+                    message.columns.push(TableKeyValue.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -340,9 +340,9 @@ class TableRow$Type extends MessageType<TableRow> {
         return message;
     }
     internalBinaryWrite(message: TableRow, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated api.v1.TableKeyVaule columns = 1; */
+        /* repeated api.v1.TableKeyValue columns = 1; */
         for (let i = 0; i < message.columns.length; i++)
-            TableKeyVaule.internalBinaryWrite(message.columns[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            TableKeyValue.internalBinaryWrite(message.columns[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

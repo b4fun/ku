@@ -1,2 +1,2 @@
 export { APIServiceClient } from './service.client';
-export { Session } from './model';
+export { Session, TableQuery, TableKey, TableKeyValue, TableRow } from './model';

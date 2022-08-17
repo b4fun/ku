@@ -143,7 +143,7 @@ func (x *TableQuery) GetOrderByClauses() []string {
 	return nil
 }
 
-type TableKeyVaule struct {
+type TableKeyValue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -154,8 +154,8 @@ type TableKeyVaule struct {
 	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (x *TableKeyVaule) Reset() {
-	*x = TableKeyVaule{}
+func (x *TableKeyValue) Reset() {
+	*x = TableKeyValue{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_v1_model_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -163,13 +163,13 @@ func (x *TableKeyVaule) Reset() {
 	}
 }
 
-func (x *TableKeyVaule) String() string {
+func (x *TableKeyValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TableKeyVaule) ProtoMessage() {}
+func (*TableKeyValue) ProtoMessage() {}
 
-func (x *TableKeyVaule) ProtoReflect() protoreflect.Message {
+func (x *TableKeyValue) ProtoReflect() protoreflect.Message {
 	mi := &file_api_v1_model_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -181,19 +181,19 @@ func (x *TableKeyVaule) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TableKeyVaule.ProtoReflect.Descriptor instead.
-func (*TableKeyVaule) Descriptor() ([]byte, []int) {
+// Deprecated: Use TableKeyValue.ProtoReflect.Descriptor instead.
+func (*TableKeyValue) Descriptor() ([]byte, []int) {
 	return file_api_v1_model_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *TableKeyVaule) GetKey() string {
+func (x *TableKeyValue) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *TableKeyVaule) GetValue() []byte {
+func (x *TableKeyValue) GetValue() []byte {
 	if x != nil {
 		return x.Value
 	}
@@ -253,7 +253,7 @@ type TableRow struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Columns []*TableKeyVaule `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
+	Columns []*TableKeyValue `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
 }
 
 func (x *TableRow) Reset() {
@@ -288,7 +288,7 @@ func (*TableRow) Descriptor() ([]byte, []int) {
 	return file_api_v1_model_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *TableRow) GetColumns() []*TableKeyVaule {
+func (x *TableRow) GetColumns() []*TableKeyValue {
 	if x != nil {
 		return x.Columns
 	}
@@ -311,14 +311,14 @@ var file_api_v1_model_proto_rawDesc = []byte{
 	0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x73, 0x18,
 	0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0e, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x42, 0x79, 0x43, 0x6c,
 	0x61, 0x75, 0x73, 0x65, 0x73, 0x22, 0x37, 0x0a, 0x0d, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65,
-	0x79, 0x56, 0x61, 0x75, 0x6c, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
 	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1c,
 	0x0a, 0x08, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
 	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x3b, 0x0a, 0x08,
 	0x54, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x6f, 0x77, 0x12, 0x2f, 0x0a, 0x07, 0x63, 0x6f, 0x6c, 0x75,
 	0x6d, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61, 0x70, 0x69, 0x2e,
-	0x76, 0x31, 0x2e, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x56, 0x61, 0x75, 0x6c, 0x65,
+	0x76, 0x31, 0x2e, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65,
 	0x52, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x42, 0x08, 0x5a, 0x06, 0x61, 0x70, 0x69,
 	0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
@@ -339,12 +339,12 @@ var file_api_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_v1_model_proto_goTypes = []interface{}{
 	(*Session)(nil),       // 0: api.v1.Session
 	(*TableQuery)(nil),    // 1: api.v1.TableQuery
-	(*TableKeyVaule)(nil), // 2: api.v1.TableKeyVaule
+	(*TableKeyValue)(nil), // 2: api.v1.TableKeyValue
 	(*TableKey)(nil),      // 3: api.v1.TableKey
 	(*TableRow)(nil),      // 4: api.v1.TableRow
 }
 var file_api_v1_model_proto_depIdxs = []int32{
-	2, // 0: api.v1.TableRow.columns:type_name -> api.v1.TableKeyVaule
+	2, // 0: api.v1.TableRow.columns:type_name -> api.v1.TableKeyValue
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -383,7 +383,7 @@ func file_api_v1_model_proto_init() {
 			}
 		}
 		file_api_v1_model_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TableKeyVaule); i {
+			switch v := v.(*TableKeyValue); i {
 			case 0:
 				return &v.state
 			case 1:
