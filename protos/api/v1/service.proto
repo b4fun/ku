@@ -12,6 +12,16 @@ message ListSessionsResponse {
   repeated Session sessions = 1;
 }
 
+message QueryTableRequest {
+  TableQuery query = 1;
+}
+
+message QueryTableResponse {
+  repeated TableRow rows = 1;
+}
+
 service APIService {
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {}
+
+  rpc QueryTable(QueryTableRequest) returns (QueryTableResponse) {}
 }

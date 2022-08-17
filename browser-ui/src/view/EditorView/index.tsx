@@ -6,17 +6,39 @@ import KuLogo from "../../component/KuLogo";
 import createViewModel, { ViewModel } from "./model";
 import { grpcClient } from "../../client/api";
 
+function sessionTableName(sessionID: string) {
+  return `${sessionID}_raw`;
+}
+
 async function bootstrap(): Promise<ViewModel> {
   const resp = await grpcClient().listSessions({});
 
-  return {
-    sessions: resp.response.sessions,
+  const sessions = resp.response.sessions;
+
+  const rv: ViewModel = {
+    sessions,
     isLoading: false,
   };
+
+  if (sessions.length > 0) {
+    rv.selectedTableName = sessionTableName(sessions[0].id);
+  }
+
+  return rv;
 };
 
-function EditorNavBar(props: { viewModel: ViewModel }) {
-  const { viewModel } = props;
+interface EditorNavBarProps {
+  viewModel: ViewModel;
+  selectTable: (tableName: string) => void;
+}
+
+function EditorNavBar(props: EditorNavBarProps) {
+  const {
+    viewModel,
+    selectTable,
+  } = props;
+
+  const selectedTableName = viewModel.selectedTableName || 'source';
 
   let sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
   if (viewModel.isLoading) {
@@ -26,8 +48,11 @@ function EditorNavBar(props: { viewModel: ViewModel }) {
       return (
         <SessionNav.Link
           key={session.id}
-          active={idx === 0}
-          onClick={() => { console.log('here') }}
+          active={selectedTableName.startsWith(session.id)}
+          onClick={() => {
+            // TODO
+            selectTable(sessionTableName(session.id));
+          }}
         >
           <Text>{session.id}</Text>
         </SessionNav.Link>
@@ -58,6 +83,7 @@ function EditorNavBar(props: { viewModel: ViewModel }) {
 
 function EditorView() {
   const [viewModel, setViewModel] = useState(createViewModel());
+  const [isEditorLoading, setEditorLoading] = useState(true);
 
   useEffect(() => {
     bootstrap().
@@ -76,11 +102,26 @@ function EditorView() {
   return (
     <AppShell
       padding={0}
-      navbar={<EditorNavBar viewModel={viewModel} />}
+      navbar={<EditorNavBar
+        viewModel={viewModel}
+        selectTable={(tableName) => {
+          setViewModel({
+            ...viewModel,
+            selectedTableName: tableName,
+          });
+        }}
+      />}
       className='h-screen relative'
     >
-      <LoadingOverlay visible={viewModel.isLoading} />
-      <EditorPane className="h-screen" />
+      <LoadingOverlay
+        visible={viewModel.isLoading || isEditorLoading}
+        overlayOpacity={1}
+      />
+      <EditorPane
+        tableName={viewModel.selectedTableName || 'source'}
+        className="h-screen"
+        onLoad={(loaded) => { setEditorLoading(!loaded) }}
+      />
     </AppShell>
   )
 }

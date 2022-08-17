@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+
+	v1 "github.com/b4fun/ku/protos/api/v1"
 )
 
 type SQLQuery struct {
-	Table          string   `json:"table"`
-	Columns        []string `json:"columns"`
-	WhereClauses   []string `json:"whereClauses"`
-	OrderByClauses []string `json:"orderByClauses"`
+	*v1.TableQuery
 }
 
 func (q SQLQuery) CompileColumns() string {
@@ -43,6 +42,14 @@ type TableRow struct {
 
 type QueryRequest struct {
 	Query SQLQuery `json:"query"`
+}
+
+func NewQueryRequest(q *v1.TableQuery) *QueryRequest {
+	return &QueryRequest{
+		Query: SQLQuery{
+			TableQuery: q,
+		},
+	}
 }
 
 type QueryResponse struct {

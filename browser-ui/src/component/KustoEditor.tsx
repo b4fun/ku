@@ -1,8 +1,5 @@
-import Editor, { loader, Monaco, useMonaco } from '@monaco-editor/react';
-import { editor } from 'monaco-editor';
-import React, { useEffect, useRef, useState } from 'react';
-import { toSQL } from '@b4fun/kql';
-import * as api from '../client/api';
+import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
+import { useEffect, useState } from 'react';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -35,39 +32,27 @@ loader.init().then(() => {
   loadMonacoKusto();
 });
 
+export type OnLoad = (loaded: boolean) => void;
+export { type OnMount };
+
 export interface KustoEditorProps {
   height: number;
+  defaultValue?: string;
+
+  onLoad?: OnLoad;
+  onMount?: OnMount;
 }
 
 export default function KustoEditor(props: KustoEditorProps) {
-  const { height } = props;
+  const {
+    height,
+    defaultValue,
+    onMount,
+    onLoad,
+  } = props;
 
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
-  const editorRef = useRef<editor.IStandaloneCodeEditor>();
-
-  function getValue() {
-    const value = editorRef.current?.getValue();
-    if (!value) {
-      return;
-    }
-
-    console.log(toSQL(value));
-  }
-
-  function doQuery() {
-    const value = editorRef.current?.getValue();
-    if (!value) {
-      alert('no query');
-      return;
-    }
-
-    const query = toSQL(value);
-
-    api.query(query).then((result) => {
-      console.log(result);
-    })
-  }
 
   useEffect(() => {
     if (!monaco) {
@@ -77,8 +62,14 @@ export default function KustoEditor(props: KustoEditorProps) {
     monacoKustoInitPromise.then(() => setLoading(false));
   }, [monaco]);
 
+  useEffect(() => {
+    if (onLoad) {
+      onLoad(!loading);
+    }
+  }, [loading]);
+
   if (loading) {
-    return (<div>loading...</div>);
+    return (<></>);
   }
 
   return (
@@ -86,63 +77,9 @@ export default function KustoEditor(props: KustoEditorProps) {
       <Editor
         className='mt-1'
         language='kusto'
-        defaultValue={`
-source
-| where ts > ago(10h)
-        `.trim()}
-        onMount={(editor, monaco) => {
-          editorRef.current = editor;
-
-          setSchema(editor, monaco)
-            .then(() => {
-              console.log('schema set');
-            })
-            .catch((err) => {
-              console.error(err);
-            });
-        }}
+        defaultValue={defaultValue}
+        onMount={onMount}
       />
     </div>
   )
-}
-
-async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
-  const kusto = (monaco.languages as any).kusto as any;
-  const workerAccessor = await kusto.getKustoWorker();
-  const model = editor.getModel();
-  if (!model) {
-    throw new Error('no model');
-  }
-  const worker = await workerAccessor(model.uri);
-  console.log(worker);
-  worker.setSchemaFromShowSchema(
-    {
-      Plugins: [
-        { Name: 'pivot' },
-      ],
-      Databases: {
-        Ku: {
-          Name: 'Ku',
-          Tables: {
-            source: {
-              Name: 'source',
-              OrderedColumns: [
-                {
-                  Name: 'ts',
-                  CslType: 'datetime',
-                },
-                {
-                  Name: 'lines',
-                  CslType: 'string',
-                }
-              ],
-            },
-          },
-          Functions: {},
-        },
-      },
-    },
-    "https://demo.example.com",
-    "Ku",
-  );
 }

@@ -4,6 +4,7 @@ export interface ViewModel {
   sessions: Session[];
 
   isLoading: boolean;
+  selectedTableName?: string;
   loadError?: Error;
 }
 

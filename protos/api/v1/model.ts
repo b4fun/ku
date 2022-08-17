@@ -11,6 +11,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+// sessions -(many)-> tables
+
 /**
  * @generated from protobuf message api.v1.Session
  */
@@ -21,6 +23,72 @@ export interface Session {
      * @generated from protobuf field: string id = 1;
      */
     id: string;
+}
+/**
+ * @generated from protobuf message api.v1.TableQuery
+ */
+export interface TableQuery {
+    /**
+     * table - name of the table to query.
+     *
+     * @generated from protobuf field: string table = 1;
+     */
+    table: string;
+    /**
+     * columns - columns to return.
+     *
+     * @generated from protobuf field: repeated string columns = 2;
+     */
+    columns: string[];
+    /**
+     * where_clauses - where clause to filter results.
+     *
+     * @generated from protobuf field: repeated string where_clauses = 3;
+     */
+    whereClauses: string[];
+    /**
+     * order_by_clauses - order by clause.
+     *
+     * @generated from protobuf field: repeated string order_by_clauses = 4;
+     */
+    orderByClauses: string[];
+}
+/**
+ * @generated from protobuf message api.v1.TableKeyValue
+ */
+export interface TableKeyValue {
+    /**
+     * key - key of the table column.
+     *
+     * @generated from protobuf field: string key = 1;
+     */
+    key: string;
+    /**
+     * value - value of the table column.
+     *
+     * @generated from protobuf field: bytes value = 2;
+     */
+    value: Uint8Array;
+}
+/**
+ * @generated from protobuf message api.v1.TableKey
+ */
+export interface TableKey {
+    /**
+     * key - key of the table column.
+     *
+     * @generated from protobuf field: string key = 1;
+     */
+    key: string; // TODO: type
+}
+/**
+ * @generated from protobuf message api.v1.TableRow
+ */
+export interface TableRow {
+    /**
+     * @generated from protobuf field: repeated api.v1.TableKeyValue columns = 1;
+     */
+    columns: TableKeyValue[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Session$Type extends MessageType<Session> {
@@ -69,3 +137,219 @@ class Session$Type extends MessageType<Session> {
  * @generated MessageType for protobuf message api.v1.Session
  */
 export const Session = new Session$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TableQuery$Type extends MessageType<TableQuery> {
+    constructor() {
+        super("api.v1.TableQuery", [
+            { no: 1, name: "table", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "columns", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "where_clauses", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "order_by_clauses", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TableQuery>): TableQuery {
+        const message = { table: "", columns: [], whereClauses: [], orderByClauses: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TableQuery>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableQuery): TableQuery {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string table */ 1:
+                    message.table = reader.string();
+                    break;
+                case /* repeated string columns */ 2:
+                    message.columns.push(reader.string());
+                    break;
+                case /* repeated string where_clauses */ 3:
+                    message.whereClauses.push(reader.string());
+                    break;
+                case /* repeated string order_by_clauses */ 4:
+                    message.orderByClauses.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TableQuery, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string table = 1; */
+        if (message.table !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.table);
+        /* repeated string columns = 2; */
+        for (let i = 0; i < message.columns.length; i++)
+            writer.tag(2, WireType.LengthDelimited).string(message.columns[i]);
+        /* repeated string where_clauses = 3; */
+        for (let i = 0; i < message.whereClauses.length; i++)
+            writer.tag(3, WireType.LengthDelimited).string(message.whereClauses[i]);
+        /* repeated string order_by_clauses = 4; */
+        for (let i = 0; i < message.orderByClauses.length; i++)
+            writer.tag(4, WireType.LengthDelimited).string(message.orderByClauses[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.TableQuery
+ */
+export const TableQuery = new TableQuery$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TableKeyValue$Type extends MessageType<TableKeyValue> {
+    constructor() {
+        super("api.v1.TableKeyValue", [
+            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "value", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TableKeyValue>): TableKeyValue {
+        const message = { key: "", value: new Uint8Array(0) };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TableKeyValue>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableKeyValue): TableKeyValue {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string key */ 1:
+                    message.key = reader.string();
+                    break;
+                case /* bytes value */ 2:
+                    message.value = reader.bytes();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TableKeyValue, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string key = 1; */
+        if (message.key !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.key);
+        /* bytes value = 2; */
+        if (message.value.length)
+            writer.tag(2, WireType.LengthDelimited).bytes(message.value);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.TableKeyValue
+ */
+export const TableKeyValue = new TableKeyValue$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TableKey$Type extends MessageType<TableKey> {
+    constructor() {
+        super("api.v1.TableKey", [
+            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TableKey>): TableKey {
+        const message = { key: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TableKey>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableKey): TableKey {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string key */ 1:
+                    message.key = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TableKey, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string key = 1; */
+        if (message.key !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.key);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.TableKey
+ */
+export const TableKey = new TableKey$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TableRow$Type extends MessageType<TableRow> {
+    constructor() {
+        super("api.v1.TableRow", [
+            { no: 1, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableKeyValue }
+        ]);
+    }
+    create(value?: PartialMessage<TableRow>): TableRow {
+        const message = { columns: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TableRow>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableRow): TableRow {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated api.v1.TableKeyValue columns */ 1:
+                    message.columns.push(TableKeyValue.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TableRow, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated api.v1.TableKeyValue columns = 1; */
+        for (let i = 0; i < message.columns.length; i++)
+            TableKeyValue.internalBinaryWrite(message.columns[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.TableRow
+ */
+export const TableRow = new TableRow$Type();
