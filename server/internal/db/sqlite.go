@@ -36,12 +36,12 @@ CREATE TABLE IF NOT EXISTS %s (
 }
 
 // CreateSession book keeps a new session and returns its id.
-func (bk *sqliteSessionBookkeeper) CreateSession(ctx context.Context) (string, error) {
+func (bk *sqliteSessionBookkeeper) CreateSession(ctx context.Context, prefix string) (string, error) {
 	const insertStmtTmpl = `
 INSERT INTO %s (session_id) VALUES (?)
 `
 
-	sessionID := shortuuid.New()
+	sessionID := fmt.Sprintf("%s_%s", prefix, shortuuid.New())
 	if _, err := bk.db.ExecContext(
 		ctx,
 		fmt.Sprintf(insertStmtTmpl, bk.sessionTableName),
@@ -120,13 +120,17 @@ func (p *SqliteProvider) CreateSession(
 	ctx context.Context,
 	opts *CreateSessionOpts,
 ) (string, Session, error) {
-	sessionID, err := p.sessionBookkeeper.CreateSession(ctx)
+	if opts.Prefix == "" {
+		return "", nil, fmt.Errorf("prefix is required")
+	}
+
+	sessionID, err := p.sessionBookkeeper.CreateSession(ctx, opts.Prefix)
 	if err != nil {
 		return "", nil, fmt.Errorf("sqliteSessionBookkeeper create session: %w", err)
 	}
 
 	session := &SqliteSession{
-		TableName: fmt.Sprintf("%s_%s", opts.Prefix, sessionID),
+		TableName: sessionID,
 		db:        p.db,
 	}
 

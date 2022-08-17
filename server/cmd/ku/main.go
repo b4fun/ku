@@ -106,8 +106,9 @@ func createCmd() *cobra.Command {
 			go startAPIServer(queryService)
 
 			svcOpts := &svc.Options{
-				Logger:     logger,
-				DBProvider: dbProvider,
+				Logger:       logger,
+				DBProvider:   dbProvider,
+				QueryService: queryService,
 			}
 			apiServer, err := svc.New(svcOpts)
 			if err != nil {

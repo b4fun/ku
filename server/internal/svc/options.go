@@ -9,14 +9,18 @@ import (
 )
 
 type Options struct {
-	Logger     logr.Logger
-	HTTPAddr   string
-	DBProvider db.Provider
+	Logger       logr.Logger
+	HTTPAddr     string
+	DBProvider   db.Provider
+	QueryService base.QueryService
 }
 
 func (opts *Options) defaults() error {
 	if opts.DBProvider == nil {
 		return fmt.Errorf(".DBProvider is required")
+	}
+	if opts.QueryService == nil {
+		return fmt.Errorf(".QueryService is required")
 	}
 
 	if opts.Logger.GetSink() == nil {
@@ -36,8 +40,9 @@ func New(opts *Options) (base.Runnable, error) {
 	}
 
 	grpcServer := newGRPCServer(&grpcServerParams{
-		logger:     opts.Logger.WithName("grpc-server"),
-		dbProvider: opts.DBProvider,
+		logger:       opts.Logger.WithName("grpc-server"),
+		dbProvider:   opts.DBProvider,
+		queryService: opts.QueryService,
 	})
 	httpServer := newHTTPServer(&httpServerParams{
 		logger:     opts.Logger.WithName("http-server"),
