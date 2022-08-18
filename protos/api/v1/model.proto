@@ -9,6 +9,8 @@ option go_package = 'api/v1';
 message Session {
   // id - id of the session.
   string id = 1;
+  // tables - tables in the session.
+  repeated TableSchema tables = 2;
 }
 
 message TableQuery {
@@ -29,7 +31,11 @@ message TableKeyValue {
   bytes value = 2;
 }
 
-message TableKey {
+message TableRow {
+  repeated TableKeyValue columns = 1;
+}
+
+message TableColumn {
   enum Type {
     TYPE_UNSPECIFIED = 0;
     TYPE_BOOL = 1;
@@ -42,9 +48,21 @@ message TableKey {
 
   // key - key of the table column.
   string key = 1;
+  // type - type of the table column.
   Type type = 2;
 }
 
-message TableRow {
-  repeated TableKeyValue columns = 1;
+message TableSchema {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_RAW = 1;
+    TYPE_PARSED = 2;
+  }
+
+  // name - name of the table.
+  string name = 1;
+  // type - type of the table.
+  Type type = 2;
+  // columns - columns of the table.
+  repeated TableColumn columns = 3;
 }
