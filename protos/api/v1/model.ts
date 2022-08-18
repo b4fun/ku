@@ -79,7 +79,44 @@ export interface TableKey {
      *
      * @generated from protobuf field: string key = 1;
      */
-    key: string; // TODO: type
+    key: string;
+    /**
+     * @generated from protobuf field: api.v1.TableKey.Type type = 2;
+     */
+    type: TableKey_Type;
+}
+/**
+ * @generated from protobuf enum api.v1.TableKey.Type
+ */
+export enum TableKey_Type {
+    /**
+     * @generated from protobuf enum value: TYPE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: TYPE_BOOL = 1;
+     */
+    BOOL = 1,
+    /**
+     * @generated from protobuf enum value: TYPE_DATE_TIME = 2;
+     */
+    DATE_TIME = 2,
+    /**
+     * @generated from protobuf enum value: TYPE_INT64 = 3;
+     */
+    INT64 = 3,
+    /**
+     * @generated from protobuf enum value: TYPE_REAL = 4;
+     */
+    REAL = 4,
+    /**
+     * @generated from protobuf enum value: TYPE_STRING = 5;
+     */
+    STRING = 5,
+    /**
+     * @generated from protobuf enum value: TYPE_TIMESPAN = 6;
+     */
+    TIMESPAN = 6
 }
 /**
  * @generated from protobuf message api.v1.TableRow
@@ -263,11 +300,12 @@ export const TableKeyValue = new TableKeyValue$Type();
 class TableKey$Type extends MessageType<TableKey> {
     constructor() {
         super("api.v1.TableKey", [
-            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "enum", T: () => ["api.v1.TableKey.Type", TableKey_Type, "TYPE_"] }
         ]);
     }
     create(value?: PartialMessage<TableKey>): TableKey {
-        const message = { key: "" };
+        const message = { key: "", type: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TableKey>(this, message, value);
@@ -280,6 +318,9 @@ class TableKey$Type extends MessageType<TableKey> {
             switch (fieldNo) {
                 case /* string key */ 1:
                     message.key = reader.string();
+                    break;
+                case /* api.v1.TableKey.Type type */ 2:
+                    message.type = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -296,6 +337,9 @@ class TableKey$Type extends MessageType<TableKey> {
         /* string key = 1; */
         if (message.key !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.key);
+        /* api.v1.TableKey.Type type = 2; */
+        if (message.type !== 0)
+            writer.tag(2, WireType.Varint).int32(message.type);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

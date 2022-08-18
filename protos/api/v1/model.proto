@@ -30,9 +30,19 @@ message TableKeyValue {
 }
 
 message TableKey {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_BOOL = 1;
+    TYPE_DATE_TIME = 2;
+    TYPE_INT64 = 3;
+    TYPE_REAL = 4;
+    TYPE_STRING = 5;
+    TYPE_TIMESPAN = 6;
+  }
+
   // key - key of the table column.
   string key = 1;
-  // TODO: type
+  Type type = 2;
 }
 
 message TableRow {
