@@ -5,6 +5,7 @@ import EditorPane from "../../component/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import createViewModel, { ViewModel } from "./model";
 import { grpcClient } from "../../client/api";
+import { TableSchema } from "@b4fun/ku-protos";
 
 async function bootstrap(): Promise<ViewModel> {
   const resp = await grpcClient().listSessions({});
@@ -17,7 +18,7 @@ async function bootstrap(): Promise<ViewModel> {
   };
 
   if (sessions.length > 0) {
-    rv.selectedTableName = sessions[0].tables[0].name;
+    rv.selectedTable = sessions[0].tables[0];
   }
 
   return rv;
@@ -25,7 +26,7 @@ async function bootstrap(): Promise<ViewModel> {
 
 interface EditorNavBarProps {
   viewModel: ViewModel;
-  selectTable: (tableName: string) => void;
+  selectTable: (table: TableSchema) => void;
 }
 
 function EditorNavBar(props: EditorNavBarProps) {
@@ -34,7 +35,7 @@ function EditorNavBar(props: EditorNavBarProps) {
     selectTable,
   } = props;
 
-  const selectedTableName = viewModel.selectedTableName || 'source';
+  const selectedTableName = viewModel.selectedTable?.name || 'source';
 
   let sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
   if (viewModel.isLoading) {
@@ -47,7 +48,7 @@ function EditorNavBar(props: EditorNavBarProps) {
             key={table.name}
             active={selectedTableName === table.name}
             onClick={() => {
-              selectTable(table.name);
+              selectTable(table);
             }}
           >
             <Text>{table.name}</Text>
@@ -101,10 +102,10 @@ function EditorView() {
       padding={0}
       navbar={<EditorNavBar
         viewModel={viewModel}
-        selectTable={(tableName) => {
+        selectTable={(table) => {
           setViewModel({
             ...viewModel,
-            selectedTableName: tableName,
+            selectedTable: table,
           });
         }}
       />}
@@ -115,7 +116,7 @@ function EditorView() {
         overlayOpacity={1}
       />
       <EditorPane
-        tableName={viewModel.selectedTableName || 'source'}
+        tableName={viewModel.selectedTable?.name || 'source'}
         className="h-screen"
         onLoad={(loaded) => { setEditorLoading(!loaded) }}
       />

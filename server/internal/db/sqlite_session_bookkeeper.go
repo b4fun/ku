@@ -158,6 +158,8 @@ SELECT session_id, table_name, table_protos from %s
 			)
 			return nil, err
 		}
+		table.Name = dbEntry.TableName
+		table.SessionId = dbEntry.SessionID
 		tablesBySessionID[dbEntry.SessionID] = append(
 			tablesBySessionID[dbEntry.SessionID],
 			table,

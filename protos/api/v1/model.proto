@@ -65,4 +65,6 @@ message TableSchema {
   Type type = 2;
   // columns - columns of the table.
   repeated TableColumn columns = 3;
+  // session_id - the session id of the table.
+  string session_id = 4;
 }

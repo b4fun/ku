@@ -157,6 +157,12 @@ export interface TableSchema {
      * @generated from protobuf field: repeated api.v1.TableColumn columns = 3;
      */
     columns: TableColumn[];
+    /**
+     * session_id - the session id of the table.
+     *
+     * @generated from protobuf field: string session_id = 4;
+     */
+    sessionId: string;
 }
 /**
  * @generated from protobuf enum api.v1.TableSchema.Type
@@ -458,11 +464,12 @@ class TableSchema$Type extends MessageType<TableSchema> {
         super("api.v1.TableSchema", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "enum", T: () => ["api.v1.TableSchema.Type", TableSchema_Type, "TYPE_"] },
-            { no: 3, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn }
+            { no: 3, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn },
+            { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<TableSchema>): TableSchema {
-        const message = { name: "", type: 0, columns: [] };
+        const message = { name: "", type: 0, columns: [], sessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TableSchema>(this, message, value);
@@ -481,6 +488,9 @@ class TableSchema$Type extends MessageType<TableSchema> {
                     break;
                 case /* repeated api.v1.TableColumn columns */ 3:
                     message.columns.push(TableColumn.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string session_id */ 4:
+                    message.sessionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -503,6 +513,9 @@ class TableSchema$Type extends MessageType<TableSchema> {
         /* repeated api.v1.TableColumn columns = 3; */
         for (let i = 0; i < message.columns.length; i++)
             TableColumn.internalBinaryWrite(message.columns[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string session_id = 4; */
+        if (message.sessionId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
