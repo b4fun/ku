@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	v1 "github.com/b4fun/ku/protos/api/v1"
 	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
 )
@@ -15,17 +16,18 @@ type SqliteQueryService struct {
 
 var _ base.QueryService = (*SqliteQueryService)(nil)
 
-func newTableRow(vals map[string]interface{}) (*base.TableRow, error) {
-	rv := &base.TableRow{
-		Values: map[string]json.RawMessage{},
-	}
+func newTableRow(dbValues map[string]interface{}) (*v1.TableRow, error) {
+	rv := &v1.TableRow{}
 
-	for k, v := range vals {
+	for k, v := range dbValues {
 		vv, err := json.Marshal(v)
 		if err != nil {
 			return nil, fmt.Errorf("marshal value %q: %w", k, err)
 		}
-		rv.Values[k] = json.RawMessage(vv)
+		rv.Columns = append(rv.Columns, &v1.TableKeyValue{
+			Key:   k,
+			Value: vv,
+		})
 	}
 
 	return rv, nil
@@ -34,7 +36,7 @@ func newTableRow(vals map[string]interface{}) (*base.TableRow, error) {
 func (qs *SqliteQueryService) Query(
 	ctx context.Context,
 	req *base.QueryRequest,
-) (*base.QueryResponse, error) {
+) (*v1.QueryTableResponse, error) {
 	q := fmt.Sprintf(
 		"SELECT %s FROM %s",
 		req.Query.CompileColumns(),
@@ -55,17 +57,17 @@ func (qs *SqliteQueryService) Query(
 	}
 	defer rows.Close()
 
-	rv := &base.QueryResponse{}
+	rv := &v1.QueryTableResponse{}
 	for rows.Next() {
-		vals := map[string]interface{}{}
-		if err := rows.MapScan(vals); err != nil {
+		dbValues := map[string]interface{}{}
+		if err := rows.MapScan(dbValues); err != nil {
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
-		row, err := newTableRow(vals)
+		row, err := newTableRow(dbValues)
 		if err != nil {
 			return nil, fmt.Errorf("encode value: %w", err)
 		}
-		rv.Rows = append(rv.Rows, *row)
+		rv.Rows = append(rv.Rows, row)
 	}
 
 	return rv, nil
