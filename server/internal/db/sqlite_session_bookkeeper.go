@@ -47,6 +47,12 @@ CREATE TABLE IF NOT EXISTS %s (
 );
 `, bk.tableNameSessionTable),
 		},
+		{
+			TableName: bk.tableNameSessionTable,
+			DDL: fmt.Sprintf(`
+CREATE UNIQUE INDEX IF NOT EXISTS %s_session_id_table_name ON %s (session_id, table_name);
+`, bk.tableNameSessionTable, bk.tableNameSessionTable),
+		},
 	}
 	for _, ddl := range tableDDLs {
 		if _, err := bk.db.ExecContext(ctx, ddl.DDL); err != nil {
@@ -85,12 +91,15 @@ func (bk *sqliteSessionBookkeeper) CreateSessionTable(
 	schema *v1.TableSchema,
 ) error {
 	const insertStmtTmpl = `
-INSERT INTO %s (session_id, table_name, table_type) VALUES (?, ?, ?)
+INSERT INTO %s (session_id, table_name, table_type)
+VALUES (?, ?, ?)
+ON CONFLICT(session_id, table_name)
+DO UPDATE SET table_type = excluded.table_type
 `
 
 	if _, err := bk.db.ExecContext(
 		ctx,
-		insertStmtTmpl,
+		fmt.Sprintf(insertStmtTmpl, bk.tableNameSessionTable),
 		sessionID, schema.Name, schema.Type.Number(),
 	); err != nil {
 		return fmt.Errorf("insert table to session %q: %w", sessionID, err)

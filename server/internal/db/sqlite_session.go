@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	v1 "github.com/b4fun/ku/protos/api/v1"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -37,13 +38,35 @@ CREATE TABLE %s (
 	lines text
 );
 `
+	rawTableName := s.rawTableName()
 
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(dropTableTmpl, s.rawTableName())); err != nil {
-		return fmt.Errorf("failed to drop raw table: %w", err)
+	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(dropTableTmpl, rawTableName)); err != nil {
+		return fmt.Errorf("drop raw table %q: %w", rawTableName, err)
 	}
 
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(createTableTmpl, s.rawTableName())); err != nil {
-		return fmt.Errorf("failed to create raw table: %w", err)
+	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(createTableTmpl, rawTableName)); err != nil {
+		return fmt.Errorf("create raw table %q: %w", rawTableName, err)
+	}
+
+	if err := s.sessionBookkeeper.CreateSessionTable(
+		ctx,
+		s.sessionID,
+		&v1.TableSchema{
+			Name: rawTableName,
+			Type: v1.TableSchema_TYPE_RAW,
+			Columns: []*v1.TableColumn{
+				{
+					Key:  "ts",
+					Type: v1.TableColumn_TYPE_DATE_TIME,
+				},
+				{
+					Key:  "lines",
+					Type: v1.TableColumn_TYPE_STRING,
+				},
+			},
+		},
+	); err != nil {
+		return fmt.Errorf("bookkeep raw table %q: %w", rawTableName, err)
 	}
 
 	return nil
