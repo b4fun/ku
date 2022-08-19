@@ -7,6 +7,7 @@ import (
 	v1 "github.com/b4fun/ku/protos/api/v1"
 	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/shortuuid"
+	"google.golang.org/protobuf/proto"
 )
 
 type sqliteSessionBookkeeper struct {
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS %s (
 CREATE TABLE IF NOT EXISTS %s (
 	session_id text,
 	table_name text,
-	table_type integer
+	table_protos blob
 );
 `, bk.tableNameSessionTable),
 		},
@@ -91,16 +92,21 @@ func (bk *sqliteSessionBookkeeper) CreateSessionTable(
 	schema *v1.TableSchema,
 ) error {
 	const insertStmtTmpl = `
-INSERT INTO %s (session_id, table_name, table_type)
+INSERT INTO %s (session_id, table_name, table_protos)
 VALUES (?, ?, ?)
 ON CONFLICT(session_id, table_name)
-DO UPDATE SET table_type = excluded.table_type
+DO UPDATE SET table_protos = excluded.table_protos
 `
+
+	tableProtos, err := proto.Marshal(schema)
+	if err != nil {
+		return fmt.Errorf("encode table protos: %w", err)
+	}
 
 	if _, err := bk.db.ExecContext(
 		ctx,
 		fmt.Sprintf(insertStmtTmpl, bk.tableNameSessionTable),
-		sessionID, schema.Name, schema.Type.Number(),
+		sessionID, schema.Name, tableProtos,
 	); err != nil {
 		return fmt.Errorf("insert table to session %q: %w", sessionID, err)
 	}
@@ -108,21 +114,67 @@ DO UPDATE SET table_type = excluded.table_type
 	return nil
 }
 
-// ListSessionIDs lists all known session ids.
-func (bk *sqliteSessionBookkeeper) ListSessionIDs(
+type dbSessionTable struct {
+	SessionID   string `db:"session_id"`
+	TableName   string `db:"table_name"`
+	TableProtos []byte `db:"table_protos"`
+}
+
+// ListSessions lists all known sessions.
+func (bk *sqliteSessionBookkeeper) ListSessions(
 	ctx context.Context,
-) ([]string, error) {
-	const listQueryTmpl = `
+) ([]*v1.Session, error) {
+	const listSessionIDsQueryTmpl = `
 SELECT session_id from %s order by session_id asc
 `
-	var rv []string
-	err := bk.db.SelectContext(
+	var sessionIDs []string
+	if err := bk.db.SelectContext(
 		ctx,
-		&rv,
-		fmt.Sprintf(listQueryTmpl, bk.tableNameSession),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("query session ids: %w", err)
+		&sessionIDs,
+		fmt.Sprintf(listSessionIDsQueryTmpl, bk.tableNameSession),
+	); err != nil {
+		return nil, fmt.Errorf("list session ids: %w", err)
+	}
+
+	const listSessionTablesQueryTmpl = `
+SELECT session_id, table_name, table_protos from %s
+`
+	var sessionTables []dbSessionTable
+	if err := bk.db.SelectContext(
+		ctx,
+		&sessionTables,
+		fmt.Sprintf(listSessionTablesQueryTmpl, bk.tableNameSessionTable),
+	); err != nil {
+		return nil, fmt.Errorf("list session tables: %w", err)
+	}
+
+	tablesBySessionID := map[string][]*v1.TableSchema{}
+	for _, dbEntry := range sessionTables {
+		table := new(v1.TableSchema)
+		if err := proto.Unmarshal(dbEntry.TableProtos, table); err != nil {
+			err := fmt.Errorf(
+				"decode table protos for table %s/%s: %w",
+				dbEntry.SessionID, dbEntry.TableName, err,
+			)
+			return nil, err
+		}
+		tablesBySessionID[dbEntry.SessionID] = append(
+			tablesBySessionID[dbEntry.SessionID],
+			table,
+		)
+	}
+
+	rv := make([]*v1.Session, 0, len(sessionIDs))
+	for _, sessionID := range sessionIDs {
+		session := &v1.Session{
+			Id: sessionID,
+		}
+
+		if tables, ok := tablesBySessionID[sessionID]; ok {
+			session.Tables = tables
+		}
+
+		rv = append(rv, session)
 	}
 
 	return rv, nil

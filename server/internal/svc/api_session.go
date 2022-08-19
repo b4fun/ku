@@ -12,17 +12,12 @@ func (s *apiServer) ListSessions(
 	ctx context.Context,
 	req *v1.ListSessionsRequest,
 ) (*v1.ListSessionsResponse, error) {
-	sessionIDs, err := s.dbProvider.ListSessionIDs(ctx)
+	sessions, err := s.dbProvider.ListSessions(ctx)
 	if err != nil {
 		s.logger.Error(err, "dbProvider.ListSessionIDs")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	rv := &v1.ListSessionsResponse{}
-	for _, sessionID := range sessionIDs {
-		rv.Sessions = append(rv.Sessions, &v1.Session{
-			Id: sessionID,
-		})
-	}
+	rv := &v1.ListSessionsResponse{Sessions: sessions}
 	return rv, nil
 }

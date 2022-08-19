@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"time"
+
+	v1 "github.com/b4fun/ku/protos/api/v1"
 )
 
 type WriteLogLinePayload struct {
@@ -21,5 +23,5 @@ type CreateSessionOpts struct {
 type Provider interface {
 	CreateSession(ctx context.Context, opts *CreateSessionOpts) (string, Session, error)
 
-	ListSessionIDs(ctx context.Context) ([]string, error)
+	ListSessions(ctx context.Context) ([]*v1.Session, error)
 }
