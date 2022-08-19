@@ -1,14 +1,10 @@
 import { AppShell, LoadingOverlay, Navbar, Text } from "@mantine/core";
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
 import EditorPane from "../../component/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import createViewModel, { ViewModel } from "./model";
 import { grpcClient } from "../../client/api";
-
-function sessionTableName(sessionID: string) {
-  return `${sessionID}_raw`;
-}
 
 async function bootstrap(): Promise<ViewModel> {
   const resp = await grpcClient().listSessions({});
@@ -21,7 +17,7 @@ async function bootstrap(): Promise<ViewModel> {
   };
 
   if (sessions.length > 0) {
-    rv.selectedTableName = sessionTableName(sessions[0].id);
+    rv.selectedTableName = sessions[0].tables[0].name;
   }
 
   return rv;
@@ -44,19 +40,20 @@ function EditorNavBar(props: EditorNavBarProps) {
   if (viewModel.isLoading) {
 
   } else {
-    sessionItems = viewModel.sessions.map((session, idx) => {
-      return (
-        <SessionNav.Link
-          key={session.id}
-          active={selectedTableName.startsWith(session.id)}
-          onClick={() => {
-            // TODO
-            selectTable(sessionTableName(session.id));
-          }}
-        >
-          <Text>{session.id}</Text>
-        </SessionNav.Link>
-      );
+    viewModel.sessions.forEach(session => {
+      session.tables.forEach(table => {
+        sessionItems.push(
+          <SessionNav.Link
+            key={table.name}
+            active={selectedTableName === table.name}
+            onClick={() => {
+              selectTable(table.name);
+            }}
+          >
+            <Text>{table.name}</Text>
+          </SessionNav.Link>
+        );
+      })
     });
   }
 
