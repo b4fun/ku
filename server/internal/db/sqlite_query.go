@@ -2,12 +2,14 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"time"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
 	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type SqliteQueryService struct {
@@ -16,18 +18,39 @@ type SqliteQueryService struct {
 
 var _ base.QueryService = (*SqliteQueryService)(nil)
 
-func newTableRow(dbValues map[string]interface{}) (*v1.TableRow, error) {
+func newTableRow(
+	dbValues map[string]interface{},
+) (*v1.TableRow, error) {
 	rv := &v1.TableRow{}
 
 	for k, v := range dbValues {
-		vv, err := json.Marshal(v)
-		if err != nil {
-			return nil, fmt.Errorf("marshal value %q: %w", k, err)
+		colValue := &v1.TableKeyValue{
+			Key: k,
 		}
-		rv.Columns = append(rv.Columns, &v1.TableKeyValue{
-			Key:   k,
-			Value: vv,
-		})
+		// TODO(hbc): the type of the column value needs to be inferred from the table and query
+		if v != nil {
+			switch v := v.(type) {
+			case bool:
+				colValue.ValueBool = wrapperspb.Bool(v)
+			case int:
+				colValue.ValueInt64 = wrapperspb.Int64(int64(v))
+			case int32:
+				colValue.ValueInt64 = wrapperspb.Int64(int64(v))
+			case int64:
+				colValue.ValueInt64 = wrapperspb.Int64(v)
+			case float32:
+				colValue.ValueReal = wrapperspb.Double(float64(v))
+			case float64:
+				colValue.ValueReal = wrapperspb.Double(v)
+			case string:
+				colValue.ValueString = wrapperspb.String(v)
+			case time.Time:
+				colValue.ValueDateTime = timestamppb.New(v)
+			default:
+				return nil, fmt.Errorf("unsupported type for column %q: %T", k, v)
+			}
+		}
+		rv.Columns = append(rv.Columns, colValue)
 	}
 
 	return rv, nil
