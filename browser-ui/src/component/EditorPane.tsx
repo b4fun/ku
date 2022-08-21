@@ -7,7 +7,7 @@ import { Button } from "@mantine/core";
 import { IconPlayerPlay } from '@tabler/icons';
 import { editor } from "monaco-editor";
 import { Monaco } from "@monaco-editor/react";
-import { QueryTableResponse, TableColumn, TableColumn_Type, TableSchema } from "@b4fun/ku-protos";
+import { QueryTableResponse, TableColumn, TableColumn_Type, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { grpcClient } from "../client/api";
 import { toSQL } from "@b4fun/kql";
 import KustoResultTable, { newKustoResultTableViewModel, KustoResultTableViewModel } from "./KustoResultTable";
@@ -145,6 +145,8 @@ export default function EditorPane(props: EditorPaneProps) {
           data: [],
         };
 
+        const tableValueEncoder = new TableValueEncoder(table);
+
         const tableColumnsByKey: { [key: string]: TableColumn } = {}
         for (let tableColumn of table.columns) {
           result.columns.push({
@@ -156,44 +158,11 @@ export default function EditorPane(props: EditorPaneProps) {
         }
 
         result.data = resp.response.rows.map((row, idx) => {
-          return row.columns.reduce((acc, col) => {
-            const tableColumn = tableColumnsByKey[col.key];
+          const rowData = tableValueEncoder.encodeRow(row);
+          rowData.key = `${idx}`;
 
-            switch (tableColumn.type) {
-              case TableColumn_Type.BOOL:
-                return {
-                  ...acc,
-                  [tableColumn.key]: col.valueBool,
-                };
-              case TableColumn_Type.DATE_TIME:
-                return {
-                  ...acc,
-                  [tableColumn.key]: `${col.valueDateTime?.seconds}`,
-                };
-              case TableColumn_Type.INT64:
-                return {
-                  ...acc,
-                  [tableColumn.key]: col.valueInt64?.value.toString(),
-                };
-              case TableColumn_Type.REAL:
-                return {
-                  ...acc,
-                  [tableColumn.key]: col.valueReal?.value.toString(),
-                };
-              case TableColumn_Type.STRING:
-                return {
-                  ...acc,
-                  [tableColumn.key]: col.valueString?.value.toString(),
-                };
-              default:
-                console.log(`unsupported type: ${tableColumn.type}`);
-                return {
-                  ...acc,
-                  [tableColumn.key]: '<parse-failed>',
-                };
-            }
-          }, { key: `${idx}` });
-        })
+          return rowData;
+        });
 
         setRunQueryViewModel({
           ...runQueryViewModel,

@@ -12,3 +12,4 @@ export {
 
 } from './model';
 export { QueryTableResponse } from './service';
+export { TableValueEncoder } from './data'; 
