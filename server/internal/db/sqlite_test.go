@@ -7,7 +7,6 @@ import (
 	"time"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
-	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 )
@@ -73,12 +72,10 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.NotNil(tc, qs)
 
-		queryResp, err := qs.Query(ctx, &base.QueryRequest{
-			Query: base.SQLQuery{
-				TableQuery: &v1.TableQuery{
-					Table:   sqliteSession.rawTableName(),
-					Columns: []string{"lines"},
-				},
+		queryResp, err := qs.QueryTable(ctx, &QueryPayload{
+			Query: &v1.TableQuery{
+				Table:   sqliteSession.rawTableName(),
+				Columns: []string{"lines"},
 			},
 		})
 		require.NoError(tc, err)

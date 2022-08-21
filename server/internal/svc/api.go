@@ -2,7 +2,6 @@ package svc
 
 import (
 	v1 "github.com/b4fun/ku/protos/api/v1"
-	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
@@ -11,7 +10,7 @@ import (
 type apiServerParams struct {
 	logger       logr.Logger
 	dbProvider   db.Provider
-	queryService base.QueryService
+	queryService db.QueryService
 }
 
 func (p apiServerParams) createAndRegister(s *grpc.Server) {
@@ -29,5 +28,5 @@ type apiServer struct {
 
 	logger       logr.Logger
 	dbProvider   db.Provider
-	queryService base.QueryService
+	queryService db.QueryService
 }

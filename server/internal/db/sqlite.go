@@ -9,7 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
-	"github.com/b4fun/ku/server/internal/base"
 )
 
 type SqliteProvider struct {
@@ -79,7 +78,7 @@ func (p *SqliteProvider) ListSessions(ctx context.Context) ([]*v1.Session, error
 	return p.sessionBookkeeper.ListSessions(ctx)
 }
 
-func (p *SqliteProvider) CreateQueryService() (base.QueryService, error) {
+func (p *SqliteProvider) CreateQueryService() (QueryService, error) {
 	rv := &SqliteQueryService{db: p.db}
 
 	return rv, nil

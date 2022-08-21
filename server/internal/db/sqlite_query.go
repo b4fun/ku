@@ -6,7 +6,6 @@ import (
 	"time"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
-	"github.com/b4fun/ku/server/internal/base"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -16,7 +15,7 @@ type SqliteQueryService struct {
 	db *sqlx.DB
 }
 
-var _ base.QueryService = (*SqliteQueryService)(nil)
+var _ QueryService = (*SqliteQueryService)(nil)
 
 func newTableRow(
 	dbValues map[string]interface{},
@@ -56,21 +55,23 @@ func newTableRow(
 	return rv, nil
 }
 
-func (qs *SqliteQueryService) Query(
+func (qs *SqliteQueryService) QueryTable(
 	ctx context.Context,
-	req *base.QueryRequest,
+	payload *QueryPayload,
 ) (*v1.QueryTableResponse, error) {
+	qb := newQueryBuilder(payload)
+
 	q := fmt.Sprintf(
 		"SELECT %s FROM %s",
-		req.Query.CompileColumns(),
-		req.Query.Table,
+		qb.CompileColumns(),
+		qb.SourceTable(),
 	)
 
-	if whereClauses := req.Query.CompileWhereClauses(); whereClauses != "" {
+	if whereClauses := qb.CompileWhereClauses(); whereClauses != "" {
 		q = fmt.Sprintf("%s WHERE %s", q, whereClauses)
 	}
 
-	if orderByClauses := req.Query.CompileOrderByClauses(); orderByClauses != "" {
+	if orderByClauses := qb.CompileOrderByClauses(); orderByClauses != "" {
 		q = fmt.Sprintf("%s ORDER BY %s", q, orderByClauses)
 	}
 

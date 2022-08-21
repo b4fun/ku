@@ -1,7 +1,6 @@
 package svc
 
 import (
-	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
@@ -10,7 +9,7 @@ import (
 type grpcServerParams struct {
 	logger       logr.Logger
 	dbProvider   db.Provider
-	queryService base.QueryService
+	queryService db.QueryService
 }
 
 func newGRPCServer(params *grpcServerParams) *grpc.Server {

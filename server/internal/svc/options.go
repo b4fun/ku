@@ -12,7 +12,7 @@ type Options struct {
 	Logger       logr.Logger
 	HTTPAddr     string
 	DBProvider   db.Provider
-	QueryService base.QueryService
+	QueryService db.QueryService
 }
 
 func (opts *Options) defaults() error {
