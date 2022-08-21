@@ -1,3 +1,4 @@
+import { Skeleton } from '@mantine/core';
 import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 
@@ -7,7 +8,8 @@ const monacoKustoInitPromise = new Promise((resolve) => {
 });
 
 function loadMonacoKusto() {
-  console.log('loading');
+  console.log('loading kusto');
+
   const script = document.createElement('script');
   script.innerHTML = `require(['vs/language/kusto/monaco.contribution'], function() {
     console.log('loaded');
@@ -69,7 +71,9 @@ export default function KustoEditor(props: KustoEditorProps) {
   }, [loading]);
 
   if (loading) {
-    return (<></>);
+    return (
+      <Skeleton height={50} />
+    );
   }
 
   return (
