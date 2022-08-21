@@ -97,6 +97,7 @@ function EditorView() {
       })
   }, []);
 
+
   return (
     <AppShell
       padding={0}
@@ -115,11 +116,15 @@ function EditorView() {
         visible={viewModel.isLoading || isEditorLoading}
         overlayOpacity={1}
       />
-      <EditorPane
-        tableName={viewModel.selectedTable?.name || 'source'}
-        className="h-screen"
-        onLoad={(loaded) => { setEditorLoading(!loaded) }}
-      />
+      {viewModel.selectedTable ?
+        (<EditorPane
+          table={viewModel.selectedTable}
+          className="h-screen"
+          onLoad={(loaded) => { setEditorLoading(!loaded) }}
+        />)
+        :
+        (<></>)
+      }
     </AppShell>
   )
 }
