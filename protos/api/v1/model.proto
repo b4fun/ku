@@ -4,6 +4,10 @@ package api.v1;
 
 option go_package = 'api/v1';
 
+import "google/protobuf/duration.proto";  
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
 // sessions -(many)-> tables
 
 message Session {
@@ -27,8 +31,16 @@ message TableQuery {
 message TableKeyValue {
   // key - key of the table column.
   string key = 1;
-  // value - value of the table column.
-  bytes value = 2;
+
+  // value_* - value of the table column.
+  // We don't use oneof here to avoid tedious Go struct output
+
+  google.protobuf.BoolValue value_bool = 3;
+  google.protobuf.Timestamp value_date_time = 4;
+  google.protobuf.Int64Value value_int64 = 5;
+  google.protobuf.DoubleValue value_real = 6;
+  google.protobuf.StringValue value_string = 7;
+  google.protobuf.Duration value_duration = 8;
 }
 
 message TableRow {

@@ -11,6 +11,12 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Duration } from "../../google/protobuf/duration";
+import { StringValue } from "../../google/protobuf/wrappers";
+import { DoubleValue } from "../../google/protobuf/wrappers";
+import { Int64Value } from "../../google/protobuf/wrappers";
+import { Timestamp } from "../../google/protobuf/timestamp";
+import { BoolValue } from "../../google/protobuf/wrappers";
 // sessions -(many)-> tables
 
 /**
@@ -69,12 +75,33 @@ export interface TableKeyValue {
      * @generated from protobuf field: string key = 1;
      */
     key: string;
+    // value_* - value of the table column.
+    // We don't use oneof here to avoid tedious Go struct output
+
     /**
-     * value - value of the table column.
-     *
-     * @generated from protobuf field: bytes value = 2;
+     * @generated from protobuf field: google.protobuf.BoolValue value_bool = 3;
      */
-    value: Uint8Array;
+    valueBool?: BoolValue;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp value_date_time = 4;
+     */
+    valueDateTime?: Timestamp;
+    /**
+     * @generated from protobuf field: google.protobuf.Int64Value value_int64 = 5;
+     */
+    valueInt64?: Int64Value;
+    /**
+     * @generated from protobuf field: google.protobuf.DoubleValue value_real = 6;
+     */
+    valueReal?: DoubleValue;
+    /**
+     * @generated from protobuf field: google.protobuf.StringValue value_string = 7;
+     */
+    valueString?: StringValue;
+    /**
+     * @generated from protobuf field: google.protobuf.Duration value_duration = 8;
+     */
+    valueDuration?: Duration;
 }
 /**
  * @generated from protobuf message api.v1.TableRow
@@ -308,11 +335,16 @@ class TableKeyValue$Type extends MessageType<TableKeyValue> {
     constructor() {
         super("api.v1.TableKeyValue", [
             { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "value", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 3, name: "value_bool", kind: "message", T: () => BoolValue },
+            { no: 4, name: "value_date_time", kind: "message", T: () => Timestamp },
+            { no: 5, name: "value_int64", kind: "message", T: () => Int64Value },
+            { no: 6, name: "value_real", kind: "message", T: () => DoubleValue },
+            { no: 7, name: "value_string", kind: "message", T: () => StringValue },
+            { no: 8, name: "value_duration", kind: "message", T: () => Duration }
         ]);
     }
     create(value?: PartialMessage<TableKeyValue>): TableKeyValue {
-        const message = { key: "", value: new Uint8Array(0) };
+        const message = { key: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TableKeyValue>(this, message, value);
@@ -326,8 +358,23 @@ class TableKeyValue$Type extends MessageType<TableKeyValue> {
                 case /* string key */ 1:
                     message.key = reader.string();
                     break;
-                case /* bytes value */ 2:
-                    message.value = reader.bytes();
+                case /* google.protobuf.BoolValue value_bool */ 3:
+                    message.valueBool = BoolValue.internalBinaryRead(reader, reader.uint32(), options, message.valueBool);
+                    break;
+                case /* google.protobuf.Timestamp value_date_time */ 4:
+                    message.valueDateTime = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.valueDateTime);
+                    break;
+                case /* google.protobuf.Int64Value value_int64 */ 5:
+                    message.valueInt64 = Int64Value.internalBinaryRead(reader, reader.uint32(), options, message.valueInt64);
+                    break;
+                case /* google.protobuf.DoubleValue value_real */ 6:
+                    message.valueReal = DoubleValue.internalBinaryRead(reader, reader.uint32(), options, message.valueReal);
+                    break;
+                case /* google.protobuf.StringValue value_string */ 7:
+                    message.valueString = StringValue.internalBinaryRead(reader, reader.uint32(), options, message.valueString);
+                    break;
+                case /* google.protobuf.Duration value_duration */ 8:
+                    message.valueDuration = Duration.internalBinaryRead(reader, reader.uint32(), options, message.valueDuration);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -344,9 +391,24 @@ class TableKeyValue$Type extends MessageType<TableKeyValue> {
         /* string key = 1; */
         if (message.key !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.key);
-        /* bytes value = 2; */
-        if (message.value.length)
-            writer.tag(2, WireType.LengthDelimited).bytes(message.value);
+        /* google.protobuf.BoolValue value_bool = 3; */
+        if (message.valueBool)
+            BoolValue.internalBinaryWrite(message.valueBool, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp value_date_time = 4; */
+        if (message.valueDateTime)
+            Timestamp.internalBinaryWrite(message.valueDateTime, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Int64Value value_int64 = 5; */
+        if (message.valueInt64)
+            Int64Value.internalBinaryWrite(message.valueInt64, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.DoubleValue value_real = 6; */
+        if (message.valueReal)
+            DoubleValue.internalBinaryWrite(message.valueReal, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.StringValue value_string = 7; */
+        if (message.valueString)
+            StringValue.internalBinaryWrite(message.valueString, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Duration value_duration = 8; */
+        if (message.valueDuration)
+            Duration.internalBinaryWrite(message.valueDuration, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
