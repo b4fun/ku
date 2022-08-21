@@ -1,14 +1,11 @@
 import { AppShell, LoadingOverlay, Navbar, Text } from "@mantine/core";
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
 import EditorPane from "../../component/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import createViewModel, { ViewModel } from "./model";
 import { grpcClient } from "../../client/api";
-
-function sessionTableName(sessionID: string) {
-  return `${sessionID}_raw`;
-}
+import { TableSchema } from "@b4fun/ku-protos";
 
 async function bootstrap(): Promise<ViewModel> {
   const resp = await grpcClient().listSessions({});
@@ -21,7 +18,7 @@ async function bootstrap(): Promise<ViewModel> {
   };
 
   if (sessions.length > 0) {
-    rv.selectedTableName = sessionTableName(sessions[0].id);
+    rv.selectedTable = sessions[0].tables[0];
   }
 
   return rv;
@@ -29,7 +26,7 @@ async function bootstrap(): Promise<ViewModel> {
 
 interface EditorNavBarProps {
   viewModel: ViewModel;
-  selectTable: (tableName: string) => void;
+  selectTable: (table: TableSchema) => void;
 }
 
 function EditorNavBar(props: EditorNavBarProps) {
@@ -38,25 +35,26 @@ function EditorNavBar(props: EditorNavBarProps) {
     selectTable,
   } = props;
 
-  const selectedTableName = viewModel.selectedTableName || 'source';
+  const selectedTableName = viewModel.selectedTable?.name || 'source';
 
   let sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
   if (viewModel.isLoading) {
 
   } else {
-    sessionItems = viewModel.sessions.map((session, idx) => {
-      return (
-        <SessionNav.Link
-          key={session.id}
-          active={selectedTableName.startsWith(session.id)}
-          onClick={() => {
-            // TODO
-            selectTable(sessionTableName(session.id));
-          }}
-        >
-          <Text>{session.id}</Text>
-        </SessionNav.Link>
-      );
+    viewModel.sessions.forEach(session => {
+      session.tables.forEach(table => {
+        sessionItems.push(
+          <SessionNav.Link
+            key={table.name}
+            active={selectedTableName === table.name}
+            onClick={() => {
+              selectTable(table);
+            }}
+          >
+            <Text>{table.name}</Text>
+          </SessionNav.Link>
+        );
+      })
     });
   }
 
@@ -99,15 +97,16 @@ function EditorView() {
       })
   }, []);
 
+
   return (
     <AppShell
       padding={0}
       navbar={<EditorNavBar
         viewModel={viewModel}
-        selectTable={(tableName) => {
+        selectTable={(table) => {
           setViewModel({
             ...viewModel,
-            selectedTableName: tableName,
+            selectedTable: table,
           });
         }}
       />}
@@ -117,11 +116,15 @@ function EditorView() {
         visible={viewModel.isLoading || isEditorLoading}
         overlayOpacity={1}
       />
-      <EditorPane
-        tableName={viewModel.selectedTableName || 'source'}
-        className="h-screen"
-        onLoad={(loaded) => { setEditorLoading(!loaded) }}
-      />
+      {viewModel.selectedTable ?
+        (<EditorPane
+          table={viewModel.selectedTable}
+          className="h-screen"
+          onLoad={(loaded) => { setEditorLoading(!loaded) }}
+        />)
+        :
+        (<></>)
+      }
     </AppShell>
   )
 }

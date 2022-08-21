@@ -1,15 +1,16 @@
 import { Allotment } from "allotment";
 import classNames from "classnames";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import KustoEditor, { OnLoad, type OnMount } from "./KustoEditor";
 import "allotment/dist/style.css";
 import { Button } from "@mantine/core";
 import { IconPlayerPlay } from '@tabler/icons';
 import { editor } from "monaco-editor";
 import { Monaco } from "@monaco-editor/react";
-import { QueryTableResponse } from "@b4fun/ku-protos";
+import { QueryTableResponse, TableColumn, TableColumn_Type, TableSchema } from "@b4fun/ku-protos";
 import { grpcClient } from "../client/api";
 import { toSQL } from "@b4fun/kql";
+import KustoResultTable, { newKustoResultTableViewModel, KustoResultTableViewModel } from "./KustoResultTable";
 
 interface RunQueryViewModel {
   isRunning: boolean;
@@ -51,6 +52,7 @@ function EditorHeader(props: EditorHeaderProps) {
 
 interface EditorBodyProps {
   defaultValue: string;
+  resultViewModel: KustoResultTableViewModel;
 
   onLoad?: OnLoad;
   onMount: OnMount;
@@ -61,6 +63,7 @@ function EditorBody(props: EditorBodyProps) {
     onMount,
     onLoad,
     defaultValue,
+    resultViewModel,
   } = props;
 
   const [editorHeight, setEditorHeight] = React.useState(200);
@@ -78,14 +81,16 @@ function EditorBody(props: EditorBodyProps) {
           onMount={onMount}
           onLoad={onLoad}
         />
-        <div>foobar</div>
+        <div>
+          <KustoResultTable viewModel={resultViewModel} />
+        </div>
       </Allotment>
     </div>
   );
 }
 
 export interface EditorPaneProps {
-  tableName: string;
+  table: TableSchema;
   className?: string;
   onLoad?: OnLoad;
 }
@@ -97,10 +102,12 @@ source
 
 export default function EditorPane(props: EditorPaneProps) {
   const {
-    tableName,
+    table,
     className,
     onLoad,
   } = props;
+
+  const [resultViewModel, setResultViewModel] = useState<KustoResultTableViewModel>(newKustoResultTableViewModel);
 
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
 
@@ -126,7 +133,7 @@ export default function EditorPane(props: EditorPaneProps) {
       return;
     }
 
-    const query = toSQL(queryInput, { tableName });
+    const query = toSQL(queryInput, { tableName: table.name });
 
     setRunQueryViewModel({
       ...runQueryViewModel,
@@ -135,17 +142,66 @@ export default function EditorPane(props: EditorPaneProps) {
 
     grpcClient().queryTable({ query }).
       then((resp) => {
-        resp.response.rows.forEach(row => {
-          row.columns.forEach(col => {
-            console.log(col);
-          })
-          console.log('====');
+        const result: KustoResultTableViewModel = {
+          columns: [],
+          data: { nodes: [] },
+        };
+
+        const tableColumnsByKey: { [key: string]: TableColumn } = {}
+        for (let tableColumn of table.columns) {
+          result.columns.push({
+            label: tableColumn.key,
+            renderCell: (item) => item[tableColumn.key],
+          });
+          tableColumnsByKey[tableColumn.key] = tableColumn;
+        }
+
+        result.data.nodes = resp.response.rows.map((row, idx) => {
+          return row.columns.reduce((acc, col) => {
+            const tableColumn = tableColumnsByKey[col.key];
+
+            switch (tableColumn.type) {
+              case TableColumn_Type.BOOL:
+                return {
+                  ...acc,
+                  [tableColumn.key]: col.valueBool,
+                };
+              case TableColumn_Type.DATE_TIME:
+                return {
+                  ...acc,
+                  [tableColumn.key]: `${col.valueDateTime?.seconds}`,
+                };
+              case TableColumn_Type.INT64:
+                return {
+                  ...acc,
+                  [tableColumn.key]: col.valueInt64?.value.toString(),
+                };
+              case TableColumn_Type.REAL:
+                return {
+                  ...acc,
+                  [tableColumn.key]: col.valueReal?.value.toString(),
+                };
+              case TableColumn_Type.STRING:
+                return {
+                  ...acc,
+                  [tableColumn.key]: col.valueString?.value.toString(),
+                };
+              default:
+                console.log(`unsupported type: ${tableColumn.type}`);
+                return {
+                  ...acc,
+                  [tableColumn.key]: '<parse-failed>',
+                };
+            }
+          }, { id: `${idx}` });
         })
 
         setRunQueryViewModel({
           ...runQueryViewModel,
           isRunning: false,
         });
+
+        setResultViewModel(result);
       }).
       catch((err) => {
         console.error(err);
@@ -170,6 +226,7 @@ export default function EditorPane(props: EditorPaneProps) {
       />
       <EditorBody
         defaultValue={editorDefaultQuery}
+        resultViewModel={resultViewModel}
         onMount={mountEditor}
         onLoad={onLoad}
       />
