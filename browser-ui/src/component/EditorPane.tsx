@@ -70,7 +70,7 @@ function EditorBody(props: EditorBodyProps) {
 
   return (
     <div className="flex-1">
-      <Allotment className="w-full" vertical onChange={(sizes) => {
+      <Allotment className="w-full flex" vertical onChange={(sizes) => {
         if (sizes.length === 2) {
           setEditorHeight(sizes[0]);
         }
@@ -81,9 +81,7 @@ function EditorBody(props: EditorBodyProps) {
           onMount={onMount}
           onLoad={onLoad}
         />
-        <div>
-          <KustoResultTable viewModel={resultViewModel} />
-        </div>
+        <KustoResultTable viewModel={resultViewModel} />
       </Allotment>
     </div>
   );
@@ -144,19 +142,20 @@ export default function EditorPane(props: EditorPaneProps) {
       then((resp) => {
         const result: KustoResultTableViewModel = {
           columns: [],
-          data: { nodes: [] },
+          data: [],
         };
 
         const tableColumnsByKey: { [key: string]: TableColumn } = {}
         for (let tableColumn of table.columns) {
           result.columns.push({
-            label: tableColumn.key,
-            renderCell: (item) => item[tableColumn.key],
+            title: tableColumn.key,
+            dataIndex: tableColumn.key,
+            key: tableColumn.key,
           });
           tableColumnsByKey[tableColumn.key] = tableColumn;
         }
 
-        result.data.nodes = resp.response.rows.map((row, idx) => {
+        result.data = resp.response.rows.map((row, idx) => {
           return row.columns.reduce((acc, col) => {
             const tableColumn = tableColumnsByKey[col.key];
 
@@ -193,7 +192,7 @@ export default function EditorPane(props: EditorPaneProps) {
                   [tableColumn.key]: '<parse-failed>',
                 };
             }
-          }, { id: `${idx}` });
+          }, { key: `${idx}` });
         })
 
         setRunQueryViewModel({

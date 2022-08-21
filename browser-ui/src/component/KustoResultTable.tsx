@@ -1,20 +1,15 @@
-import { Data } from '@table-library/react-table-library';
-import { Column, CompactTable } from '@table-library/react-table-library/compact';
-import { useTheme } from '@table-library/react-table-library/theme';
-import {
-  DEFAULT_OPTIONS,
-  getTheme,
-} from '@table-library/react-table-library/mantine';
+import Table from 'rc-table';
+import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
 
 export interface KustoResultTableViewModel {
-  columns: Column[];
-  data: Data;
+  columns: ColumnType<DefaultRecordType>[];
+  data: DefaultRecordType[];
 }
 
 export function newKustoResultTableViewModel(): KustoResultTableViewModel {
   return {
     columns: [],
-    data: { nodes: [] },
+    data: [],
   };
 }
 
@@ -25,13 +20,9 @@ export interface KustoResultTableProps {
 export default function KustoResultTable(props: KustoResultTableProps) {
   const { viewModel } = props;
 
-  const mantineTheme = getTheme(DEFAULT_OPTIONS);
-  const theme = useTheme(mantineTheme);
-
   return (
-    <CompactTable
+    <Table
       columns={viewModel.columns}
       data={viewModel.data}
-      theme={theme}
     />);
 }
