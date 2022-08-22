@@ -29,3 +29,6 @@ vet: ## Run go vet against code.
 
 test: fmt vet ## Run unit tests
 	@go test -v ./...
+
+dev: ku
+	./bin/ku sh -c 'while true; do date; sleep 500; date; echo hello; done'
