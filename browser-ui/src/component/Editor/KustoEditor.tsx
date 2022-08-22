@@ -38,8 +38,7 @@ export type OnLoad = (loaded: boolean) => void;
 export { type OnMount };
 
 export interface KustoEditorProps {
-  height: number;
-  defaultValue?: string;
+  editorValue: string;
 
   onLoad?: OnLoad;
   onMount?: OnMount;
@@ -47,8 +46,7 @@ export interface KustoEditorProps {
 
 export default function KustoEditor(props: KustoEditorProps) {
   const {
-    height,
-    defaultValue,
+    editorValue,
     onMount,
     onLoad,
   } = props;
@@ -77,13 +75,11 @@ export default function KustoEditor(props: KustoEditorProps) {
   }
 
   return (
-    <div style={{ height }}>
-      <Editor
-        className='mt-1'
-        language='kusto'
-        defaultValue={defaultValue}
-        onMount={onMount}
-      />
-    </div>
+    <Editor
+      className='mt-1'
+      language='kusto'
+      defaultValue={editorValue}
+      onMount={onMount}
+    />
   )
 }

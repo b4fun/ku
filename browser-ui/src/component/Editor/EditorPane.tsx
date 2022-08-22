@@ -57,7 +57,7 @@ function EditorHeader(props: EditorHeaderProps) {
 }
 
 interface EditorBodyProps {
-  defaultValue: string;
+  editorValue: string;
   resultViewModel: ResultTableViewModel;
 
   onLoad?: OnLoad;
@@ -68,7 +68,7 @@ function EditorBody(props: EditorBodyProps) {
   const {
     onMount,
     onLoad,
-    defaultValue,
+    editorValue,
     resultViewModel,
   } = props;
 
@@ -81,12 +81,13 @@ function EditorBody(props: EditorBodyProps) {
           setEditorHeight(sizes[0]);
         }
       }}>
-        <KustoEditor
-          height={editorHeight}
-          defaultValue={defaultValue}
-          onMount={onMount}
-          onLoad={onLoad}
-        />
+        <div style={{ height: editorHeight }}>
+          <KustoEditor
+            editorValue={editorValue}
+            onMount={onMount}
+            onLoad={onLoad}
+          />
+        </div>
         <ResultTable viewModel={resultViewModel} />
       </Allotment>
     </div>
@@ -199,7 +200,7 @@ export default function EditorPane(props: EditorPaneProps) {
         onRunQuery={onRunQuery}
       />
       <EditorBody
-        defaultValue={editorDefaultQuery}
+        editorValue={editorDefaultQuery}
         resultViewModel={resultViewModel}
         onMount={mountEditor}
         onLoad={onLoad}
