@@ -8,9 +8,15 @@ import "allotment/dist/style.css";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
 import React, { useRef, useState } from "react";
+
 import { grpcClient } from "../../client/api";
 import KustoEditor, { OnLoad, type OnMount } from "./KustoEditor";
 import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./ResultTable";
+
+// TODO:
+// 1. merge view models & unify loading states
+// 2. decouple editor ref?
+// 3. move selected table to global state / atom
 
 interface RunQueryViewModel {
   isRunning: boolean;
