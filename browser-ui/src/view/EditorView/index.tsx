@@ -1,7 +1,7 @@
 import { AppShell, LoadingOverlay, Navbar, Text } from "@mantine/core";
 import React, { useEffect, useState } from 'react';
 import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
-import EditorPane from "../../component/EditorPane";
+import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import createViewModel, { ViewModel } from "./model";
 import { grpcClient } from "../../client/api";

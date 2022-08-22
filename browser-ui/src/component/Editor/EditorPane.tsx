@@ -8,9 +8,9 @@ import { IconPlayerPlay } from '@tabler/icons';
 import { editor } from "monaco-editor";
 import { Monaco } from "@monaco-editor/react";
 import { QueryTableResponse, TableColumn, TableColumn_Type, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
-import { grpcClient } from "../client/api";
+import { grpcClient } from "../../client/api";
 import { toSQL } from "@b4fun/kql";
-import KustoResultTable, { newKustoResultTableViewModel, KustoResultTableViewModel } from "./KustoResultTable";
+import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./ResultTable";
 
 interface RunQueryViewModel {
   isRunning: boolean;
@@ -52,7 +52,7 @@ function EditorHeader(props: EditorHeaderProps) {
 
 interface EditorBodyProps {
   defaultValue: string;
-  resultViewModel: KustoResultTableViewModel;
+  resultViewModel: ResultTableViewModel;
 
   onLoad?: OnLoad;
   onMount: OnMount;
@@ -81,7 +81,7 @@ function EditorBody(props: EditorBodyProps) {
           onMount={onMount}
           onLoad={onLoad}
         />
-        <KustoResultTable viewModel={resultViewModel} />
+        <ResultTable viewModel={resultViewModel} />
       </Allotment>
     </div>
   );
@@ -105,7 +105,7 @@ export default function EditorPane(props: EditorPaneProps) {
     onLoad,
   } = props;
 
-  const [resultViewModel, setResultViewModel] = useState<KustoResultTableViewModel>(newKustoResultTableViewModel);
+  const [resultViewModel, setResultViewModel] = useState<ResultTableViewModel>(newResultTableViewModel);
 
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
 
@@ -140,7 +140,7 @@ export default function EditorPane(props: EditorPaneProps) {
 
     grpcClient().queryTable({ query }).
       then((resp) => {
-        const result: KustoResultTableViewModel = {
+        const result: ResultTableViewModel = {
           columns: [],
           data: [],
         };

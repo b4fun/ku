@@ -1,23 +1,23 @@
 import Table from 'rc-table';
 import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
 
-export interface KustoResultTableViewModel {
+export interface ResultTableViewModel {
   columns: ColumnType<DefaultRecordType>[];
   data: DefaultRecordType[];
 }
 
-export function newKustoResultTableViewModel(): KustoResultTableViewModel {
+export function newResultTableViewModel(): ResultTableViewModel {
   return {
     columns: [],
     data: [],
   };
 }
 
-export interface KustoResultTableProps {
-  viewModel: KustoResultTableViewModel;
+export interface ResultTableProps {
+  viewModel: ResultTableViewModel;
 }
 
-export default function KustoResultTable(props: KustoResultTableProps) {
+export default function ResultTable(props: ResultTableProps) {
   const { viewModel } = props;
 
   return (
