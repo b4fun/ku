@@ -1,15 +1,15 @@
-import { Allotment } from "allotment";
-import classNames from "classnames";
-import React, { useRef, useState } from "react";
-import KustoEditor, { OnLoad, type OnMount } from "./KustoEditor";
-import "allotment/dist/style.css";
-import { Button } from "@mantine/core";
-import { IconPlayerPlay } from '@tabler/icons';
-import { editor } from "monaco-editor";
-import { Monaco } from "@monaco-editor/react";
-import { QueryTableResponse, TableColumn, TableColumn_Type, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
-import { grpcClient } from "../../client/api";
 import { toSQL } from "@b4fun/kql";
+import { QueryTableResponse, TableColumn, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
+import { Button } from "@mantine/core";
+import { Monaco } from "@monaco-editor/react";
+import { IconPlayerPlay } from '@tabler/icons';
+import { Allotment } from "allotment";
+import "allotment/dist/style.css";
+import classNames from "classnames";
+import { editor } from "monaco-editor";
+import React, { useRef, useState } from "react";
+import { grpcClient } from "../../client/api";
+import KustoEditor, { OnLoad, type OnMount } from "./KustoEditor";
 import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./ResultTable";
 
 interface RunQueryViewModel {
