@@ -1,6 +1,7 @@
 import { Skeleton } from '@mantine/core';
 import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
+import { withSetEditor } from '../../atom/editorAtom';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -12,7 +13,7 @@ function loadMonacoKusto() {
 
   const script = document.createElement('script');
   script.innerHTML = `require(['vs/language/kusto/monaco.contribution'], function() {
-    console.log('loaded');
+    console.log('kusto/monaco loaded');
     document.dispatchEvent(new Event('kusto_init'));
   });`;
   return document.body.appendChild(script);
@@ -34,25 +35,21 @@ loader.init().then(() => {
   loadMonacoKusto();
 });
 
-export type OnLoad = (loaded: boolean) => void;
 export { type OnMount };
 
 export interface KustoEditorProps {
   editorValue: string;
-
-  onLoad?: OnLoad;
-  onMount?: OnMount;
 }
 
 export default function KustoEditor(props: KustoEditorProps) {
   const {
     editorValue,
-    onMount,
-    onLoad,
   } = props;
 
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
+
+  const setEditor = withSetEditor();
 
   useEffect(() => {
     if (!monaco) {
@@ -61,12 +58,6 @@ export default function KustoEditor(props: KustoEditorProps) {
 
     monacoKustoInitPromise.then(() => setLoading(false));
   }, [monaco]);
-
-  useEffect(() => {
-    if (onLoad) {
-      onLoad(!loading);
-    }
-  }, [loading]);
 
   if (loading) {
     return (
@@ -79,7 +70,7 @@ export default function KustoEditor(props: KustoEditorProps) {
       className='mt-1'
       language='kusto'
       defaultValue={editorValue}
-      onMount={onMount}
+      onMount={setEditor}
     />
   )
 }

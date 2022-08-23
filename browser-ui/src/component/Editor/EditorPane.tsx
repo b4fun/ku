@@ -7,16 +7,15 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
-import React, { useRef, useState } from "react";
-
+import React, { useState } from "react";
+import { useLoadedEditor } from "../../atom/editorAtom";
 import { grpcClient } from "../../client/api";
-import KustoEditor, { OnLoad, type OnMount } from "./KustoEditor";
+import KustoEditor from "./KustoEditor";
 import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./ResultTable";
 
 // TODO:
 // 1. merge view models & unify loading states
-// 2. decouple editor ref?
-// 3. move selected table to global state / atom
+// 2. move selected table to global state / atom
 
 interface RunQueryViewModel {
   isRunning: boolean;
@@ -59,15 +58,10 @@ function EditorHeader(props: EditorHeaderProps) {
 interface EditorBodyProps {
   editorValue: string;
   resultViewModel: ResultTableViewModel;
-
-  onLoad?: OnLoad;
-  onMount: OnMount;
 }
 
 function EditorBody(props: EditorBodyProps) {
   const {
-    onMount,
-    onLoad,
     editorValue,
     resultViewModel,
   } = props;
@@ -84,8 +78,6 @@ function EditorBody(props: EditorBodyProps) {
         <div style={{ height: editorHeight }}>
           <KustoEditor
             editorValue={editorValue}
-            onMount={onMount}
-            onLoad={onLoad}
           />
         </div>
         <ResultTable viewModel={resultViewModel} />
@@ -97,7 +89,6 @@ function EditorBody(props: EditorBodyProps) {
 export interface EditorPaneProps {
   table: TableSchema;
   className?: string;
-  onLoad?: OnLoad;
 }
 
 const editorDefaultQuery = `
@@ -109,19 +100,15 @@ export default function EditorPane(props: EditorPaneProps) {
   const {
     table,
     className,
-    onLoad,
   } = props;
 
   const [resultViewModel, setResultViewModel] = useState<ResultTableViewModel>(newResultTableViewModel);
 
-  const editorRef = useRef<editor.IStandaloneCodeEditor>();
+  const [editorValue, editorLoaded] = useLoadedEditor();
 
-  const mountEditor = (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
-    console.log('editor loaded');
-
-    editorRef.current = editor;
-    setSchema(editor, monaco);
-  };
+  if (editorLoaded) {
+    setSchema(editorValue.editor, editorValue.monaco)
+  }
 
   const [runQueryViewModel, setRunQueryViewModel] = useState<RunQueryViewModel>({
     isRunning: false,
@@ -131,8 +118,11 @@ export default function EditorPane(props: EditorPaneProps) {
     if (runQueryViewModel.isRunning) {
       return;
     }
+    if (!editorLoaded) {
+      return;
+    }
 
-    const queryInput = editorRef.current?.getValue();
+    const queryInput = editorValue.editor.getValue();
     if (!queryInput) {
       console.log('no user input');
       return;
@@ -202,8 +192,6 @@ export default function EditorPane(props: EditorPaneProps) {
       <EditorBody
         editorValue={editorDefaultQuery}
         resultViewModel={resultViewModel}
-        onMount={mountEditor}
-        onLoad={onLoad}
       />
     </div>
   );

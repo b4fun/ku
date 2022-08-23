@@ -1,10 +1,14 @@
-import './App.css'
+import { Provider } from 'jotai';
+
+import './App.css';
 import EditorView from './view/EditorView';
 
 
 function App() {
   return (
-    <EditorView />
+    <Provider>
+      <EditorView />
+    </Provider>
   )
 }
 

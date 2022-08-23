@@ -1,11 +1,13 @@
+import { TableSchema } from "@b4fun/ku-protos";
 import { AppShell, LoadingOverlay, Navbar, Text } from "@mantine/core";
 import React, { useEffect, useState } from 'react';
-import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
+
+import { useEditorLoaded } from "../../atom/editorAtom";
+import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
+import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
 import createViewModel, { ViewModel } from "./model";
-import { grpcClient } from "../../client/api";
-import { TableSchema } from "@b4fun/ku-protos";
 
 async function bootstrap(): Promise<ViewModel> {
   const resp = await grpcClient().listSessions({});
@@ -81,7 +83,6 @@ function EditorNavBar(props: EditorNavBarProps) {
 
 function EditorView() {
   const [viewModel, setViewModel] = useState(createViewModel());
-  const [isEditorLoading, setEditorLoading] = useState(true);
 
   useEffect(() => {
     bootstrap().
@@ -97,6 +98,7 @@ function EditorView() {
       })
   }, []);
 
+  const isEditorLoading = !useEditorLoaded();
 
   return (
     <AppShell
@@ -120,7 +122,6 @@ function EditorView() {
         (<EditorPane
           table={viewModel.selectedTable}
           className="h-screen"
-          onLoad={(loaded) => { setEditorLoading(!loaded) }}
         />)
         :
         (<></>)
