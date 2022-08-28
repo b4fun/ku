@@ -18,7 +18,7 @@ type sqliteProviderTestContext struct {
 	dbProvider *SqliteProvider
 }
 
-func newSqliteProviderTestContext(t *testing.T) *sqliteProviderTestContext {
+func newSqliteProviderTestContext(t testing.TB) *sqliteProviderTestContext {
 	t.Helper()
 
 	tempDir := t.TempDir()

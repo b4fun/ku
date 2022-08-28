@@ -2,14 +2,30 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
+	"github.com/b4fun/ku/server/internal/db/dbext"
 )
+
+const sqliteDriverName = "ku_sqlite3"
+
+func init() {
+	sql.Register(sqliteDriverName, &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+			if err := dbext.RegisterParseModule(conn); err != nil {
+				return fmt.Errorf("RegisterParseModule: %w", err)
+			}
+
+			return nil
+		},
+	})
+}
 
 type SqliteProvider struct {
 	db *sqlx.DB
@@ -21,7 +37,7 @@ var _ Provider = (*SqliteProvider)(nil)
 
 // NewSqliteProvider creates a sqlite based provider.
 func NewSqliteProvider(dbPath string) (*SqliteProvider, error) {
-	db, err := sqlx.Open("sqlite3", dbPath)
+	db, err := sqlx.Open(sqliteDriverName, dbPath)
 	if err != nil {
 		return nil, err
 	}
