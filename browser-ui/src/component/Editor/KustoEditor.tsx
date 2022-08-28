@@ -1,7 +1,7 @@
 import { Skeleton } from '@mantine/core';
 import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
-import { withSetEditor } from '../../atom/editorAtom';
+import { useSetEditor } from '../../atom/editorAtom';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -49,7 +49,7 @@ export default function KustoEditor(props: KustoEditorProps) {
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
 
-  const setEditor = withSetEditor();
+  const setEditor = useSetEditor();
 
   useEffect(() => {
     if (!monaco) {

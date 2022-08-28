@@ -19,7 +19,7 @@ export const editorAtom = atom<EditorState>({
   loaded: false,
 });
 
-export function withSetEditor(): (editor: IStandaloneCodeEditor, monaco: Monaco) => void {
+export function useSetEditor(): (editor: IStandaloneCodeEditor, monaco: Monaco) => void {
   const [, setEditor] = useAtom(editorAtom);
 
   return (editor, monaco) => {
