@@ -1,54 +1,52 @@
-import { AppShell, LoadingOverlay, Navbar, Text } from "@mantine/core";
-import React, { useEffect, useState } from 'react';
-import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
-import EditorPane from "../../component/EditorPane";
-import KuLogo from "../../component/KuLogo";
-import createViewModel, { ViewModel } from "./model";
-import { grpcClient } from "../../client/api";
-import { TableSchema } from "@b4fun/ku-protos";
+import { Session } from "@b4fun/ku-protos";
+import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
+import React, { useEffect } from 'react';
 
-async function bootstrap(): Promise<ViewModel> {
+import { useEditorLoaded } from "../../atom/editorAtom";
+import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/tableAtom";
+import { grpcClient } from "../../client/api";
+import EditorPane from "../../component/Editor/EditorPane";
+import KuLogo from "../../component/KuLogo";
+import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
+import { useViewModelAction, ViewModel } from "./viewModel";
+
+async function bootstrap(): Promise<Session[]> {
   const resp = await grpcClient().listSessions({});
 
-  const sessions = resp.response.sessions;
-
-  const rv: ViewModel = {
-    sessions,
-    isLoading: false,
-  };
-
-  if (sessions.length > 0) {
-    rv.selectedTable = sessions[0].tables[0];
-  }
-
-  return rv;
+  return resp.response.sessions;
 };
 
 interface EditorNavBarProps {
   viewModel: ViewModel;
-  selectTable: (table: TableSchema) => void;
 }
 
 function EditorNavBar(props: EditorNavBarProps) {
   const {
     viewModel,
-    selectTable,
   } = props;
 
-  const selectedTableName = viewModel.selectedTable?.name || 'source';
+  const [selectedTable, hasSelected] = useSelectedTable();
+  const selectTable = useSelectTable();
 
-  let sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
-  if (viewModel.isLoading) {
-
+  let sessionNav: React.ReactNode;
+  if (viewModel.loading) {
+    sessionNav = (<Skeleton height={35} />);
   } else {
+    const sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
+
     viewModel.sessions.forEach(session => {
       session.tables.forEach(table => {
+        let isActive = false;
+        if (hasSelected && isSelectedTable(selectedTable, table)) {
+          isActive = true;
+        }
+
         sessionItems.push(
           <SessionNav.Link
             key={table.name}
-            active={selectedTableName === table.name}
+            active={isActive}
             onClick={() => {
-              selectTable(table);
+              selectTable(session, table);
             }}
           >
             <Text>{table.name}</Text>
@@ -56,6 +54,12 @@ function EditorNavBar(props: EditorNavBarProps) {
         );
       })
     });
+
+    sessionNav = (
+      <SessionNav>
+        {sessionItems}
+      </SessionNav>
+    );
   }
 
   return (
@@ -71,56 +75,55 @@ function EditorNavBar(props: EditorNavBarProps) {
         </div>
       </Navbar.Section>
       <Navbar.Section grow mt='md'>
-        <SessionNav>
-          {sessionItems}
-        </SessionNav>
+        {sessionNav}
       </Navbar.Section>
     </Navbar>
   );
 }
 
 function EditorView() {
-  const [viewModel, setViewModel] = useState(createViewModel());
-  const [isEditorLoading, setEditorLoading] = useState(true);
+  const viewModelAction = useViewModelAction();
+  const selectTable = useSelectTable();
 
   useEffect(() => {
+    viewModelAction.setLoading(true);
+
     bootstrap().
-      then(setViewModel).
+      then((sessions: Session[]) => {
+        viewModelAction.setSessions(sessions);
+
+        const firstAvailableSession = sessions.find(session => {
+          return session.tables.length > 0;
+        });
+        if (firstAvailableSession) {
+          selectTable(firstAvailableSession, firstAvailableSession.tables[0]);
+        }
+      }).
       catch((err) => {
         console.error(`bootstrap failed ${err}`);
-
-        setViewModel({
-          sessions: [],
-          isLoading: false,
-          loadError: err,
-        })
-      })
+        viewModelAction.setLoadErr(err);
+      });
   }, []);
 
+  const isEditorLoading = !useEditorLoaded();
+  const [selectedTable, tableSelected] = useSelectedTable();
 
   return (
     <AppShell
       padding={0}
       navbar={<EditorNavBar
-        viewModel={viewModel}
-        selectTable={(table) => {
-          setViewModel({
-            ...viewModel,
-            selectedTable: table,
-          });
-        }}
+        viewModel={viewModelAction.viewModel}
       />}
       className='h-screen relative'
     >
       <LoadingOverlay
-        visible={viewModel.isLoading || isEditorLoading}
+        visible={viewModelAction.viewModel.loading || isEditorLoading}
         overlayOpacity={1}
       />
-      {viewModel.selectedTable ?
+      {tableSelected ?
         (<EditorPane
-          table={viewModel.selectedTable}
+          table={selectedTable.table}
           className="h-screen"
-          onLoad={(loaded) => { setEditorLoading(!loaded) }}
         />)
         :
         (<></>)

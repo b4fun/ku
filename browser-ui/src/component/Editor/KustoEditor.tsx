@@ -1,5 +1,7 @@
+import { Skeleton } from '@mantine/core';
 import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
+import { useSetEditor } from '../../atom/editorAtom';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -7,10 +9,11 @@ const monacoKustoInitPromise = new Promise((resolve) => {
 });
 
 function loadMonacoKusto() {
-  console.log('loading');
+  console.log('loading kusto');
+
   const script = document.createElement('script');
   script.innerHTML = `require(['vs/language/kusto/monaco.contribution'], function() {
-    console.log('loaded');
+    console.log('kusto/monaco loaded');
     document.dispatchEvent(new Event('kusto_init'));
   });`;
   return document.body.appendChild(script);
@@ -32,27 +35,21 @@ loader.init().then(() => {
   loadMonacoKusto();
 });
 
-export type OnLoad = (loaded: boolean) => void;
 export { type OnMount };
 
 export interface KustoEditorProps {
-  height: number;
-  defaultValue?: string;
-
-  onLoad?: OnLoad;
-  onMount?: OnMount;
+  editorValue: string;
 }
 
 export default function KustoEditor(props: KustoEditorProps) {
   const {
-    height,
-    defaultValue,
-    onMount,
-    onLoad,
+    editorValue,
   } = props;
 
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
+
+  const setEditor = useSetEditor();
 
   useEffect(() => {
     if (!monaco) {
@@ -62,24 +59,18 @@ export default function KustoEditor(props: KustoEditorProps) {
     monacoKustoInitPromise.then(() => setLoading(false));
   }, [monaco]);
 
-  useEffect(() => {
-    if (onLoad) {
-      onLoad(!loading);
-    }
-  }, [loading]);
-
   if (loading) {
-    return (<></>);
+    return (
+      <Skeleton height={50} />
+    );
   }
 
   return (
-    <div style={{ height }}>
-      <Editor
-        className='mt-1'
-        language='kusto'
-        defaultValue={defaultValue}
-        onMount={onMount}
-      />
-    </div>
+    <Editor
+      className='mt-1'
+      language='kusto'
+      defaultValue={editorValue}
+      onMount={setEditor}
+    />
   )
 }
