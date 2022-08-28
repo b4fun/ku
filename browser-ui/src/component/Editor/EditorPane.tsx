@@ -15,7 +15,6 @@ import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./Re
 
 // TODO:
 // 1. merge view models & unify loading states
-// 2. move selected table to global state / atom
 
 interface RunQueryViewModel {
   isRunning: boolean;
