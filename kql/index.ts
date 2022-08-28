@@ -1,5 +1,6 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
+import { parsePatternsToRegex } from './parseExpressionHelper';
 import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
 export { SQLResult } from './QueryBuilder';
 
@@ -106,17 +107,7 @@ function visitParseOperator(
   qb: QueryInterface,
   v: Syntax.ParseOperator,
 ) {
-  /*
-  console.log(getSyntaxKindName(v.Expression.Kind));
-  console.log(toSQLString(v.Parameters));
-  console.log(toSQLString(v.Expression));
-  console.log(toSQLString(v.Patterns));
-  */
-  console.log(v.Patterns.ChildCount);
-  for (let idx = 0; idx < v.Patterns.ChildCount; idx++) {
-    const child = v.Patterns.GetChild(idx);
-    console.log(toSQLString(child), kustoHelper.getSyntaxKindName(child.Kind));
-  }
+  console.log(parsePatternsToRegex(v.Patterns));
 }
 
 function visit(
