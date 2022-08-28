@@ -1,5 +1,6 @@
+import { Session } from "@b4fun/ku-protos";
 import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/tableAtom";
@@ -7,19 +8,12 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
-import createViewModel, { ViewModel } from "./model";
+import { useViewModelAction, ViewModel } from "./viewModel";
 
-async function bootstrap(): Promise<ViewModel> {
+async function bootstrap(): Promise<Session[]> {
   const resp = await grpcClient().listSessions({});
 
-  const sessions = resp.response.sessions;
-
-  const rv: ViewModel = {
-    sessions,
-    isLoading: false,
-  };
-
-  return rv;
+  return resp.response.sessions;
 };
 
 interface EditorNavBarProps {
@@ -35,7 +29,7 @@ function EditorNavBar(props: EditorNavBarProps) {
   const selectTable = useSelectTable();
 
   let sessionNav: React.ReactNode;
-  if (viewModel.isLoading) {
+  if (viewModel.loading) {
     sessionNav = (<Skeleton height={35} />);
   } else {
     const sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
@@ -88,15 +82,17 @@ function EditorNavBar(props: EditorNavBarProps) {
 }
 
 function EditorView() {
-  const [viewModel, setViewModel] = useState(createViewModel());
+  const viewModelAction = useViewModelAction();
   const selectTable = useSelectTable();
 
   useEffect(() => {
-    bootstrap().
-      then((viewModel: ViewModel) => {
-        setViewModel(viewModel);
+    viewModelAction.setLoading(true);
 
-        const firstAvailableSession = viewModel.sessions.find(session => {
+    bootstrap().
+      then((sessions: Session[]) => {
+        viewModelAction.setSessions(sessions);
+
+        const firstAvailableSession = sessions.find(session => {
           return session.tables.length > 0;
         });
         if (firstAvailableSession) {
@@ -105,13 +101,8 @@ function EditorView() {
       }).
       catch((err) => {
         console.error(`bootstrap failed ${err}`);
-
-        setViewModel({
-          sessions: [],
-          isLoading: false,
-          loadError: err,
-        })
-      })
+        viewModelAction.setLoadErr(err);
+      });
   }, []);
 
   const isEditorLoading = !useEditorLoaded();
@@ -121,12 +112,12 @@ function EditorView() {
     <AppShell
       padding={0}
       navbar={<EditorNavBar
-        viewModel={viewModel}
+        viewModel={viewModelAction.viewModel}
       />}
       className='h-screen relative'
     >
       <LoadingOverlay
-        visible={viewModel.isLoading || isEditorLoading}
+        visible={viewModelAction.viewModel.loading || isEditorLoading}
         overlayOpacity={1}
       />
       {tableSelected ?

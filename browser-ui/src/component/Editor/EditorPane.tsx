@@ -1,5 +1,5 @@
 import { toSQL } from "@b4fun/kql";
-import { QueryTableResponse, TableColumn, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
+import { TableColumn, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
 import { Monaco } from "@monaco-editor/react";
 import { IconPlayerPlay } from '@tabler/icons';
@@ -7,19 +7,12 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
-import React, { useState } from "react";
+import React from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
 import { grpcClient } from "../../client/api";
 import KustoEditor from "./KustoEditor";
-import ResultTable, { newResultTableViewModel, ResultTableViewModel } from "./ResultTable";
-
-// TODO:
-// 1. merge view models & unify loading states
-
-interface RunQueryViewModel {
-  isRunning: boolean;
-  response?: QueryTableResponse;
-}
+import ResultTable from "./ResultTable";
+import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRunQueryAction } from "./viewModel";
 
 interface EditorHeaderProps {
   runQueryViewModel: RunQueryViewModel;
@@ -45,7 +38,7 @@ function EditorHeader(props: EditorHeaderProps) {
         variant="default"
         size='xs'
         leftIcon={<IconPlayerPlay size={12} />}
-        disabled={runQueryViewModel.isRunning}
+        disabled={runQueryViewModel.requesting}
         onClick={onRunQuery}
       >
         Run
@@ -101,7 +94,7 @@ export default function EditorPane(props: EditorPaneProps) {
     className,
   } = props;
 
-  const [resultViewModel, setResultViewModel] = useState<ResultTableViewModel>(newResultTableViewModel);
+  const [resultViewModel, setResultViewModel] = useResultTableViewModel();
 
   const [editorValue, editorLoaded] = useLoadedEditor();
 
@@ -109,12 +102,10 @@ export default function EditorPane(props: EditorPaneProps) {
     setSchema(editorValue.editor, editorValue.monaco)
   }
 
-  const [runQueryViewModel, setRunQueryViewModel] = useState<RunQueryViewModel>({
-    isRunning: false,
-  });
+  const runQueryAction = useRunQueryAction();
 
   const onRunQuery = () => {
-    if (runQueryViewModel.isRunning) {
+    if (runQueryAction.viewModel.requesting) {
       return;
     }
     if (!editorLoaded) {
@@ -129,10 +120,7 @@ export default function EditorPane(props: EditorPaneProps) {
 
     const query = toSQL(queryInput, { tableName: table.name });
 
-    setRunQueryViewModel({
-      ...runQueryViewModel,
-      isRunning: true,
-    })
+    runQueryAction.setRequesting(true);
 
     grpcClient().queryTable({ query }).
       then((resp) => {
@@ -160,20 +148,14 @@ export default function EditorPane(props: EditorPaneProps) {
           return rowData;
         });
 
-        setRunQueryViewModel({
-          ...runQueryViewModel,
-          isRunning: false,
-        });
+        runQueryAction.setResponse(resp.response);
 
         setResultViewModel(result);
       }).
       catch((err) => {
         console.error(err);
 
-        setRunQueryViewModel({
-          ...runQueryViewModel,
-          isRunning: false,
-        });
+        runQueryAction.setRequesting(false);
       });
   };
 
@@ -185,7 +167,7 @@ export default function EditorPane(props: EditorPaneProps) {
   return (
     <div className={cs}>
       <EditorHeader
-        runQueryViewModel={runQueryViewModel}
+        runQueryViewModel={runQueryAction.viewModel}
         onRunQuery={onRunQuery}
       />
       <EditorBody
