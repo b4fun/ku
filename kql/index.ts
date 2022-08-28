@@ -28,6 +28,7 @@ function visitBinaryExpression(
 
   const raw = `${left} ${op} ${right}`;
   qb.andWhereRaw(raw);
+  qb.qb.whereRaw(raw);
 }
 
 function visitContainsExpression(
@@ -44,10 +45,12 @@ function visitContainsExpression(
     case 'contains':
       raw = `${left} LIKE '%${right}%'`;
       qb.andWhereRaw(raw);
+      qb.qb.whereLike(left, `%${right}%`);
       break;
     case '!contains':
       raw = `${left} NOT LIKE '%${right}%'`;
       qb.andWhereRaw(raw);
+      qb.qb.not.whereLike(left, `%${right}%`);
       break
     case 'contains_cs':
       throw new Error(`contains_cs not implemented`);
@@ -92,6 +95,7 @@ function visitProjectOperator(
   v.Expressions?.WalkNodes((node) => {
     if (node.Kind === SyntaxKind.NameReference) {
       qb.select(toSQLString(node));
+      qb.qb.column(toSQLString(node));
     }
   });
 }
@@ -101,6 +105,7 @@ function visitSortOperator(
   v: Syntax.SortOperator,
 ) {
   qb.orderByRaw(toSQLString(v.Expressions!));
+  qb.qb.orderBy(toSQLString(v.Expressions!));
 }
 
 function visitParseOperator(
@@ -168,6 +173,7 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
   }
 
   const qb = new QueryBuilder().from(opts.tableName);
+  qb.qb.from(opts.tableName);
 
   visit(qb, parsedKQL.Syntax);
 

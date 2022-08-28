@@ -19,6 +19,8 @@ export default interface QueryInterface {
   andWhereRaw(raw: string): this;
   orderByRaw(raw: string): this;
   toSQL(): SQLResult;
+
+  qb: Knex.QueryBuilder;
 }
 
 export class QueryBuilder implements QueryInterface {
@@ -27,6 +29,7 @@ export class QueryBuilder implements QueryInterface {
   private _columns: string[] = [];
   private _whereClauses: string[] = [];
   private _orderByClauses: string[] = [];
+  private _qb: Knex.QueryBuilder = getQueryBuilder();
 
   from(table: string): this {
     this._table = table;
@@ -55,9 +58,7 @@ export class QueryBuilder implements QueryInterface {
   }
 
   toSQL(): SQLResult {
-    const qb = getQueryBuilder();
-    qb.select(this._columns).from(this._table);
-    console.log(qb.toString());
+    console.log(this._qb.toString());
 
     return {
       table: this._table,
@@ -65,6 +66,10 @@ export class QueryBuilder implements QueryInterface {
       whereClauses: this._whereClauses,
       orderByClauses: this._orderByClauses,
     };
+  }
+
+  get qb(): Knex.QueryBuilder {
+    return this._qb;
   }
 
 }
