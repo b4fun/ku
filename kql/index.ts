@@ -1,6 +1,6 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
-import { parsePatternsToRegex } from './parseExpressionHelper';
+import { parsePatternsToRe2 } from './parseExpressionHelper';
 import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
 export { SQLResult } from './QueryBuilder';
 
@@ -107,7 +107,7 @@ function visitParseOperator(
   qb: QueryInterface,
   v: Syntax.ParseOperator,
 ) {
-  console.log(parsePatternsToRegex(v.Patterns));
+  console.log(parsePatternsToRe2(v.Patterns));
 }
 
 function visit(
