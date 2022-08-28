@@ -1,3 +1,11 @@
+import { Knex } from 'knex';
+import * as Sqlite3Knex from 'knex/lib/dialects/sqlite3';
+
+export function getQueryBuilder(): Knex.QueryBuilder {
+  const client = new Sqlite3Knex({});
+  return client.queryBuilder();
+}
+
 export interface SQLResult {
   readonly table: string;
   readonly columns: string[];
@@ -47,6 +55,10 @@ export class QueryBuilder implements QueryInterface {
   }
 
   toSQL(): SQLResult {
+    const qb = getQueryBuilder();
+    qb.select(this._columns).from(this._table);
+    console.log(qb.toString());
+
     return {
       table: this._table,
       columns: this._columns,

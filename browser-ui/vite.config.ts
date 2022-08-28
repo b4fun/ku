@@ -1,18 +1,27 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      util: 'util',
+      events: 'events',
+      process: "process/browser",
+    },
+  },
   optimizeDeps: {
-    include: ['@b4fun/ku-client'],
+    esbuildOptions: {
+      target: 'es2020',
+    }
   },
   build: {
     commonjsOptions: {
       include: [
-        /client/,
         /node_modules/,
       ],
     },
+    target: 'es2020',
   },
 })
