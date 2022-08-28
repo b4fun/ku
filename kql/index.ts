@@ -1,46 +1,8 @@
-/// <reference path="../node_modules/@kusto/language-service-next/bridge.d.ts" />
-/// <reference path="../node_modules/@kusto/language-service-next/Kusto.Language.Bridge.d.ts" />
+import * as kustoHelper from './kustoHelper';
+import { Syntax, SyntaxKind } from './kustoHelper';
 import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
 export { SQLResult } from './QueryBuilder';
 
-if (typeof document === 'undefined') {
-  // non-browser environment, import the script
-  require('@kusto/language-service-next/bridge');
-  require('@kusto/language-service-next/Kusto.Language.Bridge');
-}
-
-import SyntaxKind = Kusto.Language.Syntax.SyntaxKind;
-import Syntax = Kusto.Language.Syntax;
-
-function getEnumKeyByEnumValue<
-  TEnumKey extends string,
-  TEnumVal extends string | number
->(myEnum: { [key in TEnumKey]: TEnumVal }, enumValue: TEnumVal): string {
-  const keys = (Object.keys(myEnum) as TEnumKey[]).filter(
-    (x) => myEnum[x] === enumValue,
-  );
-  return keys.length > 0 ? keys[0] : '';
-}
-
-function getSyntaxKindName(v: number): string {
-  return getEnumKeyByEnumValue(SyntaxKind, v);
-}
-
-function printElement(v: Syntax.SyntaxElement, indent: string) {
-  if (v.IsToken) {
-    const ps = [
-      indent + getSyntaxKindName(v.Kind),
-    ];
-
-    v.WalkTokens((token) => {
-      ps.push(`${token.Text}`);
-    });
-
-    console.log(ps.join(' '));
-  } else {
-    console.log(indent + getSyntaxKindName(v.Kind));
-  }
-}
 
 function toSQLString(v: Syntax.SyntaxElement): string {
   switch (v.Kind) {
@@ -48,21 +10,10 @@ function toSQLString(v: Syntax.SyntaxElement): string {
     case SyntaxKind.StringLiteralToken:
     case SyntaxKind.CompoundStringLiteralExpression:
       // string literals
-      return getTokenValue(v);
+      return kustoHelper.getTokenValue(v);
     default:
-      return v.ToString(Syntax.IncludeTrivia.Minimal) || '';
+      return kustoHelper.kqlToString(v);
   }
-}
-
-function getTokenValue(v: Syntax.SyntaxElement): string {
-  const values: string[] = [];
-  v.WalkTokens(t => {
-    if (t.ValueText) {
-      values.push(t.ValueText);
-    }
-  });
-
-  return values.join('');
 }
 
 function visitBinaryExpression(
@@ -129,7 +80,7 @@ function visitFilterOperator(
       visitContainsExpression(qb, v.Condition as Syntax.BinaryExpression);
       break
     default:
-      throw new Error(`unsupported condition type ${getSyntaxKindName(v.Condition.Kind)}`);
+      throw new Error(`unsupported condition type ${kustoHelper.getSyntaxKindName(v.Condition.Kind)}`);
   }
 }
 
@@ -151,6 +102,23 @@ function visitSortOperator(
   qb.orderByRaw(toSQLString(v.Expressions!));
 }
 
+function visitParseOperator(
+  qb: QueryInterface,
+  v: Syntax.ParseOperator,
+) {
+  /*
+  console.log(getSyntaxKindName(v.Expression.Kind));
+  console.log(toSQLString(v.Parameters));
+  console.log(toSQLString(v.Expression));
+  console.log(toSQLString(v.Patterns));
+  */
+  console.log(v.Patterns.ChildCount);
+  for (let idx = 0; idx < v.Patterns.ChildCount; idx++) {
+    const child = v.Patterns.GetChild(idx);
+    console.log(toSQLString(child), kustoHelper.getSyntaxKindName(child.Kind));
+  }
+}
+
 function visit(
   qb: QueryInterface,
   v: Syntax.SyntaxElement,
@@ -169,6 +137,9 @@ function visit(
       break;
     case SyntaxKind.SortOperator:
       visitSortOperator(qb, v as Syntax.SortOperator);
+      break;
+    case SyntaxKind.ParseOperator:
+      visitParseOperator(qb, v as Syntax.ParseOperator);
       break;
   }
 
