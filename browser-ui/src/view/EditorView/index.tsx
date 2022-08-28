@@ -64,7 +64,7 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   return (
     <Navbar
-      width={{ base: 180, lg: 300 }}
+      width={{ base: 180, lg: 360 }}
       height='100%'
     >
       <Navbar.Section>
