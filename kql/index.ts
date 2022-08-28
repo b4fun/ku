@@ -112,7 +112,15 @@ function visitParseOperator(
   qb: QueryInterface,
   v: Syntax.ParseOperator,
 ) {
-  console.log(parsePatternsToRe2(v.Patterns));
+  const parseTarget = parsePatternsToRe2(v.Patterns)
+  console.log(parseTarget);
+
+  parseTarget.virtualColumns.forEach(c => {
+    // TODO: extract JSON
+    qb.qb.column(`ku_parse(lines, "${parseTarget.regexpPattern}") as ${c}`);
+  });
+
+  qb.qbWith();
 }
 
 function visit(

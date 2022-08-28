@@ -1,21 +1,34 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 
+export interface ParseTarget {
+  readonly regexpPattern: string;
+  readonly virtualColumns: string[];
+}
+
+interface CaptureTarget {
+  readonly columnName: string;
+  readonly captureGroup: string;
+}
+
 // TODO: support other types (implement coercion)
 const primitiveTypeToPattern = {
   'string': '.*',
   'long': '\\d+',
 };
 
-function asRe2CaptureGroup(name: string, pattern: string): string {
-  return `(?P<${name.trim()}>${pattern.trim()})`;
+function asRe2CaptureGroup(name: string, pattern: string): CaptureTarget {
+  return {
+    columnName: name,
+    captureGroup: `(?P<${name.trim()}>${pattern.trim()})`,
+  };
 }
 
-function nameDeclarationToRegexPartial(node: Syntax.NameDeclaration, pattern?: string): string {
+function nameDeclarationToRegexPartial(node: Syntax.NameDeclaration, pattern?: string): CaptureTarget {
   return asRe2CaptureGroup(node.SimpleName, pattern ?? primitiveTypeToPattern['string']);
 }
 
-function nameAndTypeDeclarationToRegexPartial(node: Syntax.NameAndTypeDeclaration): string {
+function nameAndTypeDeclarationToRegexPartial(node: Syntax.NameAndTypeDeclaration): CaptureTarget {
   const primitiveTypeName = kustoHelper.kqlToString(node.Type);
 
   const pattern = primitiveTypeToPattern[primitiveTypeName];
@@ -29,8 +42,9 @@ function nameAndTypeDeclarationToRegexPartial(node: Syntax.NameAndTypeDeclaratio
 
 export function parsePatternsToRe2(
   patterns: Syntax.SyntaxList$1<Syntax.SyntaxNode>
-): string {
+): ParseTarget {
   const regexpPattern: string[] = [];
+  const virtualColumns: string[] = [];
 
   for (let idx = 0; idx < patterns.ChildCount; idx++) {
     const child = patterns.GetChild(idx);
@@ -44,10 +58,14 @@ export function parsePatternsToRe2(
         regexpPattern.push(kustoHelper.getTokenValue(child));
         break;
       case SyntaxKind.NameDeclaration:
-        regexpPattern.push(nameDeclarationToRegexPartial(child as Syntax.NameDeclaration));
+        const nameDeclarationCaptureGroup = nameDeclarationToRegexPartial(child as Syntax.NameDeclaration)
+        regexpPattern.push(nameDeclarationCaptureGroup.captureGroup);
+        virtualColumns.push(nameDeclarationCaptureGroup.columnName);
         break;
       case SyntaxKind.NameAndTypeDeclaration:
-        regexpPattern.push(nameAndTypeDeclarationToRegexPartial(child as Syntax.NameAndTypeDeclaration));
+        const nameAndTypeDeclarationCaptureGroup = nameAndTypeDeclarationToRegexPartial(child as Syntax.NameAndTypeDeclaration);
+        regexpPattern.push(nameAndTypeDeclarationCaptureGroup.captureGroup);
+        virtualColumns.push(nameAndTypeDeclarationCaptureGroup.columnName);
         break;
       default:
         const childKindName = kustoHelper.getSyntaxKindName(child.Kind);
@@ -56,5 +74,8 @@ export function parsePatternsToRe2(
     }
   }
 
-  return regexpPattern.join('');
+  return {
+    regexpPattern: regexpPattern.join(''),
+    virtualColumns,
+  };
 }

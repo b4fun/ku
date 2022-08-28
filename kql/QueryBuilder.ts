@@ -21,6 +21,7 @@ export default interface QueryInterface {
   toSQL(): SQLResult;
 
   qb: Knex.QueryBuilder;
+  qbWith(): Knex.QueryBuilder;
 }
 
 export class QueryBuilder implements QueryInterface {
@@ -70,6 +71,17 @@ export class QueryBuilder implements QueryInterface {
 
   get qb(): Knex.QueryBuilder {
     return this._qb;
+  }
+
+  qbWith(): Knex.QueryBuilder {
+    const qb = getQueryBuilder();
+
+    const previousQB = this._qb;
+    qb.with('q1', previousQB).from('q1');
+
+    this._qb = qb;
+
+    return qb;
   }
 
 }
