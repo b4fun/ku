@@ -142,6 +142,7 @@ export default function EditorPane(props: EditorPaneProps) {
           tableColumnsByKey[tableColumn.key] = tableColumn;
         }
 
+        console.log(resp.response);
         result.data = resp.response.rows.map((row, idx) => {
           const rowData = tableValueEncoder.encodeRow(row);
           rowData.key = `${idx}`;

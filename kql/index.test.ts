@@ -57,6 +57,15 @@ describe('toSQL', () => {
       `,
       `select * from source limit 10`,
     ],
+    [
+      `
+      source
+      | where lines contains 'foo'
+      | parse lines with * 'foo=' foo:long ' , bar=' bar
+      | project foo, bar
+      `,
+      `with q0 as (select *, json_extract(parse_field(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.foo') as foo, json_extract(parse_field(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.bar') as bar from source where lines like '%foo%') select foo, bar from q0`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 

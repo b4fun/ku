@@ -1,7 +1,7 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 import { parsePatternsToRe2 } from './parseExpressionHelper';
-import { getQueryBuilder, QueryInterface, SQLResult } from "./QueryBuilder";
+import { getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
 
 function toSQLString(v: Syntax.SyntaxElement): string {
   switch (v.Kind) {
@@ -16,6 +16,7 @@ function toSQLString(v: Syntax.SyntaxElement): string {
 }
 
 function visitBinaryExpression(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.BinaryExpression,
 ) {
@@ -29,6 +30,7 @@ function visitBinaryExpression(
 }
 
 function visitContainsExpression(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.BinaryExpression,
 ) {
@@ -38,10 +40,10 @@ function visitContainsExpression(
 
   switch (op) {
     case 'contains':
-      qb.whereLike(left, `%${right}%`);
+      qb.whereRaw(`${left} like '%${right}%'`);
       break;
     case '!contains':
-      qb.not.whereLike(left, `%${right}%`);
+      qb.whereRaw(`${left} not like '%${right}%'`);
       break
     case 'contains_cs':
       throw new Error(`contains_cs not implemented`);
@@ -51,6 +53,7 @@ function visitContainsExpression(
 }
 
 function visitFilterOperator(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.FilterOperator,
 ) {
@@ -66,13 +69,13 @@ function visitFilterOperator(
     case SyntaxKind.LessThanExpression:
     case SyntaxKind.LessThanOrEqualExpression:
     case SyntaxKind.NotEqualExpression:
-      visitBinaryExpression(qb, v.Condition as Syntax.BinaryExpression);
+      visitBinaryExpression(qc, qb, v.Condition as Syntax.BinaryExpression);
       break;
     case SyntaxKind.ContainsExpression:
     case SyntaxKind.ContainsCsExpression:
     case SyntaxKind.NotContainsExpression:
     case SyntaxKind.NotContainsCsExpression:
-      visitContainsExpression(qb, v.Condition as Syntax.BinaryExpression);
+      visitContainsExpression(qc, qb, v.Condition as Syntax.BinaryExpression);
       break
     default:
       throw new Error(`unsupported condition type ${kustoHelper.getSyntaxKindName(v.Condition.Kind)}`);
@@ -80,6 +83,7 @@ function visitFilterOperator(
 }
 
 function visitProjectOperator(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.ProjectOperator,
 ) {
@@ -91,6 +95,7 @@ function visitProjectOperator(
 }
 
 function visitSortOperator(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.SortOperator,
 ) {
@@ -98,6 +103,7 @@ function visitSortOperator(
 }
 
 function visitTakeOperator(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.TakeOperator,
 ) {
@@ -108,46 +114,56 @@ function visitTakeOperator(
 }
 
 function visitParseOperator(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.ParseOperator,
-) {
-  const parseTarget = parsePatternsToRe2(v.Patterns)
-  console.log(parseTarget);
+): QueryInterface {
+  const sourceColumn = toSQLString(v.Expression);
 
-  /*
-  parseTarget.virtualColumns.forEach(c => {
-    // TODO: extract JSON
-    qb.qb.column(`ku_parse(lines, "${parseTarget.regexpPattern}") as ${c}`);
+  const parseTarget = parsePatternsToRe2(v.Patterns);
+
+  const cteQuery = qb;
+  cteQuery.clearSelect().
+    select('*');
+  parseTarget.virtualColumns.forEach(virtualColumn => {
+    const kuParse = `ku_parse(${sourceColumn}, '${parseTarget.regexpPattern}')`;
+    const jsonExtract = `json_extract(${kuParse}, '$.${virtualColumn}')`;
+    cteQuery.select(`${jsonExtract} as ${virtualColumn}`);
   });
 
-  qb.qbWith();
-  */
+  const cteTableName = qc.acquireCTETableName();
+
+  qb = getQueryBuilder();
+  qb.with(cteTableName, raw(cteQuery.toQuery())).from(cteTableName);
+
+  return qb;
 }
 
 function visit(
+  qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.SyntaxElement,
   indent?: string,
-) {
+): QueryInterface {
   indent = indent || '';
 
   // printElement(v, indent);
 
   switch (v.Kind) {
     case SyntaxKind.FilterOperator:
-      visitFilterOperator(qb, v as Syntax.FilterOperator);
+      visitFilterOperator(qc, qb, v as Syntax.FilterOperator);
       break;
     case SyntaxKind.ProjectOperator:
-      visitProjectOperator(qb, v as Syntax.ProjectOperator);
+      visitProjectOperator(qc, qb, v as Syntax.ProjectOperator);
       break;
     case SyntaxKind.SortOperator:
-      visitSortOperator(qb, v as Syntax.SortOperator);
+      visitSortOperator(qc, qb, v as Syntax.SortOperator);
       break;
     case SyntaxKind.TakeOperator:
-      visitTakeOperator(qb, v as Syntax.TakeOperator);
+      visitTakeOperator(qc, qb, v as Syntax.TakeOperator);
       break;
     case SyntaxKind.ParseOperator:
-      visitParseOperator(qb, v as Syntax.ParseOperator);
+      qb = visitParseOperator(qc, qb, v as Syntax.ParseOperator);
       break;
   }
 
@@ -156,8 +172,10 @@ function visit(
     if (!child) {
       continue;
     }
-    visit(qb, child, indent + '.');
+    qb = visit(qc, qb, child, indent + '.');
   }
+
+  return qb;
 }
 
 const parseKQL = Kusto.Language.KustoCode.Parse;
@@ -184,9 +202,10 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
     throw new Error(`failed to parse input KQL`);
   }
 
+  const qc = new QueryContext();
   const qb = getQueryBuilder().from(opts.tableName);
 
-  visit(qb, parsedKQL.Syntax);
+  const compiledQB = visit(qc, qb, parsedKQL.Syntax);
 
-  return { sql: qb.toQuery() };
+  return { sql: compiledQB.toQuery() };
 }
