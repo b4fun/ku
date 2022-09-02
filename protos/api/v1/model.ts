@@ -37,35 +37,6 @@ export interface Session {
     tables: TableSchema[];
 }
 /**
- * @generated from protobuf message api.v1.TableQuery
- */
-export interface TableQuery {
-    /**
-     * table - name of the table to query.
-     *
-     * @generated from protobuf field: string table = 1;
-     */
-    table: string;
-    /**
-     * columns - columns to return.
-     *
-     * @generated from protobuf field: repeated string columns = 2;
-     */
-    columns: string[];
-    /**
-     * where_clauses - where clause to filter results.
-     *
-     * @generated from protobuf field: repeated string where_clauses = 3;
-     */
-    whereClauses: string[];
-    /**
-     * order_by_clauses - order by clause.
-     *
-     * @generated from protobuf field: repeated string order_by_clauses = 4;
-     */
-    orderByClauses: string[];
-}
-/**
  * @generated from protobuf message api.v1.TableKeyValue
  */
 export interface TableKeyValue {
@@ -262,74 +233,6 @@ class Session$Type extends MessageType<Session> {
  * @generated MessageType for protobuf message api.v1.Session
  */
 export const Session = new Session$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TableQuery$Type extends MessageType<TableQuery> {
-    constructor() {
-        super("api.v1.TableQuery", [
-            { no: 1, name: "table", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "columns", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "where_clauses", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "order_by_clauses", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TableQuery>): TableQuery {
-        const message = { table: "", columns: [], whereClauses: [], orderByClauses: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TableQuery>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TableQuery): TableQuery {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string table */ 1:
-                    message.table = reader.string();
-                    break;
-                case /* repeated string columns */ 2:
-                    message.columns.push(reader.string());
-                    break;
-                case /* repeated string where_clauses */ 3:
-                    message.whereClauses.push(reader.string());
-                    break;
-                case /* repeated string order_by_clauses */ 4:
-                    message.orderByClauses.push(reader.string());
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TableQuery, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string table = 1; */
-        if (message.table !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.table);
-        /* repeated string columns = 2; */
-        for (let i = 0; i < message.columns.length; i++)
-            writer.tag(2, WireType.LengthDelimited).string(message.columns[i]);
-        /* repeated string where_clauses = 3; */
-        for (let i = 0; i < message.whereClauses.length; i++)
-            writer.tag(3, WireType.LengthDelimited).string(message.whereClauses[i]);
-        /* repeated string order_by_clauses = 4; */
-        for (let i = 0; i < message.orderByClauses.length; i++)
-            writer.tag(4, WireType.LengthDelimited).string(message.orderByClauses[i]);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message api.v1.TableQuery
- */
-export const TableQuery = new TableQuery$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TableKeyValue$Type extends MessageType<TableKeyValue> {
     constructor() {

@@ -11,7 +11,8 @@ export interface SQLResult {
   readonly columns: string[];
   readonly whereClauses: string[];
   readonly orderByClauses: string[];
-  readonly sql?: string;
+
+  readonly sql: string;
 }
 
 export default interface QueryInterface {

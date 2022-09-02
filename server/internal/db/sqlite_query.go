@@ -57,23 +57,10 @@ func newTableRow(
 
 func (qs *SqliteQueryService) QueryTable(
 	ctx context.Context,
-	payload *QueryPayload,
+	payload *v1.QueryTableRequest,
 ) (*v1.QueryTableResponse, error) {
-	qb := newQueryBuilder(payload)
-
-	q := fmt.Sprintf(
-		"SELECT %s FROM %s",
-		qb.CompileColumns(),
-		qb.SourceTable(),
-	)
-
-	if whereClauses := qb.CompileWhereClauses(); whereClauses != "" {
-		q = fmt.Sprintf("%s WHERE %s", q, whereClauses)
-	}
-
-	if orderByClauses := qb.CompileOrderByClauses(); orderByClauses != "" {
-		q = fmt.Sprintf("%s ORDER BY %s", q, orderByClauses)
-	}
+	// TODO: we blindly trust the sql input here :)
+	q := payload.Sql
 
 	rows, err := qs.db.QueryxContext(ctx, q)
 	if err != nil {

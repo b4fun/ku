@@ -13,7 +13,6 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { TableRow } from "./model";
-import { TableQuery } from "./model";
 import { Session } from "./model";
 /**
  * @generated from protobuf message api.v1.ListSessionsRequest
@@ -34,9 +33,11 @@ export interface ListSessionsResponse {
  */
 export interface QueryTableRequest {
     /**
-     * @generated from protobuf field: api.v1.TableQuery query = 1;
+     * sql specifies the sql query to run
+     *
+     * @generated from protobuf field: string sql = 1;
      */
-    query?: TableQuery;
+    sql: string;
 }
 /**
  * @generated from protobuf message api.v1.QueryTableResponse
@@ -124,11 +125,11 @@ export const ListSessionsResponse = new ListSessionsResponse$Type();
 class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
     constructor() {
         super("api.v1.QueryTableRequest", [
-            { no: 1, name: "query", kind: "message", T: () => TableQuery }
+            { no: 1, name: "sql", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<QueryTableRequest>): QueryTableRequest {
-        const message = {};
+        const message = { sql: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<QueryTableRequest>(this, message, value);
@@ -139,8 +140,8 @@ class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* api.v1.TableQuery query */ 1:
-                    message.query = TableQuery.internalBinaryRead(reader, reader.uint32(), options, message.query);
+                case /* string sql */ 1:
+                    message.sql = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -154,9 +155,9 @@ class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
         return message;
     }
     internalBinaryWrite(message: QueryTableRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* api.v1.TableQuery query = 1; */
-        if (message.query)
-            TableQuery.internalBinaryWrite(message.query, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string sql = 1; */
+        if (message.sql !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sql);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -72,11 +72,8 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.NotNil(tc, qs)
 
-		queryResp, err := qs.QueryTable(ctx, &QueryPayload{
-			Query: &v1.TableQuery{
-				Table:   sqliteSession.rawTableName(),
-				Columns: []string{"lines"},
-			},
+		queryResp, err := qs.QueryTable(ctx, &v1.QueryTableRequest{
+			Sql: "select lines from " + sqliteSession.rawTableName(),
 		})
 		require.NoError(tc, err)
 		require.Len(tc, queryResp.Rows, 2)

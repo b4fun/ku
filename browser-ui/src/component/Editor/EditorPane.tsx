@@ -119,10 +119,11 @@ export default function EditorPane(props: EditorPaneProps) {
     }
 
     const query = toSQL(queryInput, { tableName: table.name });
+    console.log(`querying ${query.sql}`);
 
     runQueryAction.setRequesting(true);
 
-    grpcClient().queryTable({ query }).
+    grpcClient().queryTable({ sql: query.sql }).
       then((resp) => {
         const result: ResultTableViewModel = {
           columns: [],
