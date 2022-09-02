@@ -97,6 +97,16 @@ function visitSortOperator(
   qb.orderByRaw(toSQLString(v.Expressions!));
 }
 
+function visitTakeOperator(
+  qb: QueryInterface,
+  v: Syntax.TakeOperator,
+) {
+  const limitStr = toSQLString(v.Expression);
+  const limit = parseInt(limitStr, 10);
+
+  qb.limit(limit);
+}
+
 function visitParseOperator(
   qb: QueryInterface,
   v: Syntax.ParseOperator,
@@ -132,6 +142,9 @@ function visit(
       break;
     case SyntaxKind.SortOperator:
       visitSortOperator(qb, v as Syntax.SortOperator);
+      break;
+    case SyntaxKind.TakeOperator:
+      visitTakeOperator(qb, v as Syntax.TakeOperator);
       break;
     case SyntaxKind.ParseOperator:
       visitParseOperator(qb, v as Syntax.ParseOperator);

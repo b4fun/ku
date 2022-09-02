@@ -50,6 +50,13 @@ describe('toSQL', () => {
       //            before passing to the server: ago(5h) -> ago('5h')
       `select * from source where y > ago(5h)`,
     ],
+    [
+      `
+      source
+      | take 10
+      `,
+      `select * from source limit 10`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 
