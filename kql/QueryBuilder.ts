@@ -11,6 +11,7 @@ export interface SQLResult {
   readonly columns: string[];
   readonly whereClauses: string[];
   readonly orderByClauses: string[];
+  readonly sql?: string;
 }
 
 export default interface QueryInterface {
@@ -53,19 +54,20 @@ export class QueryBuilder implements QueryInterface {
   }
 
   orderByRaw(raw: string): this {
+    this._qb = this._qb.orderByRaw(raw);
+
     this._orderByClauses.push(raw);
 
     return this;
   }
 
   toSQL(): SQLResult {
-    console.log(this._qb.toString());
-
     return {
       table: this._table,
       columns: this._columns,
       whereClauses: this._whereClauses,
       orderByClauses: this._orderByClauses,
+      sql: this._qb.toString(),
     };
   }
 
