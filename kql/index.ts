@@ -1,9 +1,7 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 import { parsePatternsToRe2 } from './parseExpressionHelper';
-import QueryInterface, { QueryBuilder, SQLResult } from "./QueryBuilder";
-export { SQLResult } from './QueryBuilder';
-
+import { getQueryBuilder, QueryInterface, SQLResult } from "./QueryBuilder";
 
 function toSQLString(v: Syntax.SyntaxElement): string {
   switch (v.Kind) {
@@ -27,8 +25,7 @@ function visitBinaryExpression(
   const op = toSQLString(v.Operator!);
 
   const raw = `${left} ${op} ${right}`;
-  qb.andWhereRaw(raw);
-  qb.qb.whereRaw(raw);
+  qb.whereRaw(raw);
 }
 
 function visitContainsExpression(
@@ -39,18 +36,12 @@ function visitContainsExpression(
   const right = toSQLString(v.Right!);
   const op = toSQLString(v.Operator!).toLowerCase();
 
-  let raw: string;
-
   switch (op) {
     case 'contains':
-      raw = `${left} LIKE '%${right}%'`;
-      qb.andWhereRaw(raw);
-      qb.qb.whereLike(left, `%${right}%`);
+      qb.whereLike(left, `%${right}%`);
       break;
     case '!contains':
-      raw = `${left} NOT LIKE '%${right}%'`;
-      qb.andWhereRaw(raw);
-      qb.qb.not.whereLike(left, `%${right}%`);
+      qb.not.whereLike(left, `%${right}%`);
       break
     case 'contains_cs':
       throw new Error(`contains_cs not implemented`);
@@ -95,7 +86,6 @@ function visitProjectOperator(
   v.Expressions?.WalkNodes((node) => {
     if (node.Kind === SyntaxKind.NameReference) {
       qb.select(toSQLString(node));
-      qb.qb.column(toSQLString(node));
     }
   });
 }
@@ -105,7 +95,6 @@ function visitSortOperator(
   v: Syntax.SortOperator,
 ) {
   qb.orderByRaw(toSQLString(v.Expressions!));
-  qb.qb.orderBy(toSQLString(v.Expressions!));
 }
 
 function visitParseOperator(
@@ -115,12 +104,14 @@ function visitParseOperator(
   const parseTarget = parsePatternsToRe2(v.Patterns)
   console.log(parseTarget);
 
+  /*
   parseTarget.virtualColumns.forEach(c => {
     // TODO: extract JSON
     qb.qb.column(`ku_parse(lines, "${parseTarget.regexpPattern}") as ${c}`);
   });
 
   qb.qbWith();
+  */
 }
 
 function visit(
@@ -180,10 +171,9 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
     throw new Error(`failed to parse input KQL`);
   }
 
-  const qb = new QueryBuilder().from(opts.tableName);
-  qb.qb.from(opts.tableName);
+  const qb = getQueryBuilder().from(opts.tableName);
 
   visit(qb, parsedKQL.Syntax);
 
-  return qb.toSQL();
+  return { sql: qb.toQuery() };
 }
