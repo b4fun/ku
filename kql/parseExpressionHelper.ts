@@ -20,7 +20,8 @@ const primitiveTypeToPattern = {
 function asRe2CaptureGroup(name: string, pattern: string): CaptureTarget {
   return {
     columnName: name,
-    captureGroup: `(?P<${name.trim()}>${pattern.trim()})`,
+    // using \\\\? to escape the \?
+    captureGroup: `(\\\\?P<${name.trim()}>${pattern.trim()})`,
   };
 }
 

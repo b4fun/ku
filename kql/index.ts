@@ -40,10 +40,10 @@ function visitContainsExpression(
 
   switch (op) {
     case 'contains':
-      qb.whereRaw(`${left} like '%${right}%'`);
+      qb.whereLike(left, `%${right}%`);
       break;
     case '!contains':
-      qb.whereRaw(`${left} not like '%${right}%'`);
+      qb.not.whereLike(left, `%${right}%`);
       break
     case 'contains_cs':
       throw new Error(`contains_cs not implemented`);
@@ -127,8 +127,7 @@ function visitParseOperator(
     select('*');
   parseTarget.virtualColumns.forEach(virtualColumn => {
     const kuParse = `ku_parse(${sourceColumn}, '${parseTarget.regexpPattern}')`;
-    const jsonExtract = `json_extract(${kuParse}, '$.${virtualColumn}')`;
-    cteQuery.select(`${jsonExtract} as ${virtualColumn}`);
+    cteQuery.jsonExtract(kuParse, `$.${virtualColumn}`, virtualColumn);
   });
 
   const cteTableName = qc.acquireCTETableName();
