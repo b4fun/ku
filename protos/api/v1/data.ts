@@ -65,6 +65,10 @@ export class TableValueEncoder {
       case TableColumn_Type.TIMESPAN:
         this.computeIfNotNull(kv.valueDuration, v => rv[kv.key] = this.encodeDuration(v));
         return rv;
+      case TableColumn_Type.UNSPECIFIED:
+        // present as empty string
+        rv[rv.key] = '';
+        return rv;
       default:
         throw new Error(`unsupported column type: ${TableColumn_Type[colType]} (${colType})`);
     }

@@ -137,8 +137,8 @@ export default function EditorPane(props: EditorPaneProps) {
         }));
         const tableValueEncoder = new TableValueEncoder(resp.response.columns);
 
-        console.log(resp.response);
-        console.log(resp.response.columns);
+        console.log('rows', resp.response.rows);
+        console.log('columns', resp.response.columns);
         result.data = resp.response.rows.map((row, idx) => {
           const rowData = tableValueEncoder.encodeRow(row);
           rowData.key = `${idx}`;
