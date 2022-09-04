@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "moduleResolution": "node",
     "lib": [
-      "ESNext",
-      "dom"
-    ]
+      "dom",
+      "es2020",
+      "esnext",
+    ],
+    "target": "es2020"
   }
 }

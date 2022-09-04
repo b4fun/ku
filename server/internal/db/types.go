@@ -28,15 +28,9 @@ type Provider interface {
 	CreateQueryService() (QueryService, error)
 }
 
-type QueryPayload struct {
-	// TODO: table schema
-
-	Query *v1.TableQuery
-}
-
 type QueryService interface {
 	QueryTable(
 		ctx context.Context,
-		payload *QueryPayload,
+		payload *v1.QueryTableRequest,
 	) (*v1.QueryTableResponse, error)
 }

@@ -13,11 +13,13 @@ message ListSessionsResponse {
 }
 
 message QueryTableRequest {
-  TableQuery query = 1;
+  // sql specifies the sql query to run
+  string sql = 1;
 }
 
 message QueryTableResponse {
   repeated TableRow rows = 1;
+  repeated TableColumn columns = 2;
 }
 
 service APIService {

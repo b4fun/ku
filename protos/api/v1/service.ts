@@ -12,8 +12,8 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { TableColumn } from "./model";
 import { TableRow } from "./model";
-import { TableQuery } from "./model";
 import { Session } from "./model";
 /**
  * @generated from protobuf message api.v1.ListSessionsRequest
@@ -34,9 +34,11 @@ export interface ListSessionsResponse {
  */
 export interface QueryTableRequest {
     /**
-     * @generated from protobuf field: api.v1.TableQuery query = 1;
+     * sql specifies the sql query to run
+     *
+     * @generated from protobuf field: string sql = 1;
      */
-    query?: TableQuery;
+    sql: string;
 }
 /**
  * @generated from protobuf message api.v1.QueryTableResponse
@@ -46,6 +48,10 @@ export interface QueryTableResponse {
      * @generated from protobuf field: repeated api.v1.TableRow rows = 1;
      */
     rows: TableRow[];
+    /**
+     * @generated from protobuf field: repeated api.v1.TableColumn columns = 2;
+     */
+    columns: TableColumn[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ListSessionsRequest$Type extends MessageType<ListSessionsRequest> {
@@ -124,11 +130,11 @@ export const ListSessionsResponse = new ListSessionsResponse$Type();
 class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
     constructor() {
         super("api.v1.QueryTableRequest", [
-            { no: 1, name: "query", kind: "message", T: () => TableQuery }
+            { no: 1, name: "sql", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<QueryTableRequest>): QueryTableRequest {
-        const message = {};
+        const message = { sql: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<QueryTableRequest>(this, message, value);
@@ -139,8 +145,8 @@ class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* api.v1.TableQuery query */ 1:
-                    message.query = TableQuery.internalBinaryRead(reader, reader.uint32(), options, message.query);
+                case /* string sql */ 1:
+                    message.sql = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -154,9 +160,9 @@ class QueryTableRequest$Type extends MessageType<QueryTableRequest> {
         return message;
     }
     internalBinaryWrite(message: QueryTableRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* api.v1.TableQuery query = 1; */
-        if (message.query)
-            TableQuery.internalBinaryWrite(message.query, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string sql = 1; */
+        if (message.sql !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sql);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -171,11 +177,12 @@ export const QueryTableRequest = new QueryTableRequest$Type();
 class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
     constructor() {
         super("api.v1.QueryTableResponse", [
-            { no: 1, name: "rows", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableRow }
+            { no: 1, name: "rows", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableRow },
+            { no: 2, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn }
         ]);
     }
     create(value?: PartialMessage<QueryTableResponse>): QueryTableResponse {
-        const message = { rows: [] };
+        const message = { rows: [], columns: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<QueryTableResponse>(this, message, value);
@@ -188,6 +195,9 @@ class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
             switch (fieldNo) {
                 case /* repeated api.v1.TableRow rows */ 1:
                     message.rows.push(TableRow.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated api.v1.TableColumn columns */ 2:
+                    message.columns.push(TableColumn.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -204,6 +214,9 @@ class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
         /* repeated api.v1.TableRow rows = 1; */
         for (let i = 0; i < message.rows.length; i++)
             TableRow.internalBinaryWrite(message.rows[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated api.v1.TableColumn columns = 2; */
+        for (let i = 0; i < message.columns.length; i++)
+            TableColumn.internalBinaryWrite(message.columns[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

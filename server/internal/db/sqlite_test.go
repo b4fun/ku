@@ -18,7 +18,7 @@ type sqliteProviderTestContext struct {
 	dbProvider *SqliteProvider
 }
 
-func newSqliteProviderTestContext(t *testing.T) *sqliteProviderTestContext {
+func newSqliteProviderTestContext(t testing.TB) *sqliteProviderTestContext {
 	t.Helper()
 
 	tempDir := t.TempDir()
@@ -72,14 +72,14 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.NotNil(tc, qs)
 
-		queryResp, err := qs.QueryTable(ctx, &QueryPayload{
-			Query: &v1.TableQuery{
-				Table:   sqliteSession.rawTableName(),
-				Columns: []string{"lines"},
-			},
+		queryResp, err := qs.QueryTable(ctx, &v1.QueryTableRequest{
+			Sql: "select lines from " + sqliteSession.rawTableName(),
 		})
 		require.NoError(tc, err)
 		require.Len(tc, queryResp.Rows, 2)
+
+		require.Len(tc, queryResp.Columns, 1)
+		require.Equal(tc, "lines", queryResp.Columns[0].Key)
 
 		sessions, err := provider.ListSessions(ctx)
 		require.NoError(tc, err)

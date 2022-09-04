@@ -17,17 +17,6 @@ message Session {
   repeated TableSchema tables = 2;
 }
 
-message TableQuery {
-  // table - name of the table to query.
-  string table = 1;
-  // columns - columns to return.
-  repeated string columns = 2;
-  // where_clauses - where clause to filter results.
-  repeated string where_clauses = 3;
-  // order_by_clauses - order by clause.
-  repeated string order_by_clauses = 4;
-}
-
 message TableKeyValue {
   // key - key of the table column.
   string key = 1;

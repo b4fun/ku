@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
@@ -17,6 +19,90 @@ type SqliteQueryService struct {
 
 var _ QueryService = (*SqliteQueryService)(nil)
 
+// ref: databaseTypeConvSqlite
+func sqliteDatabaseTypeToColumnType(t string) v1.TableColumn_Type {
+	if strings.Contains(t, "INT") {
+		return v1.TableColumn_TYPE_INT64
+	}
+	if t == "CLOB" || t == "TEXT" ||
+		strings.Contains(t, "CHAR") {
+		return v1.TableColumn_TYPE_STRING
+	}
+	if t == "BLOB" {
+		return v1.TableColumn_TYPE_STRING
+	}
+	if t == "REAL" || t == "FLOAT" ||
+		strings.Contains(t, "DOUBLE") {
+		return v1.TableColumn_TYPE_REAL
+	}
+	if t == "DATE" || t == "DATETIME" ||
+		t == "TIMESTAMP" {
+		return v1.TableColumn_TYPE_DATE_TIME
+	}
+	if t == "NUMERIC" ||
+		strings.Contains(t, "DECIMAL") {
+		return v1.TableColumn_TYPE_REAL
+	}
+	if t == "BOOLEAN" {
+		return v1.TableColumn_TYPE_BOOL
+	}
+
+	return v1.TableColumn_TYPE_UNSPECIFIED
+}
+
+func inferColumnSchemas(
+	columnSchemas map[string]*v1.TableColumn,
+	sqlColumnTypes []*sql.ColumnType,
+	values map[string]interface{},
+) {
+	for _, sqlColumnType := range sqlColumnTypes {
+		columnName := sqlColumnType.Name()
+		columnType := v1.TableColumn_TYPE_UNSPECIFIED
+
+		if cs, ok := columnSchemas[columnName]; ok {
+			// reuse previous result
+			columnType = cs.Type
+		}
+
+		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
+			// try infer from db type
+			columnType = sqliteDatabaseTypeToColumnType(sqlColumnType.DatabaseTypeName())
+		}
+
+		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
+			// try infer from value for computed fields
+			// NOTE: current sqlite driver implementation treats computed column as UNSPECIFIED.
+			//       For such column, we fallback to inferring by value.
+			v, exists := values[sqlColumnType.Name()]
+			if exists {
+				switch v.(type) {
+				case bool:
+					columnType = v1.TableColumn_TYPE_BOOL
+				case int:
+					columnType = v1.TableColumn_TYPE_INT64
+				case int32:
+					columnType = v1.TableColumn_TYPE_INT64
+				case int64:
+					columnType = v1.TableColumn_TYPE_INT64
+				case float32:
+					columnType = v1.TableColumn_TYPE_REAL
+				case float64:
+					columnType = v1.TableColumn_TYPE_REAL
+				case string:
+					columnType = v1.TableColumn_TYPE_STRING
+				case time.Time:
+					columnType = v1.TableColumn_TYPE_DATE_TIME
+				}
+			}
+		}
+
+		columnSchemas[columnName] = &v1.TableColumn{
+			Key:  columnName,
+			Type: columnType,
+		}
+	}
+}
+
 func newTableRow(
 	dbValues map[string]interface{},
 ) (*v1.TableRow, error) {
@@ -26,7 +112,7 @@ func newTableRow(
 		colValue := &v1.TableKeyValue{
 			Key: k,
 		}
-		// TODO(hbc): the type of the column value needs to be inferred from the table and query
+		// FIXME(hbc): the type of the column value needs to be inferred from the table and query
 		if v != nil {
 			switch v := v.(type) {
 			case bool:
@@ -57,23 +143,12 @@ func newTableRow(
 
 func (qs *SqliteQueryService) QueryTable(
 	ctx context.Context,
-	payload *QueryPayload,
+	payload *v1.QueryTableRequest,
 ) (*v1.QueryTableResponse, error) {
-	qb := newQueryBuilder(payload)
+	// TODO: we blindly trust the sql input here :)
+	q := payload.Sql
 
-	q := fmt.Sprintf(
-		"SELECT %s FROM %s",
-		qb.CompileColumns(),
-		qb.SourceTable(),
-	)
-
-	if whereClauses := qb.CompileWhereClauses(); whereClauses != "" {
-		q = fmt.Sprintf("%s WHERE %s", q, whereClauses)
-	}
-
-	if orderByClauses := qb.CompileOrderByClauses(); orderByClauses != "" {
-		q = fmt.Sprintf("%s ORDER BY %s", q, orderByClauses)
-	}
+	rv := &v1.QueryTableResponse{}
 
 	rows, err := qs.db.QueryxContext(ctx, q)
 	if err != nil {
@@ -81,17 +156,31 @@ func (qs *SqliteQueryService) QueryTable(
 	}
 	defer rows.Close()
 
-	rv := &v1.QueryTableResponse{}
+	columnSchemas := map[string]*v1.TableColumn{}
+
+	sqlColumnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, fmt.Errorf("reflect columns type failed: %w", err)
+	}
+	inferColumnSchemas(columnSchemas, sqlColumnTypes, map[string]interface{}{})
+
 	for rows.Next() {
 		dbValues := map[string]interface{}{}
 		if err := rows.MapScan(dbValues); err != nil {
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
+
+		inferColumnSchemas(columnSchemas, sqlColumnTypes, dbValues)
+
 		row, err := newTableRow(dbValues)
 		if err != nil {
 			return nil, fmt.Errorf("encode value: %w", err)
 		}
 		rv.Rows = append(rv.Rows, row)
+	}
+
+	for _, sqlColumnType := range sqlColumnTypes {
+		rv.Columns = append(rv.Columns, columnSchemas[sqlColumnType.Name()])
 	}
 
 	return rv, nil

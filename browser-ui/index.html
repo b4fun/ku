@@ -14,6 +14,13 @@
       window.global = window;
     }
   </script>
+  <script type="module">
+    import process from "process";
+    import EventEmitter from "events";
+
+    window.process = process;
+    window.EventEmitter = EventEmitter;
+  </script>
   <script src="/monaco-editor/min/vs/language/kusto/bridge.min.js"></script>
   <script src="/monaco-editor/min/vs/language/kusto/kusto.javascript.client.min.js"></script>
   <script src="/monaco-editor/min/vs/language/kusto/newtonsoft.json.min.js"></script>

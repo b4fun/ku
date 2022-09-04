@@ -1,15 +1,9 @@
-export { APIServiceClient } from './service.client';
+export { TableValueEncoder } from './data';
 export {
-  Session,
-
-  TableQuery,
-  TableKeyValue,
-  TableRow,
-  TableColumn,
-  TableColumn_Type,
-  TableSchema,
-  TableSchema_Type,
-
+  Session, TableColumn,
+  TableColumn_Type, TableKeyValue,
+  TableRow, TableSchema,
+  TableSchema_Type
 } from './model';
 export { QueryTableResponse } from './service';
-export { TableValueEncoder } from './data'; 
+export { APIServiceClient } from './service.client';
