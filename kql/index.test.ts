@@ -65,7 +65,7 @@ describe('toSQL', () => {
       | project foo, bar
       | take 100
       `,
-      `with q0 as (select *, json_extract(ku_parse(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.foo') as foo, json_extract(ku_parse(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.bar') as bar from source where lines like '%foo%') select foo, bar from q0 limit 100`,
+      `with q0 as (select *, cast(json_extract(ku_parse(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.foo') as integer) as foo, cast(json_extract(ku_parse(lines, '.*foo=(?P<foo>\\d+) , bar=(?P<bar>.*)'), '$.bar') as text) as bar from source where lines like '%foo%') select foo, bar from q0 limit 100`,
     ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;

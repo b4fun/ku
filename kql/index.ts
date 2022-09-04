@@ -134,8 +134,10 @@ function visitParseOperator(
     switch (primitiveType) {
       case PrimitiveTypeLong:
         rawQuery = `cast(${rawQuery} as integer)`;
+        break;
       case PrimitiveTypeString:
         rawQuery = `cast(${rawQuery} as text)`;
+        break;
     }
 
     rawQuery = `${rawQuery} as ${columnName}`;
