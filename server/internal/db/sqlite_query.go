@@ -158,11 +158,11 @@ func (qs *SqliteQueryService) QueryTable(
 
 	columnSchemas := map[string]*v1.TableColumn{}
 
-	columnTypes, err := rows.ColumnTypes()
+	sqlColumnTypes, err := rows.ColumnTypes()
 	if err != nil {
 		return nil, fmt.Errorf("reflect columns type failed: %w", err)
 	}
-	inferColumnSchemas(columnSchemas, columnTypes, map[string]interface{}{})
+	inferColumnSchemas(columnSchemas, sqlColumnTypes, map[string]interface{}{})
 
 	for rows.Next() {
 		dbValues := map[string]interface{}{}
@@ -170,7 +170,7 @@ func (qs *SqliteQueryService) QueryTable(
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
 
-		inferColumnSchemas(columnSchemas, columnTypes, dbValues)
+		inferColumnSchemas(columnSchemas, sqlColumnTypes, dbValues)
 
 		row, err := newTableRow(dbValues)
 		if err != nil {
@@ -179,8 +179,8 @@ func (qs *SqliteQueryService) QueryTable(
 		rv.Rows = append(rv.Rows, row)
 	}
 
-	for _, columnSchema := range columnSchemas {
-		rv.Columns = append(rv.Columns, columnSchema)
+	for _, sqlColumnType := range sqlColumnTypes {
+		rv.Columns = append(rv.Columns, columnSchemas[sqlColumnType.Name()])
 	}
 
 	return rv, nil
