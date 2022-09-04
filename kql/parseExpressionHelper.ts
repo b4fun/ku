@@ -24,7 +24,7 @@ interface CaptureTarget {
 
 // TODO: support other types (implement coercion)
 const primitiveTypeToPattern = {
-  [PrimitiveTypeString]: '.*',
+  [PrimitiveTypeString]: '.*?',
   [PrimitiveTypeLong]: '\\d+',
 };
 
@@ -69,7 +69,7 @@ export function parsePatternsToRe2(
     switch (child.Kind) {
       case SyntaxKind.StarExpression:
         // * -> .*
-        regexpPattern.push('.*');
+        regexpPattern.push('.*?');
         break;
       case SyntaxKind.StringLiteralExpression:
         regexpPattern.push(kustoHelper.getTokenValue(child));
