@@ -1,6 +1,6 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
-import { parsePatternsToRe2 } from './parseExpressionHelper';
+import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString } from './parseExpressionHelper';
 import { getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
 
 function toSQLString(v: Syntax.SyntaxElement): string {
@@ -126,8 +126,21 @@ function visitParseOperator(
   cteQuery.clearSelect().
     select('*');
   parseTarget.virtualColumns.forEach(virtualColumn => {
-    const kuParse = `ku_parse(${sourceColumn}, '${parseTarget.regexpPattern}')`;
-    cteQuery.jsonExtract(kuParse, `$.${virtualColumn}`, virtualColumn);
+    const { columnName, primitiveType } = virtualColumn;
+
+    let rawQuery = '';
+    rawQuery = `ku_parse(${sourceColumn}, '${parseTarget.regexpPattern}')`;
+    rawQuery = `json_extract(${rawQuery}, '$.${columnName}')`;
+    switch (primitiveType) {
+      case PrimitiveTypeLong:
+        rawQuery = `cast(${rawQuery} as integer)`;
+      case PrimitiveTypeString:
+        rawQuery = `cast(${rawQuery} as text)`;
+    }
+
+    rawQuery = `${rawQuery} as ${columnName}`;
+
+    cteQuery.select(raw(rawQuery));
   });
 
   const cteTableName = qc.acquireCTETableName();
