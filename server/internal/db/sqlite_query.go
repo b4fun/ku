@@ -50,14 +50,24 @@ func sqliteDatabaseTypeToColumnType(t string) v1.TableColumn_Type {
 	return v1.TableColumn_TYPE_UNSPECIFIED
 }
 
-func sqlColumnTypesToColumnSchema(
+func inferColumnSchemas(
+	columnSchemas map[string]*v1.TableColumn,
 	sqlColumnTypes []*sql.ColumnType,
 	values map[string]interface{},
-) []*v1.TableColumn {
-	var rv []*v1.TableColumn
-
+) {
 	for _, sqlColumnType := range sqlColumnTypes {
-		columnType := sqliteDatabaseTypeToColumnType(sqlColumnType.DatabaseTypeName())
+		columnName := sqlColumnType.Name()
+		columnType := v1.TableColumn_TYPE_UNSPECIFIED
+
+		if cs, ok := columnSchemas[columnName]; ok {
+			// reuse previous result
+			columnType = cs.Type
+		}
+
+		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
+			// try infer from db type
+			columnType = sqliteDatabaseTypeToColumnType(sqlColumnType.DatabaseTypeName())
+		}
 
 		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
 			// try infer from value for computed fields
@@ -83,19 +93,14 @@ func sqlColumnTypesToColumnSchema(
 				case time.Time:
 					columnType = v1.TableColumn_TYPE_DATE_TIME
 				}
-			} else {
-				// fallback to string type for presenting
-				columnType = v1.TableColumn_TYPE_STRING
 			}
 		}
 
-		rv = append(rv, &v1.TableColumn{
-			Key:  sqlColumnType.Name(),
+		columnSchemas[columnName] = &v1.TableColumn{
+			Key:  columnName,
 			Type: columnType,
-		})
+		}
 	}
-
-	return rv
 }
 
 func newTableRow(
@@ -151,30 +156,31 @@ func (qs *SqliteQueryService) QueryTable(
 	}
 	defer rows.Close()
 
+	columnSchemas := map[string]*v1.TableColumn{}
+
 	columnTypes, err := rows.ColumnTypes()
 	if err != nil {
 		return nil, fmt.Errorf("reflect columns type failed: %w", err)
 	}
-	rv.Columns = sqlColumnTypesToColumnSchema(columnTypes, map[string]interface{}{})
+	inferColumnSchemas(columnSchemas, columnTypes, map[string]interface{}{})
 
-	firstRowProcessed := false
 	for rows.Next() {
 		dbValues := map[string]interface{}{}
 		if err := rows.MapScan(dbValues); err != nil {
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
 
-		if !firstRowProcessed {
-			// attempts to override with row value
-			rv.Columns = sqlColumnTypesToColumnSchema(columnTypes, dbValues)
-			firstRowProcessed = true
-		}
+		inferColumnSchemas(columnSchemas, columnTypes, dbValues)
 
 		row, err := newTableRow(dbValues)
 		if err != nil {
 			return nil, fmt.Errorf("encode value: %w", err)
 		}
 		rv.Rows = append(rv.Rows, row)
+	}
+
+	for _, columnSchema := range columnSchemas {
+		rv.Columns = append(rv.Columns, columnSchema)
 	}
 
 	return rv, nil
