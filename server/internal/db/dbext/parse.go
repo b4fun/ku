@@ -18,7 +18,7 @@ type kqlParse struct {
 //
 //   select json_extract(ku_parse(lines, '.*'), '$.foo') as foo from source
 func (p *kqlParse) Parse(fieldValue string, regexpPattern string) (string, error) {
-	re, err := regexp.Compile(regexpPattern)
+	re, err := regexp.Compile("(?m)" + regexpPattern)
 	if err != nil {
 		return "", fmt.Errorf("compile %q: %w", regexpPattern, err)
 	}
@@ -26,6 +26,10 @@ func (p *kqlParse) Parse(fieldValue string, regexpPattern string) (string, error
 	matched := re.FindStringSubmatch(fieldValue)
 	parsedValue := map[string]interface{}{}
 	for i, name := range re.SubexpNames() {
+		if name == "" {
+			continue
+		}
+
 		if i < len(matched) {
 			parsedValue[name] = matched[i]
 		} else {
