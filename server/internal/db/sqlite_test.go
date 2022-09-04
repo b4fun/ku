@@ -78,6 +78,9 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.Len(tc, queryResp.Rows, 2)
 
+		require.Len(tc, queryResp.Columns, 1)
+		require.Equal(tc, "lines", queryResp.Columns[0].Key)
+
 		sessions, err := provider.ListSessions(ctx)
 		require.NoError(tc, err)
 		require.Len(tc, sessions, 1)

@@ -1,5 +1,5 @@
 import { toSQL } from "@b4fun/kql";
-import { TableColumn, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
+import { TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
 import { Monaco } from "@monaco-editor/react";
 import { IconPlayerPlay } from '@tabler/icons';
@@ -130,19 +130,15 @@ export default function EditorPane(props: EditorPaneProps) {
           data: [],
         };
 
-        const tableValueEncoder = new TableValueEncoder(table);
-
-        const tableColumnsByKey: { [key: string]: TableColumn } = {}
-        for (let tableColumn of table.columns) {
-          result.columns.push({
-            title: tableColumn.key,
-            dataIndex: tableColumn.key,
-            key: tableColumn.key,
-          });
-          tableColumnsByKey[tableColumn.key] = tableColumn;
-        }
+        result.columns = resp.response.columns.map((columnSchema) => ({
+          title: columnSchema.key,
+          dataIndex: columnSchema.key,
+          key: columnSchema.key,
+        }));
+        const tableValueEncoder = new TableValueEncoder(resp.response.columns);
 
         console.log(resp.response);
+        console.log(resp.response.columns);
         result.data = resp.response.rows.map((row, idx) => {
           const rowData = tableValueEncoder.encodeRow(row);
           rowData.key = `${idx}`;

@@ -12,6 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { TableColumn } from "./model";
 import { TableRow } from "./model";
 import { Session } from "./model";
 /**
@@ -47,6 +48,10 @@ export interface QueryTableResponse {
      * @generated from protobuf field: repeated api.v1.TableRow rows = 1;
      */
     rows: TableRow[];
+    /**
+     * @generated from protobuf field: repeated api.v1.TableColumn columns = 2;
+     */
+    columns: TableColumn[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ListSessionsRequest$Type extends MessageType<ListSessionsRequest> {
@@ -172,11 +177,12 @@ export const QueryTableRequest = new QueryTableRequest$Type();
 class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
     constructor() {
         super("api.v1.QueryTableResponse", [
-            { no: 1, name: "rows", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableRow }
+            { no: 1, name: "rows", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableRow },
+            { no: 2, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn }
         ]);
     }
     create(value?: PartialMessage<QueryTableResponse>): QueryTableResponse {
-        const message = { rows: [] };
+        const message = { rows: [], columns: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<QueryTableResponse>(this, message, value);
@@ -189,6 +195,9 @@ class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
             switch (fieldNo) {
                 case /* repeated api.v1.TableRow rows */ 1:
                     message.rows.push(TableRow.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated api.v1.TableColumn columns */ 2:
+                    message.columns.push(TableColumn.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -205,6 +214,9 @@ class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
         /* repeated api.v1.TableRow rows = 1; */
         for (let i = 0; i < message.rows.length; i++)
             TableRow.internalBinaryWrite(message.rows[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated api.v1.TableColumn columns = 2; */
+        for (let i = 0; i < message.columns.length; i++)
+            TableColumn.internalBinaryWrite(message.columns[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

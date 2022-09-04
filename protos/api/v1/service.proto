@@ -19,6 +19,7 @@ message QueryTableRequest {
 
 message QueryTableResponse {
   repeated TableRow rows = 1;
+  repeated TableColumn columns = 2;
 }
 
 service APIService {

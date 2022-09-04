@@ -17,6 +17,57 @@ type SqliteQueryService struct {
 
 var _ QueryService = (*SqliteQueryService)(nil)
 
+func inferTableColumnSchema(
+	dbValues map[string]interface{},
+) []*v1.TableColumn {
+	var keys []string
+	byKey := map[string]*v1.TableColumn{}
+
+	for k, v := range dbValues {
+		if _, exists := byKey[k]; exists {
+			continue
+		}
+
+		// TODO(hbc): the type of the column value needs to be inferred from the table and query
+		// fallback to string for unknown value for now
+		columnType := v1.TableColumn_TYPE_STRING
+
+		if v != nil {
+			switch v.(type) {
+			case bool:
+				columnType = v1.TableColumn_TYPE_BOOL
+			case int:
+				columnType = v1.TableColumn_TYPE_INT64
+			case int32:
+				columnType = v1.TableColumn_TYPE_INT64
+			case int64:
+				columnType = v1.TableColumn_TYPE_INT64
+			case float32:
+				columnType = v1.TableColumn_TYPE_REAL
+			case float64:
+				columnType = v1.TableColumn_TYPE_REAL
+			case string:
+				columnType = v1.TableColumn_TYPE_STRING
+			case time.Time:
+				columnType = v1.TableColumn_TYPE_DATE_TIME
+			}
+		}
+
+		byKey[k] = &v1.TableColumn{
+			Key:  k,
+			Type: columnType,
+		}
+		keys = append(keys, k)
+	}
+
+	var rv []*v1.TableColumn
+
+	for _, k := range keys {
+		rv = append(rv, byKey[k])
+	}
+	return rv
+}
+
 func newTableRow(
 	dbValues map[string]interface{},
 ) (*v1.TableRow, error) {
@@ -69,11 +120,18 @@ func (qs *SqliteQueryService) QueryTable(
 	defer rows.Close()
 
 	rv := &v1.QueryTableResponse{}
+	tableColumnSchemaInferred := false
 	for rows.Next() {
 		dbValues := map[string]interface{}{}
 		if err := rows.MapScan(dbValues); err != nil {
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
+
+		if !tableColumnSchemaInferred {
+			rv.Columns = inferTableColumnSchema(dbValues)
+			tableColumnSchemaInferred = true
+		}
+
 		row, err := newTableRow(dbValues)
 		if err != nil {
 			return nil, fmt.Errorf("encode value: %w", err)

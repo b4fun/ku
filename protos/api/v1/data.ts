@@ -1,13 +1,9 @@
-import {
-  TableSchema,
-  TableColumn,
-  TableKeyValue,
-  TableColumn_Type,
-  TableRow,
-} from "./model";
-import { Timestamp } from '../../google/protobuf/timestamp';
 import { Duration } from '../../google/protobuf/duration';
+import { Timestamp } from '../../google/protobuf/timestamp';
 import { BoolValue, DoubleValue, Int64Value, StringValue } from "../../google/protobuf/wrappers";
+import {
+  TableColumn, TableColumn_Type, TableKeyValue, TableRow
+} from "./model";
 
 type PossibleValueType = BoolValue | StringValue | Int64Value | DoubleValue | Timestamp | Duration;
 
@@ -19,8 +15,8 @@ export class TableValueEncoder {
 
   private columnSchemasByKey: Map<string, TableColumn> = new Map();
 
-  constructor(schema: TableSchema) {
-    schema.columns.forEach(col => {
+  constructor(columnSchemas: TableColumn[]) {
+    columnSchemas.forEach(col => {
       this.columnSchemasByKey.set(col.key, col);
     });
   }
