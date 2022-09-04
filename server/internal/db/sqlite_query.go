@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
@@ -17,54 +19,80 @@ type SqliteQueryService struct {
 
 var _ QueryService = (*SqliteQueryService)(nil)
 
-func inferTableColumnSchema(
-	dbValues map[string]interface{},
+// ref: databaseTypeConvSqlite
+func sqliteDatabaseTypeToColumnType(t string) v1.TableColumn_Type {
+	if strings.Contains(t, "INT") {
+		return v1.TableColumn_TYPE_INT64
+	}
+	if t == "CLOB" || t == "TEXT" ||
+		strings.Contains(t, "CHAR") {
+		return v1.TableColumn_TYPE_STRING
+	}
+	if t == "BLOB" {
+		return v1.TableColumn_TYPE_STRING
+	}
+	if t == "REAL" || t == "FLOAT" ||
+		strings.Contains(t, "DOUBLE") {
+		return v1.TableColumn_TYPE_REAL
+	}
+	if t == "DATE" || t == "DATETIME" ||
+		t == "TIMESTAMP" {
+		return v1.TableColumn_TYPE_DATE_TIME
+	}
+	if t == "NUMERIC" ||
+		strings.Contains(t, "DECIMAL") {
+		return v1.TableColumn_TYPE_REAL
+	}
+	if t == "BOOLEAN" {
+		return v1.TableColumn_TYPE_BOOL
+	}
+
+	return v1.TableColumn_TYPE_UNSPECIFIED
+}
+
+func sqlColumnTypesToColumnSchema(
+	sqlColumnTypes []*sql.ColumnType,
+	values map[string]interface{},
 ) []*v1.TableColumn {
-	var keys []string
-	byKey := map[string]*v1.TableColumn{}
+	var rv []*v1.TableColumn
 
-	for k, v := range dbValues {
-		if _, exists := byKey[k]; exists {
-			continue
-		}
+	for _, sqlColumnType := range sqlColumnTypes {
+		columnType := sqliteDatabaseTypeToColumnType(sqlColumnType.DatabaseTypeName())
 
-		// TODO(hbc): the type of the column value needs to be inferred from the table and query
-		// fallback to string for unknown value for now
-		columnType := v1.TableColumn_TYPE_STRING
-
-		if v != nil {
-			switch v.(type) {
-			case bool:
-				columnType = v1.TableColumn_TYPE_BOOL
-			case int:
-				columnType = v1.TableColumn_TYPE_INT64
-			case int32:
-				columnType = v1.TableColumn_TYPE_INT64
-			case int64:
-				columnType = v1.TableColumn_TYPE_INT64
-			case float32:
-				columnType = v1.TableColumn_TYPE_REAL
-			case float64:
-				columnType = v1.TableColumn_TYPE_REAL
-			case string:
+		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
+			// try infer from value
+			v, exists := values[sqlColumnType.Name()]
+			if exists {
+				switch v.(type) {
+				case bool:
+					columnType = v1.TableColumn_TYPE_BOOL
+				case int:
+					columnType = v1.TableColumn_TYPE_INT64
+				case int32:
+					columnType = v1.TableColumn_TYPE_INT64
+				case int64:
+					columnType = v1.TableColumn_TYPE_INT64
+				case float32:
+					columnType = v1.TableColumn_TYPE_REAL
+				case float64:
+					columnType = v1.TableColumn_TYPE_REAL
+				case string:
+					columnType = v1.TableColumn_TYPE_STRING
+				case time.Time:
+					columnType = v1.TableColumn_TYPE_DATE_TIME
+				}
+			} else {
+				// fallback to string type for presenting
 				columnType = v1.TableColumn_TYPE_STRING
-			case time.Time:
-				columnType = v1.TableColumn_TYPE_DATE_TIME
 			}
 		}
 
-		byKey[k] = &v1.TableColumn{
-			Key:  k,
+		rv = append(rv, &v1.TableColumn{
+			Key:  sqlColumnType.Name(),
 			Type: columnType,
-		}
-		keys = append(keys, k)
+		})
 	}
 
-	var rv []*v1.TableColumn
-
-	for _, k := range keys {
-		rv = append(rv, byKey[k])
-	}
 	return rv
 }
 
@@ -77,7 +105,7 @@ func newTableRow(
 		colValue := &v1.TableKeyValue{
 			Key: k,
 		}
-		// TODO(hbc): the type of the column value needs to be inferred from the table and query
+		// FIXME(hbc): the type of the column value needs to be inferred from the table and query
 		if v != nil {
 			switch v := v.(type) {
 			case bool:
@@ -113,23 +141,31 @@ func (qs *SqliteQueryService) QueryTable(
 	// TODO: we blindly trust the sql input here :)
 	q := payload.Sql
 
+	rv := &v1.QueryTableResponse{}
+
 	rows, err := qs.db.QueryxContext(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 	defer rows.Close()
 
-	rv := &v1.QueryTableResponse{}
-	tableColumnSchemaInferred := false
+	columnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, fmt.Errorf("reflect columns type failed: %w", err)
+	}
+	rv.Columns = sqlColumnTypesToColumnSchema(columnTypes, map[string]interface{}{})
+
+	firstRowProcessed := false
 	for rows.Next() {
 		dbValues := map[string]interface{}{}
 		if err := rows.MapScan(dbValues); err != nil {
 			return nil, fmt.Errorf("scan value: %w", err)
 		}
 
-		if !tableColumnSchemaInferred {
-			rv.Columns = inferTableColumnSchema(dbValues)
-			tableColumnSchemaInferred = true
+		if !firstRowProcessed {
+			// attempts to override with row value
+			rv.Columns = sqlColumnTypesToColumnSchema(columnTypes, dbValues)
+			firstRowProcessed = true
 		}
 
 		row, err := newTableRow(dbValues)
