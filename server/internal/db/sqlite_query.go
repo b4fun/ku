@@ -60,7 +60,9 @@ func sqlColumnTypesToColumnSchema(
 		columnType := sqliteDatabaseTypeToColumnType(sqlColumnType.DatabaseTypeName())
 
 		if columnType == v1.TableColumn_TYPE_UNSPECIFIED {
-			// try infer from value
+			// try infer from value for computed fields
+			// NOTE: current sqlite driver implementation treats computed column as UNSPECIFIED.
+			//       For such column, we fallback to inferring by value.
 			v, exists := values[sqlColumnType.Name()]
 			if exists {
 				switch v.(type) {
