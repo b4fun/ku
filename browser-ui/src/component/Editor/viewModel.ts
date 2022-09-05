@@ -2,8 +2,10 @@ import { QueryTableResponse } from '@b4fun/ku-protos';
 import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
 import React, { useState } from 'react';
 
+export type ResultTableColumn = ColumnType<DefaultRecordType>;
+
 export interface ResultTableViewModel {
-  columns: ColumnType<DefaultRecordType>[];
+  columns: ResultTableColumn[];
   data: DefaultRecordType[];
 }
 
