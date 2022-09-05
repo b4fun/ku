@@ -74,7 +74,7 @@ function EditorNavBar(props: EditorNavBarProps) {
           </a>
         </div>
       </Navbar.Section>
-      <Navbar.Section grow mt='md'>
+      <Navbar.Section grow mt='md' className="h-full overflow-scroll">
         {sessionNav}
       </Navbar.Section>
     </Navbar>
