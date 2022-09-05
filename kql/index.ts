@@ -123,8 +123,7 @@ function visitParseOperator(
   const parseTarget = parsePatternsToRe2(v.Patterns);
 
   const cteQuery = qb;
-  cteQuery.clearSelect().
-    select('*');
+  cteQuery.clearSelect();
   parseTarget.virtualColumns.forEach(virtualColumn => {
     const { columnName, primitiveType } = virtualColumn;
 
@@ -144,6 +143,10 @@ function visitParseOperator(
 
     cteQuery.select(raw(rawQuery));
   });
+
+  // select all fields from CTE, but after virtual columns as virtual columns
+  // take higher precedence.
+  cteQuery.select('*');
 
   const cteTableName = qc.acquireCTETableName();
 

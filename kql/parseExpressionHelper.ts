@@ -98,7 +98,7 @@ export function parsePatternsToRe2(
   }
 
   return {
-    regexpPattern: regexpPattern.join(''),
+    regexpPattern: '^' + regexpPattern.join('') + '$',
     virtualColumns,
   };
 }
