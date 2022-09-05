@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import Table from 'rc-table';
-import 'rc-table/assets/index.css';
 import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
 import { useEffect, useState } from 'react';
 import { Resizable, ResizableProps, ResizeCallbackData } from 'react-resizable';
@@ -38,6 +37,16 @@ function ResizableTableTitle(props: ResizableTableTitleProps) {
   );
 }
 
+function ResultTableElem(props: {
+  className?: string;
+}) {
+  const { className, ...restProps } = props;
+
+  const tableClassName = classNames(className, 'w-full');
+
+  return <table {...restProps} className={tableClassName} />
+}
+
 export interface ResultTableProps {
   viewWidth: number;
   viewModel: ResultTableViewModel;
@@ -69,9 +78,6 @@ export default function ResultTable(props: ResultTableProps) {
         maxConstraints: [viewWidth, Infinity],
         onResize: (e: React.SyntheticEvent, resizeData: ResizeCallbackData) => {
           setColumns(prevColumns => {
-            console.log(e);
-            console.log(resizeData.size);
-
             const nextColumns = [...prevColumns];
 
             nextColumns[idx] = {
@@ -89,9 +95,9 @@ export default function ResultTable(props: ResultTableProps) {
           style: {
             ...data.style,
             maxWidth: columns[idx].width,
-            // whiteSpace: 'nowrap',
-            // textOverflow: 'ellipsis',
-            // overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
           },
         };
       },
@@ -102,23 +108,29 @@ export default function ResultTable(props: ResultTableProps) {
     header: {
       cell: ResizableTableTitle,
     },
-    /*
-    body: {
-      cell: function TableCellWithColumns(props: {}) {
-        console.log('body cell', props);
-        return (
-          <TableCell {...props} />
-        );
-      },
-    },
-    */
+    table: ResultTableElem,
   };
 
+  const tableWidth = tableColumns.reduce((acc, column) => {
+    if (typeof column.width !== 'number') {
+      return acc;
+    }
+
+    return acc + column.width;
+  }, 0);
+
   return (
-    <Table
-      tableLayout='auto'
-      components={tableComponents}
-      columns={tableColumns}
-      data={viewModel.data}
-    />);
+    <div className='w-full h-full overflow-scroll'>
+      <Table
+        tableLayout='auto'
+        components={tableComponents}
+        columns={tableColumns}
+        data={viewModel.data}
+        style={{
+          width: Math.max(tableWidth, viewWidth),
+          height: '100%',
+        }}
+      />
+    </div>
+  );
 }
