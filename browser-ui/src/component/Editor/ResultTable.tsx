@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import Table from 'rc-table';
 import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
 import { useEffect, useState } from 'react';
@@ -8,41 +9,49 @@ import { ResultTableColumn, ResultTableViewModel } from './viewModel';
 interface ResizableTableTitleProps {
   onResize: ResizableProps['onResize'];
   width?: number;
+  className?: string;
 }
 
 function ResizableTableTitle(props: ResizableTableTitleProps) {
-  const { onResize, width, ...restProps } = props;
+  const { onResize, width, className, ...restProps } = props;
+
+  const headerClassName = classNames(className, 'text-left');
 
   if (!width) {
     return (
-      <th {...restProps} />
+      <th {...restProps} className={headerClassName} />
     );
   }
 
   return (
     <Resizable width={width} height={0} onResize={onResize}>
-      <th {...restProps} />
+      <th {...restProps} className={headerClassName} />
     </Resizable>
   );
 }
 
 export interface ResultTableProps {
+  viewWidth: number;
   viewModel: ResultTableViewModel;
 }
 
 export default function ResultTable(props: ResultTableProps) {
-  const { viewModel } = props;
+  const { viewWidth, viewModel } = props;
 
   const [columns, setColumns] = useState<ResultTableColumn[]>(viewModel.columns);
 
   useEffect(() => {
+    // divide evenly on initial load
+    // TODO(hbc): calculate based on the value size
+    const suggestedColumnWidth = (viewWidth / viewModel.columns.length) || 100;
+
     setColumns(viewModel.columns.map(column => {
       return {
         ...column,
-        width: column.width || 100,
+        width: column.width || suggestedColumnWidth,
       };
     }));
-  }, [viewModel.columns]);
+  }, [viewWidth, viewModel.columns]);
 
   const tableColumns = columns.map((column, idx) => {
     return {
