@@ -1,26 +1,47 @@
 import classNames from 'classnames';
 import Table from 'rc-table';
-import { ColumnType, DefaultRecordType } from 'rc-table/lib/interface';
+import { ColumnType, DefaultRecordType, TableComponents } from 'rc-table/lib/interface';
 import { useEffect, useState } from 'react';
 import { Resizable, ResizableProps, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { ResultTableColumn, ResultTableViewModel } from './viewModel';
 
-interface ResizableTableTitleProps {
+interface ResultTableTitleCellProps {
   onResize: ResizableProps['onResize'];
   width?: number;
   className?: string;
   maxConstraints: ResizableProps['maxConstraints'];
 }
 
-function ResizableTableTitle(props: ResizableTableTitleProps) {
-  const { onResize, maxConstraints, width, className, ...restProps } = props;
+function ResultTableTitleCell(props: React.PropsWithChildren<ResultTableTitleCellProps>) {
+  const {
+    onResize,
+    maxConstraints,
+    width,
+    className,
+    children,
+    ...restProps
+  } = props;
 
   const headerClassName = classNames(className, 'text-left');
+  const contentElemClassName = classNames(
+    'px-5 py-2 font-normal text-base border-r-[1px]',
+    {
+      'mr-[-8px]': !!width,
+    },
+  );
+
+  const contentElem = (
+    <div className={contentElemClassName}>
+      {children}
+    </div>
+  );
 
   if (!width) {
     return (
-      <th {...restProps} className={headerClassName} />
+      <th {...restProps} className={headerClassName}>
+        {contentElem}
+      </th>
     );
   }
 
@@ -31,13 +52,28 @@ function ResizableTableTitle(props: ResizableTableTitleProps) {
       onResize={onResize}
       maxConstraints={maxConstraints}
       axis="x"
+      resizeHandles={['e']}
     >
-      <th {...restProps} className={headerClassName} />
+      <th {...restProps} className={headerClassName}>
+        {contentElem}
+      </th>
     </Resizable>
   );
 }
 
-function ResultTableElem(props: {
+function ResultTableTitleRow(props: {
+  className?: string;
+}) {
+  const { className, ...restProps } = props;
+
+  const titleRowClassName = classNames(className, 'border-b-[1px]');
+
+  return (
+    <tr {...restProps} className={titleRowClassName} />
+  );
+}
+
+function ResultTableTable(props: {
   className?: string;
 }) {
   const { className, ...restProps } = props;
@@ -70,7 +106,7 @@ export default function ResultTable(props: ResultTableProps) {
     }));
   }, [viewModel.columns]);
 
-  const tableColumns = columns.map((column, idx) => {
+  const tableColumns: ColumnType<DefaultRecordType>[] = columns.map((column, idx) => {
     return {
       ...column,
       onHeaderCell: (column: ColumnType<DefaultRecordType>) => ({
@@ -103,13 +139,18 @@ export default function ResultTable(props: ResultTableProps) {
       },
     };
   });
+  tableColumns.push({});
 
-  const tableComponents = {
+  const tableComponents: TableComponents<DefaultRecordType> = {
     header: {
-      cell: ResizableTableTitle,
+      cell: ResultTableTitleCell,
     },
-    table: ResultTableElem,
+    table: ResultTableTable,
   };
+
+  if (viewModel.data.length > 0) {
+    tableComponents.header!.row = ResultTableTitleRow;
+  }
 
   const tableWidth = tableColumns.reduce((acc, column) => {
     if (typeof column.width !== 'number') {
