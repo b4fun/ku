@@ -1,5 +1,6 @@
 import { Skeleton } from '@mantine/core';
 import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useEffect, useState } from 'react';
 import { useSetEditor } from '../../atom/editorAtom';
 
@@ -65,12 +66,18 @@ export default function KustoEditor(props: KustoEditorProps) {
     );
   }
 
+  const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+    fontSize: 14,
+    minimap: { enabled: false },
+  };
+
   return (
     <Editor
       className='mt-1'
       language='kusto'
       defaultValue={editorValue}
       onMount={setEditor}
+      options={editorOptions}
     />
   )
 }
