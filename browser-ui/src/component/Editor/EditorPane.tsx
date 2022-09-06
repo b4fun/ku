@@ -101,6 +101,23 @@ source
 | take 100
 `.trim()
 
+function getEditorLineNumber(
+  editorModel: editor.ITextModel,
+  startLine: number,
+  nextLine: (n: number) => number,
+  pred: (s: string) => boolean,
+): number {
+  const maxLine = editorModel.getLineCount();
+
+  let line = startLine;
+  let lineText = editorModel.getLineContent(line);
+  while (pred(lineText) && line <= maxLine && line > 1) {
+    line = nextLine(line);
+    lineText = editorModel.getLineContent(line);
+  }
+  return line;
+}
+
 export default function EditorPane(props: EditorPaneProps) {
   const {
     table,
@@ -125,12 +142,41 @@ export default function EditorPane(props: EditorPaneProps) {
       return;
     }
 
-    const queryInput = editorValue.editor.getValue();
+    let queryInput: string;
+
+    const editorModel = editorValue.editor.getModel();
+    const selection = editorValue.editor.getSelection();
+    if (selection && editorModel) {
+      {
+        const regionStartLine = getEditorLineNumber(
+          editorModel,
+          selection.startLineNumber,
+          (n) => n - 1,
+          (l) => !!l.trim(),
+        );
+        const regionEndLine = getEditorLineNumber(
+          editorModel,
+          selection.startLineNumber,
+          (n) => n + 1,
+          (l) => !!l.trim(),
+        );
+        queryInput = editorModel.getValueInRange({
+          startLineNumber: regionStartLine,
+          startColumn: 0,
+          endLineNumber: regionEndLine + 1,
+          endColumn: 0,
+        });
+      }
+    } else {
+      queryInput = editorValue.editor.getValue();
+    }
+
     if (!queryInput) {
       console.log('no user input');
       return;
     }
 
+    console.log(`raw query input: ${queryInput}`);
     const query = toSQL(queryInput, { tableName: table.name });
     console.log(`querying ${query.sql}`);
 
