@@ -59,9 +59,16 @@ function EditorBody(props: EditorBodyProps) {
   } = props;
 
   const [editorHeight, setEditorHeight] = React.useState(200);
+  const [viewWidth, setViewWidth] = React.useState(0);
+
+  const setViewRef = React.useCallback((view: HTMLDivElement | null) => {
+    if (view) {
+      setViewWidth(view.getBoundingClientRect().width);
+    }
+  }, []);
 
   return (
-    <div className="flex-1">
+    <div className="flex-1" ref={setViewRef}>
       <Allotment className="w-full flex" vertical onChange={(sizes) => {
         if (sizes.length === 2) {
           setEditorHeight(sizes[0]);
@@ -72,7 +79,7 @@ function EditorBody(props: EditorBodyProps) {
             editorValue={editorValue}
           />
         </div>
-        <ResultTable viewModel={resultViewModel} />
+        <ResultTable viewWidth={viewWidth} viewModel={resultViewModel} />
       </Allotment>
     </div>
   );
