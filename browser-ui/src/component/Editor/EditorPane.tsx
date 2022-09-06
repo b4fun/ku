@@ -10,6 +10,7 @@ import { editor } from "monaco-editor";
 import React from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
 import { grpcClient } from "../../client/api";
+import useWindowSize from "../../hook/useWindowSize";
 import KustoEditor from "./KustoEditor";
 import ResultTable from "./ResultTable";
 import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRunQueryAction } from "./viewModel";
@@ -60,12 +61,17 @@ function EditorBody(props: EditorBodyProps) {
 
   const [editorHeight, setEditorHeight] = React.useState(200);
   const [viewWidth, setViewWidth] = React.useState(0);
+  const [windowWidth] = useWindowSize();
 
-  const setViewRef = React.useCallback((view: HTMLDivElement | null) => {
-    if (view) {
-      setViewWidth(view.getBoundingClientRect().width);
-    }
-  }, []);
+  const setViewRef = React.useCallback(
+    (view: HTMLDivElement | null) => {
+      if (view) {
+        setViewWidth(view.getBoundingClientRect().width);
+      }
+    },
+    // NOTE: ensure recalculate bounding client size on window resize
+    [windowWidth],
+  );
 
   return (
     <div className="flex-1" ref={setViewRef}>
