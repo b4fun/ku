@@ -82,16 +82,65 @@ function visitFilterOperator(
   }
 }
 
+function visitProjectOperator_SeparatedElement(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.SeparatedElement,
+) {
+  if (v.ChildCount < 1) {
+    return;
+  }
+
+  const exprChild = v.GetChild(0); // [Expr] | [Expr, CommaToken]
+  switch (exprChild.Kind) {
+    case SyntaxKind.NameReference:
+      // case: project foo
+      qb.select(toSQLString(exprChild));
+      break;
+    case SyntaxKind.SimpleNamedExpression:
+      // case: project a = foo
+      {
+        const projectAsExpr = (exprChild as Syntax.SimpleNamedExpression);
+        const projectAsName = toSQLString(projectAsExpr.Name);
+        const projectSource = toSQLString(projectAsExpr.Expression);
+        qb.select(raw(`${projectSource} as ${projectAsName}`));
+      }
+      break;
+    default:
+      // case: project foo + 10
+      {
+        const projectSource = toSQLString(exprChild);
+        const projectAsName = qc.acquireAutoProjectAsName();
+        qb.select(raw(`${projectSource} as ${projectAsName}`));
+      }
+  }
+
+}
+
 function visitProjectOperator(
   qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.ProjectOperator,
 ) {
-  v.Expressions?.WalkNodes((node) => {
-    if (node.Kind === SyntaxKind.NameReference) {
-      qb.select(toSQLString(node));
-    }
-  });
+  if (!v.Expressions) {
+    return;
+  }
+
+  kustoHelper.visitChild(
+    v.Expressions,
+    (child) => {
+      if (child.Kind !== SyntaxKind.SeparatedElement) {
+        // unexpected
+        return;
+      }
+
+      visitProjectOperator_SeparatedElement(
+        qc,
+        qb,
+        child as Syntax.SeparatedElement,
+      );
+    },
+  );
 }
 
 function visitSortOperator(
@@ -164,7 +213,7 @@ function visit(
 ): QueryInterface {
   indent = indent || '';
 
-  // printElement(v, indent);
+  // kustoHelper.printElement(v, indent);
 
   switch (v.Kind) {
     case SyntaxKind.FilterOperator:
@@ -184,13 +233,12 @@ function visit(
       break;
   }
 
-  for (let idx = 0; idx < v.ChildCount; idx++) {
-    const child = v.GetChild(idx);
-    if (!child) {
-      continue;
-    }
-    qb = visit(qc, qb, child, indent + '.');
-  }
+  kustoHelper.visitChild(
+    v,
+    (child) => {
+      qb = visit(qc, qb, child, indent + '  ');
+    },
+  )
 
   return qb;
 }

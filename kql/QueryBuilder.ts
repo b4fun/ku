@@ -26,9 +26,14 @@ export type QueryInterface = Knex.QueryBuilder;
 export class QueryContext {
 
   private _cteTableIdx = 0;
+  private _projectIdx = 0;
 
   public acquireCTETableName(): string {
     return `q${this._cteTableIdx++}`;
+  }
+
+  public acquireAutoProjectAsName(): string {
+    return `p${this._projectIdx++}`;
   }
 
 }
