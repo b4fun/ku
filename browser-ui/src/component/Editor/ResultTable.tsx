@@ -27,6 +27,7 @@ function ResultTableTitleCell(props: React.PropsWithChildren<ResultTableTitleCel
   const contentElemClassName = classNames(
     'px-5 py-2 font-normal text-base border-r-[1px]',
     {
+      // for resize handler
       'mr-[-8px]': !!width,
     },
   );
@@ -70,6 +71,41 @@ function ResultTableTitleRow(props: {
 
   return (
     <tr {...restProps} className={titleRowClassName} />
+  );
+}
+
+interface ResultTableCellProps {
+  className?: string;
+  maxWidth: number;
+}
+
+function ResultTableCell(props: React.PropsWithChildren<ResultTableCellProps>) {
+  const { maxWidth, className, children, ...restProps } = props;
+
+  const cellClassName = classNames(className, 'text-left');
+  const contentElemClassName = classNames(
+    'px-5 py-2 font-normal text-base',
+    'text-ellipsis', 'whitespace-nowrap', 'overflow-hidden',
+  );
+
+  return (
+    <td {...restProps} className={cellClassName}>
+      <div className={contentElemClassName} style={{ maxWidth }}>
+        {children}
+      </div>
+    </td>
+  );
+}
+
+function ResultTableCellRow(props: {
+  className?: string;
+}) {
+  const { className, ...restProps } = props;
+
+  const cellRowClassName = classNames(className, 'border-b-[1px]');
+
+  return (
+    <tr {...restProps} className={cellRowClassName} />
   );
 }
 
@@ -128,14 +164,9 @@ export default function ResultTable(props: ResultTableProps) {
       onCell: (data: DefaultRecordType) => {
         return {
           ...data,
-          style: {
-            ...data.style,
-            maxWidth: columns[idx].width,
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-          },
-        };
+          maxWidth: columns[idx].width,
+          // FIXME: force casting to allow passing maxWidth to cell
+        } as React.HTMLAttributes<DefaultRecordType>;
       },
     };
   });
@@ -144,6 +175,10 @@ export default function ResultTable(props: ResultTableProps) {
   const tableComponents: TableComponents<DefaultRecordType> = {
     header: {
       cell: ResultTableTitleCell,
+    },
+    body: {
+      cell: ResultTableCell,
+      row: ResultTableCellRow,
     },
     table: ResultTableTable,
   };
