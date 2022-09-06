@@ -198,6 +198,12 @@ export default function ResultTable(props: ResultTableProps) {
   const [expandedColumnIdx, setExpandedColumnIdx] = useState(0);
   const [expandedRowIdx, setExpandedRowIdx] = useState<number | undefined>(undefined);
 
+  // reset expand state on data reload
+  useEffect(() => {
+    setExpandedColumnIdx(0);
+    setExpandedRowIdx(undefined);
+  }, [viewModel]);
+
   const tableColumns: ColumnType<DefaultRecordType>[] = columns.map((column, colIdx) => {
     return {
       ...column,
@@ -221,7 +227,6 @@ export default function ResultTable(props: ResultTableProps) {
         const rv = {
           ...data,
           onClick: () => {
-            console.log('data cell', colIdx, rowIdx);
             setExpandedColumnIdx(colIdx);
             setExpandedRowIdx(rowIdx);
           },
@@ -259,8 +264,6 @@ export default function ResultTable(props: ResultTableProps) {
 
     return acc + column.width;
   }, 0);
-
-  console.log(expandedRowIdx);
 
   const tableExpand: ExpandableConfig<DefaultRecordType> = {
     expandRowByClick: false,
