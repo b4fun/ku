@@ -42,6 +42,17 @@ export function printElement(v: Syntax.SyntaxElement, indent: string) {
   }
 }
 
+export function dumpElement(v: Syntax.SyntaxElement, indent: string = '') {
+  printElement(v, indent);
+
+  visitChild(
+    v,
+    (child) => {
+      dumpElement(child, indent + '  ');
+    }
+  )
+}
+
 export function kqlToString(v: Syntax.SyntaxElement): string {
   return v.ToString(Syntax.IncludeTrivia.Minimal) || '';
 }
@@ -55,4 +66,17 @@ export function getTokenValue(v: Syntax.SyntaxElement): string {
   });
 
   return values.join('');
+}
+
+export function visitChild(
+  v: Syntax.SyntaxElement,
+  visit: (child: Syntax.SyntaxElement, idx: number) => void,
+) {
+  for (let idx = 0; idx < v.ChildCount; idx++) {
+    const child = v.GetChild(idx);
+    if (!child) {
+      continue;
+    }
+    visit(child, idx);
+  }
 }
