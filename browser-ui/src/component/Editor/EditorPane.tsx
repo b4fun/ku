@@ -2,7 +2,7 @@ import { toSQL } from "@b4fun/kql";
 import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
 import { Monaco } from "@monaco-editor/react";
-import { IconPlayerPlay } from '@tabler/icons';
+import { IconPlayerPlay, IconTransform } from '@tabler/icons';
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import classNames from "classnames";
@@ -19,12 +19,14 @@ import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRu
 interface EditorHeaderProps {
   runQueryViewModel: RunQueryViewModel;
   onRunQuery: () => void;
+  onNewParsedTable: () => void;
 }
 
 function EditorHeader(props: EditorHeaderProps) {
   const {
     runQueryViewModel,
     onRunQuery,
+    onNewParsedTable,
   } = props;
 
   const cs = classNames(
@@ -32,11 +34,17 @@ function EditorHeader(props: EditorHeaderProps) {
     'border-b-[1px] border-[color:var(--border-color-light)]',
     'p-2',
     'text-justify',
-  )
+  );
+
+  const buttonClassName = 'mr-2'
+
+  // need to run at least 1 time before creating table from current query
+  const canNewTable = !runQueryViewModel.requesting && !!runQueryViewModel.response;
 
   return (
     <div className={cs}>
       <Button
+        className={buttonClassName}
         variant="default"
         size='xs'
         leftIcon={<IconPlayerPlay size={12} />}
@@ -44,6 +52,18 @@ function EditorHeader(props: EditorHeaderProps) {
         onClick={onRunQuery}
       >
         Run
+      </Button>
+
+      <Button
+        className={buttonClassName}
+        variant="default"
+        size='xs'
+        leftIcon={<IconTransform size={12} />}
+        disabled={!canNewTable}
+        title="New table from current query"
+        onClick={onNewParsedTable}
+      >
+        New
       </Button>
     </div>
   );
@@ -144,10 +164,7 @@ export default function EditorPane(props: EditorPaneProps) {
 
   const runQueryAction = useRunQueryAction();
 
-  const onRunQuery = () => {
-    if (runQueryAction.viewModel.requesting) {
-      return;
-    }
+  const getUserInput = (): { queryInput: string; sql: string; } | undefined => {
     if (!editorLoaded) {
       return;
     }
@@ -181,18 +198,37 @@ export default function EditorPane(props: EditorPaneProps) {
       queryInput = editorValue.editor.getValue();
     }
 
-    if (!queryInput) {
-      console.log('no user input');
+    const query = toSQL(queryInput, { tableName: table.id });
+
+    return {
+      queryInput,
+      sql: query.sql,
+    };
+  };
+
+  const onRunQuery = () => {
+    if (runQueryAction.viewModel.requesting) {
+      return;
+    }
+    if (!editorLoaded) {
       return;
     }
 
+    const userInput = getUserInput();
+
+    if (!userInput) {
+      console.error('no valid user input');
+      return;
+    }
+
+    const { queryInput, sql } = userInput;
+
     console.log(`raw query input: ${queryInput}`);
-    const query = toSQL(queryInput, { tableName: table.id });
-    console.log(`querying ${query.sql}`);
+    console.log(`querying ${sql}`);
 
     runQueryAction.setRequesting(true);
 
-    grpcClient().queryTable({ sql: query.sql }).
+    grpcClient().queryTable({ sql }).
       then((resp) => {
         const result: ResultTableViewModel = {
           columns: [],
@@ -236,6 +272,9 @@ export default function EditorPane(props: EditorPaneProps) {
       <EditorHeader
         runQueryViewModel={runQueryAction.viewModel}
         onRunQuery={onRunQuery}
+        onNewParsedTable={() => {
+
+        }}
       />
       <EditorBody
         editorValue={editorDefaultQuery}
