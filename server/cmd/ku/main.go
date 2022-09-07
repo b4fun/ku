@@ -44,7 +44,7 @@ func createCmd() *cobra.Command {
 				return err
 			}
 
-			queryService, err := dbProvider.CreateQueryService()
+			queryService, err := dbProvider.GetQueryService()
 			if err != nil {
 				return err
 			}

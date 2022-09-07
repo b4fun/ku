@@ -25,7 +25,7 @@ type Provider interface {
 
 	ListSessions(ctx context.Context) ([]*v1.Session, error)
 
-	CreateQueryService() (QueryService, error)
+	GetQueryService() (QueryService, error)
 }
 
 type QueryService interface {

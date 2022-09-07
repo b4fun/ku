@@ -68,7 +68,7 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		sqliteSession := session.(*SqliteSession)
 
-		qs, err := provider.CreateQueryService()
+		qs, err := provider.GetQueryService()
 		require.NoError(tc, err)
 		require.NotNil(tc, qs)
 

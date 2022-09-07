@@ -94,7 +94,7 @@ func (p *SqliteProvider) ListSessions(ctx context.Context) ([]*v1.Session, error
 	return p.sessionBookkeeper.ListSessions(ctx)
 }
 
-func (p *SqliteProvider) CreateQueryService() (QueryService, error) {
+func (p *SqliteProvider) GetQueryService() (QueryService, error) {
 	rv := &SqliteQueryService{db: p.db}
 
 	return rv, nil
