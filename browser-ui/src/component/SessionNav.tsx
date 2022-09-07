@@ -1,6 +1,7 @@
-import { UnstyledButton } from "@mantine/core";
+import { ActionIcon, UnstyledButton } from "@mantine/core";
+import { IconTableOptions } from "@tabler/icons";
 import classNames from "classnames";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useState } from "react";
 
 export interface SessionNavLinkProps {
   active?: boolean;
@@ -43,10 +44,29 @@ export interface SessionNavLinkGroupProps {
 export function SessionNavLinkGroup(props: SessionNavLinkGroupProps) {
   const { name, children } = props;
 
+  const [hoverTitle, setHoverTitle] = useState(false);
+
+  const actionIconClassNames = classNames({
+    'hidden': !hoverTitle,
+  })
+
   return (
-    <div className="mb-2">
-      <div className="mb-2 font-semibold text-sm">
-        {name}
+    <div className="ml-1 mb-2">
+      <div
+        className="mb-2 flex align-center items-center align-middle"
+        onMouseEnter={e => {
+          setHoverTitle(true);
+        }}
+        onMouseLeave={e => {
+          setHoverTitle(false);
+        }}
+      >
+        <span className="flex-1 font-semibold text-sm align-middle h-[28px] leading-[28px]">
+          {name}
+        </span>
+        <ActionIcon color="gray" className={actionIconClassNames}>
+          <IconTableOptions size={18} />
+        </ActionIcon>
       </div>
       <div className="ml-2">
         {children}
