@@ -1,5 +1,6 @@
 import { Button, Group, Modal, TextInput } from "@mantine/core";
 import { useForm } from '@mantine/form';
+import { useUpdateSession } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import { useViewModelAction, ViewModelAction, ViewModelWithSession } from "./viewModel";
 
@@ -17,6 +18,7 @@ function SessionSettingsModalForm(props: {
 }) {
   const { viewModelAction } = props;
   const { viewModel } = viewModelAction;
+  const updateSession = useUpdateSession();
 
   const form = useForm<SessionSettingsModalFormValue>({
     initialValues: {
@@ -55,6 +57,7 @@ function SessionSettingsModalForm(props: {
         viewModelAction.finishSubmit();
       }
 
+      updateSession(viewModel.session);
       viewModelAction.hideModal();
     }}>
       <TextInput

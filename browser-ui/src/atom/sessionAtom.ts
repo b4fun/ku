@@ -5,26 +5,37 @@ import { atom, useAtom } from "jotai";
 // The first value is the session id, the second value is the table name.
 export type TableKey = [string, string];
 
-export interface SessionsState {
-  sessions: Session[];
+interface SessionMapState {
+  sessionIDs: string[];
+  sessionsByID: { [k: string]: Session };
+}
 
+export interface SessionsState extends SessionMapState {
   // key: sessionId, name
   selectedTableKey?: TableKey;
 }
 
 const sessionsAtom = atom<SessionsState>({
-  sessions: [],
+  sessionIDs: [],
+  sessionsByID: {},
 });
 
 export const sessionsListAtom = atom(
   (get) => {
-    return get(sessionsAtom).sessions;
+    const state = get(sessionsAtom);
+
+    return state.sessionIDs.map((id) => state.sessionsByID[id]).filter(Boolean);
   },
   (get, set, newSessions: Session[]) => {
     const prev = get(sessionsAtom);
 
+    const newSessionState = {
+      sessionIDs: newSessions.map((s) => s.id),
+      sessionsByID: newSessions.reduce((acc, s) => ({ ...acc, [s.id]: s }), {}),
+    };
+
     let { selectedTableKey } = prev;
-    if (!findTableByKey(newSessions, selectedTableKey)) {
+    if (!findTableByKey(newSessionState, selectedTableKey)) {
       // update previous selected table if needed
       if (newSessions.length > 0) {
         selectedTableKey = [newSessions[0].id, newSessions[0].tables[0].name];
@@ -35,14 +46,14 @@ export const sessionsListAtom = atom(
 
     set(sessionsAtom, {
       ...prev,
-      sessions: newSessions,
+      ...newSessionState,
       selectedTableKey,
     });
   }
 );
 
 function findTableByKey(
-  sessions: Session[],
+  state: SessionMapState,
   key: TableKey | undefined,
 ): [Session, TableSchema] | undefined {
   if (!key) {
@@ -51,8 +62,7 @@ function findTableByKey(
 
   const [sessionId, tableName] = key;
 
-  // TODO: O(n) => O(1)
-  const session = sessions.find(s => s.id === sessionId);
+  const session = state.sessionsByID[sessionId];
   if (!session) {
     return;
   }
@@ -72,13 +82,13 @@ export const selectedTableAtom = atom(
       return;
     }
 
-    return findTableByKey(state.sessions, state.selectedTableKey);
+    return findTableByKey(state, state.selectedTableKey);
   },
   (get, set, table: TableSchema) => {
     const state = get(sessionsAtom);
 
     const selectedKey: TableKey = [table.sessionId, table.name];
-    if (!findTableByKey(state.sessions, selectedKey)) {
+    if (!findTableByKey(state, selectedKey)) {
       // unselectable table...
       return;
     }
@@ -105,7 +115,7 @@ export interface SelectedTableState {
 
 export function useSelectedTable(): [SelectedTableState, true] | [null, false] {
   const [state] = useAtom(sessionsAtom);
-  const selected = findTableByKey(state.sessions, state.selectedTableKey);
+  const selected = findTableByKey(state, state.selectedTableKey);
   if (!selected) {
     return [null, false];
   }
@@ -122,3 +132,26 @@ export function isSelectedTable(
 }
 
 export const useSessions = () => useAtom(sessionsListAtom);
+
+export function useUpdateSession(): (session: Session) => void {
+  const [, setState] = useAtom(sessionsAtom);
+
+  return (session) => {
+    setState(prev => {
+      const sessionIDs = [...prev.sessionIDs];
+      if (sessionIDs.findIndex(id => id === session.id) === -1) {
+        // new session, append to the end
+        sessionIDs.push(session.id);
+      }
+
+      return {
+        ...prev,
+        sessionIDs,
+        sessionsByID: {
+          ...prev.sessionsByID,
+          [session.id]: session,
+        },
+      };
+    });
+  };
+}
