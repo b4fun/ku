@@ -28,7 +28,13 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
-  const [showSessionSettingsModal, setShowSessionSettingsModal] = useState(false);
+  const [showSessionSettingsModal, setShowSessionSettingsModal] = useState<{
+    session?: Session;
+    show: boolean;
+  }>({
+    session: undefined,
+    show: false,
+  });
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
@@ -58,7 +64,7 @@ function EditorNavBar(props: EditorNavBarProps) {
         <SessionNav.LinkGroup
           name={session.name}
           onActionIconClick={() => {
-            setShowSessionSettingsModal(true);
+            setShowSessionSettingsModal({ show: true, session });
           }}
           key={session.id}
         >
@@ -80,11 +86,23 @@ function EditorNavBar(props: EditorNavBarProps) {
       height='100%'
     >
       <SessionSettingsModal
-        opened={showSessionSettingsModal}
-        session={selectedTable?.session}
+        opened={showSessionSettingsModal.show}
+        session={showSessionSettingsModal.session}
         title='Session Settings'
         onClose={() => {
-          setShowSessionSettingsModal(false);
+          setShowSessionSettingsModal({ show: false });
+        }}
+        onSubmitForm={async (value) => {
+          const sessionToUpdate = showSessionSettingsModal.session;
+          if (!sessionToUpdate) {
+            console.warn('no selected session can be updated');
+            return;
+          }
+
+          sessionToUpdate.name = value.name;
+
+          await grpcClient().updateSession({ session: sessionToUpdate });
+          setShowSessionSettingsModal({ show: false });
         }}
       />
       <Navbar.Section>
