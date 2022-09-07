@@ -23,9 +23,9 @@ type CreateSessionOpts struct {
 type Provider interface {
 	CreateSession(ctx context.Context, opts *CreateSessionOpts) (string, Session, error)
 
-	ListSessions(ctx context.Context) ([]*v1.Session, error)
-
 	GetQueryService() (QueryService, error)
+
+	GetSessionRepository() (SessionRepository, error)
 }
 
 type QueryService interface {
@@ -33,4 +33,10 @@ type QueryService interface {
 		ctx context.Context,
 		payload *v1.QueryTableRequest,
 	) (*v1.QueryTableResponse, error)
+}
+
+type SessionRepository interface {
+	ListSessions(ctx context.Context) ([]*v1.Session, error)
+	GetSessionByID(ctx context.Context, sessionID string) (*v1.Session, error)
+	UpdateSession(ctx context.Context, session *v1.Session) error
 }

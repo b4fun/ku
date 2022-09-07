@@ -81,10 +81,28 @@ func TestSqliteProvider(t *testing.T) {
 		require.Len(tc, queryResp.Columns, 1)
 		require.Equal(tc, "lines", queryResp.Columns[0].Key)
 
-		sessions, err := provider.ListSessions(ctx)
+		sessionRepo, err := provider.GetSessionRepository()
+		require.NoError(tc, err)
+
+		sessions, err := sessionRepo.ListSessions(ctx)
 		require.NoError(tc, err)
 		require.Len(tc, sessions, 1)
 		require.Equal(tc, sessionID, sessions[0].Id)
 		require.Len(tc, sessions[0].Tables, 1)
+
+		sessionLoaded, err := sessionRepo.GetSessionByID(ctx, sessionID)
+		require.NoError(tc, err)
+		require.NotNil(tc, sessionLoaded)
+		require.Equal(tc, sessionLoaded.Id, sessionID)
+		require.Len(tc, sessionLoaded.Tables, 1)
+
+		sessionLoaded.Name = "updated-name"
+		updateErr := sessionRepo.UpdateSession(ctx, sessionLoaded)
+		require.NoError(tc, updateErr)
+
+		sessionUpdated, err := sessionRepo.GetSessionByID(ctx, sessionID)
+		require.NoError(tc, err)
+		require.NotNil(tc, sessionUpdated)
+		require.Equal(tc, "updated-name", sessionUpdated.Name)
 	})
 }

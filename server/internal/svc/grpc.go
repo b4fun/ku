@@ -8,8 +8,8 @@ import (
 
 type grpcServerParams struct {
 	logger       logr.Logger
-	dbProvider   db.Provider
 	queryService db.QueryService
+	sessionRepo  db.SessionRepository
 }
 
 func newGRPCServer(params *grpcServerParams) *grpc.Server {
@@ -17,8 +17,8 @@ func newGRPCServer(params *grpcServerParams) *grpc.Server {
 
 	apiServerParams{
 		logger:       params.logger,
-		dbProvider:   params.dbProvider,
 		queryService: params.queryService,
+		sessionRepo:  params.sessionRepo,
 	}.createAndRegister(grpcServer)
 
 	return grpcServer

@@ -48,11 +48,15 @@ func createCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			sessionRepo, err := dbProvider.GetSessionRepository()
+			if err != nil {
+				return err
+			}
 
 			svcOpts := &svc.Options{
 				Logger:       logger,
-				DBProvider:   dbProvider,
 				QueryService: queryService,
+				SessionRepo:  sessionRepo,
 			}
 			apiServer, err := svc.New(svcOpts)
 			if err != nil {
