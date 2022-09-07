@@ -89,3 +89,67 @@ func (s *SqliteSession) WriteLogLine(ctx context.Context, payload WriteLogLinePa
 
 	return nil
 }
+
+// ref: https://www.sqlite.org/pragma.html#pragma_table_info
+type sqlitePragmaTableInfoColumn struct {
+	Name string `db:"name"`
+	Type string `db:"type"`
+}
+
+func (col sqlitePragmaTableInfoColumn) ToTableColumn() *v1.TableColumn {
+	return &v1.TableColumn{
+		Key:  col.Name,
+		Type: sqliteDatabaseTypeToColumnType(col.Type),
+	}
+}
+
+func (s *SqliteSession) CreateParsedTable(ctx context.Context, opts *CreateParsedTableOpts) error {
+	const dropViewTmpl = `DROP VIEW IF EXISTS %s`
+	const createViewTmpl = `CREATE VIEW %s AS %s`
+	const getViewInfoQueryTmpl = `SELECT name, type FROM pragma_table_info('%s') ORDER BY cid ASC`
+
+	if opts.SQL == "" {
+		return fmt.Errorf("sql is required")
+	}
+	if opts.TableName == "" {
+		return fmt.Errorf("table name is required")
+	}
+
+	parsedTableName := s.dbTableName(opts.TableName)
+
+	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(dropViewTmpl, parsedTableName)); err != nil {
+		return fmt.Errorf("drop view %q: %w", parsedTableName, err)
+	}
+
+	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(createViewTmpl, parsedTableName, opts.SQL)); err != nil {
+		return fmt.Errorf("create view %q: %w", parsedTableName, err)
+	}
+
+	var tableInfoColumns []sqlitePragmaTableInfoColumn
+	if err := s.db.SelectContext(
+		ctx, &tableInfoColumns,
+		fmt.Sprintf(getViewInfoQueryTmpl, parsedTableName),
+	); err != nil {
+		return fmt.Errorf("get view info %q: %w", parsedTableName, err)
+	}
+
+	var tableColumns []*v1.TableColumn
+	for _, dbCol := range tableInfoColumns {
+		tableColumns = append(tableColumns, dbCol.ToTableColumn())
+	}
+
+	if err := s.sessionBookkeeper.CreateSessionTable(
+		ctx,
+		s.sessionID,
+		&v1.TableSchema{
+			Id:      parsedTableName,
+			Name:    parsedTableName,
+			Type:    v1.TableSchema_TYPE_PARSED,
+			Columns: tableColumns,
+		},
+	); err != nil {
+		return fmt.Errorf("bookkeep parsed table %q: %w", parsedTableName, err)
+	}
+
+	return nil
+}

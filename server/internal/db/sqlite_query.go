@@ -21,6 +21,8 @@ var _ QueryService = (*SqliteQueryService)(nil)
 
 // ref: databaseTypeConvSqlite
 func sqliteDatabaseTypeToColumnType(t string) v1.TableColumn_Type {
+	t = strings.ToUpper(t)
+
 	if strings.Contains(t, "INT") {
 		return v1.TableColumn_TYPE_INT64
 	}
