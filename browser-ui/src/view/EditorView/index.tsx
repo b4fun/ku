@@ -131,6 +131,7 @@ function EditorView() {
       {tableSelected ?
         (<EditorPane
           table={selectedTable.table}
+          session={selectedTable.session}
           className="h-screen"
         />)
         :
