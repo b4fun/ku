@@ -100,10 +100,10 @@ export const selectedTableAtom = atom(
   },
 );
 
-export function useSelectTable(): (session: Session, table: TableSchema) => void {
+export function useSelectTable(): (table: TableSchema) => void {
   const [, setTable] = useAtom(selectedTableAtom);
 
-  return (session, table) => {
+  return (table) => {
     setTable(table);
   };
 }

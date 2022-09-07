@@ -47,7 +47,7 @@ function EditorNavBar(props: EditorNavBarProps) {
             key={table.name}
             active={isActive}
             onClick={() => {
-              selectTable(session, table);
+              selectTable(table);
             }}
           >
             <Text>{table.name}</Text>
