@@ -24,7 +24,7 @@ import { BoolValue } from "../../google/protobuf/wrappers";
  */
 export interface Session {
     /**
-     * id - id of the session.
+     * id - id of the session (immutable).
      *
      * @generated from protobuf field: string id = 1;
      */
@@ -144,11 +144,11 @@ export enum TableColumn_Type {
  */
 export interface TableSchema {
     /**
-     * name - name of the table.
+     * id - id of the table (immutable).
      *
-     * @generated from protobuf field: string name = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    name: string;
+    id: string;
     /**
      * type - type of the table.
      *
@@ -440,14 +440,14 @@ export const TableColumn = new TableColumn$Type();
 class TableSchema$Type extends MessageType<TableSchema> {
     constructor() {
         super("api.v1.TableSchema", [
-            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "enum", T: () => ["api.v1.TableSchema.Type", TableSchema_Type, "TYPE_"] },
             { no: 3, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn },
             { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<TableSchema>): TableSchema {
-        const message = { name: "", type: 0, columns: [], sessionId: "" };
+        const message = { id: "", type: 0, columns: [], sessionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TableSchema>(this, message, value);
@@ -458,8 +458,8 @@ class TableSchema$Type extends MessageType<TableSchema> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string name */ 1:
-                    message.name = reader.string();
+                case /* string id */ 1:
+                    message.id = reader.string();
                     break;
                 case /* api.v1.TableSchema.Type type */ 2:
                     message.type = reader.int32();
@@ -482,9 +482,9 @@ class TableSchema$Type extends MessageType<TableSchema> {
         return message;
     }
     internalBinaryWrite(message: TableSchema, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string name = 1; */
-        if (message.name !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
         /* api.v1.TableSchema.Type type = 2; */
         if (message.type !== 0)
             writer.tag(2, WireType.Varint).int32(message.type);

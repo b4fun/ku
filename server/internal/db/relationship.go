@@ -18,11 +18,11 @@ func associateSessionTables(
 		if err := proto.Unmarshal(dbEntry.TableProtos, table); err != nil {
 			err := fmt.Errorf(
 				"decode table protos for table %s/%s: %w",
-				dbEntry.SessionID, dbEntry.TableName, err,
+				dbEntry.SessionID, dbEntry.TableID, err,
 			)
 			return err
 		}
-		table.Name = dbEntry.TableName
+		table.Id = dbEntry.TableID
 		table.SessionId = dbEntry.SessionID
 		tablesBySessionID[dbEntry.SessionID] = append(
 			tablesBySessionID[dbEntry.SessionID],

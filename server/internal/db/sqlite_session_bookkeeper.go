@@ -50,7 +50,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS %s_session_id ON %s (session_id);
 			DDL: fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (
 	session_id text,
-	table_name text,
+	table_id text,
 	table_protos blob
 );
 `, bk.tableNameSessionTable),
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS %s (
 		{
 			TableName: bk.tableNameSessionTable,
 			DDL: fmt.Sprintf(`
-CREATE UNIQUE INDEX IF NOT EXISTS %s_session_id_table_name ON %s (session_id, table_name);
+CREATE UNIQUE INDEX IF NOT EXISTS %s_session_id_table_id ON %s (session_id, table_id);
 `, bk.tableNameSessionTable, bk.tableNameSessionTable),
 		},
 	}
@@ -156,9 +156,9 @@ func (bk *sqliteSessionBookkeeper) CreateSessionTable(
 	schema *v1.TableSchema,
 ) error {
 	const insertStmtTmpl = `
-INSERT INTO %s (session_id, table_name, table_protos)
+INSERT INTO %s (session_id, table_id, table_protos)
 VALUES (?, ?, ?)
-ON CONFLICT(session_id, table_name)
+ON CONFLICT(session_id, table_id)
 DO UPDATE SET table_protos = excluded.table_protos
 `
 
@@ -170,7 +170,7 @@ DO UPDATE SET table_protos = excluded.table_protos
 	if _, err := bk.db.ExecContext(
 		ctx,
 		fmt.Sprintf(insertStmtTmpl, bk.tableNameSessionTable),
-		sessionID, schema.Name, tableProtos,
+		sessionID, schema.Id, tableProtos,
 	); err != nil {
 		return fmt.Errorf("insert table to session %q: %w", sessionID, err)
 	}
@@ -196,7 +196,7 @@ func (d *dbSession) ToProto() (*v1.Session, error) {
 
 type dbSessionTable struct {
 	SessionID   string `db:"session_id"`
-	TableName   string `db:"table_name"`
+	TableID     string `db:"table_id"`
 	TableProtos []byte `db:"table_protos"`
 }
 

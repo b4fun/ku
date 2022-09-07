@@ -44,13 +44,13 @@ function EditorNavBar(props: EditorNavBarProps) {
 
         return (
           <SessionNav.Link
-            key={table.name}
+            key={table.id}
             active={isActive}
             onClick={() => {
               selectTable(table);
             }}
           >
-            <Text>{table.name}</Text>
+            <Text>{table.id}</Text>
           </SessionNav.Link>
         );
       });

@@ -180,7 +180,7 @@ export default function EditorPane(props: EditorPaneProps) {
     }
 
     console.log(`raw query input: ${queryInput}`);
-    const query = toSQL(queryInput, { tableName: table.name });
+    const query = toSQL(queryInput, { tableName: table.id });
     console.log(`querying ${query.sql}`);
 
     runQueryAction.setRequesting(true);

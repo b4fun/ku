@@ -2,7 +2,7 @@ import { Session, TableSchema } from "@b4fun/ku-protos";
 import { atom, useAtom } from "jotai";
 
 // TableKey defines the key of a table.
-// The first value is the session id, the second value is the table name.
+// The first value is the session id, the second value is the table id.
 export type TableKey = [string, string];
 
 interface SessionMapState {
@@ -38,7 +38,7 @@ export const sessionsListAtom = atom(
     if (!findTableByKey(newSessionState, selectedTableKey)) {
       // update previous selected table if needed
       if (newSessions.length > 0) {
-        selectedTableKey = [newSessions[0].id, newSessions[0].tables[0].name];
+        selectedTableKey = [newSessions[0].id, newSessions[0].tables[0].id];
       } else {
         selectedTableKey = undefined;
       }
@@ -60,14 +60,14 @@ function findTableByKey(
     return;
   }
 
-  const [sessionId, tableName] = key;
+  const [sessionId, tableId] = key;
 
   const session = state.sessionsByID[sessionId];
   if (!session) {
     return;
   }
 
-  const table = session.tables.find(t => t.name === tableName);
+  const table = session.tables.find(t => t.id === tableId);
   if (!table) {
     return;
   }
@@ -87,7 +87,7 @@ export const selectedTableAtom = atom(
   (get, set, table: TableSchema) => {
     const state = get(sessionsAtom);
 
-    const selectedKey: TableKey = [table.sessionId, table.name];
+    const selectedKey: TableKey = [table.sessionId, table.id];
     if (!findTableByKey(state, selectedKey)) {
       // unselectable table...
       return;
@@ -128,7 +128,7 @@ export function isSelectedTable(
   state: SelectedTableState,
   table: TableSchema,
 ): boolean {
-  return state.session.id === table.sessionId && state.table.name === table.name;
+  return state.session.id === table.sessionId && state.table.id === table.id;
 }
 
 export const useSessions = () => useAtom(sessionsListAtom);

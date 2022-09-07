@@ -52,7 +52,7 @@ CREATE TABLE %s (
 		ctx,
 		s.sessionID,
 		&v1.TableSchema{
-			Name: rawTableName,
+			Id:   rawTableName,
 			Type: v1.TableSchema_TYPE_RAW,
 			Columns: []*v1.TableColumn{
 				{

@@ -11,7 +11,7 @@ import "google/protobuf/wrappers.proto";
 // sessions -(many)-> tables
 
 message Session {
-  // id - id of the session.
+  // id - id of the session (immutable).
   string id = 1;
   // tables - tables in the session.
   repeated TableSchema tables = 2;
@@ -62,8 +62,8 @@ message TableSchema {
     TYPE_PARSED = 2;
   }
 
-  // name - name of the table.
-  string name = 1;
+  // id - id of the table (immutable).
+  string id = 1;
   // type - type of the table.
   Type type = 2;
   // columns - columns of the table.
