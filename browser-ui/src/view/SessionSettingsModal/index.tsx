@@ -100,6 +100,7 @@ export default function SessionSettingsModal(
 
   return (
     <Modal
+      title="Session Settings"
       opened={viewModel.show}
       onClose={() => {
         viewModelAction.hideModal();
