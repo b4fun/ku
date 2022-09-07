@@ -3,4 +3,7 @@
 
   --border-color-light: #e9ecef;
   --separator-border: var(var(--border-color-light));
+
+  --theme-color-orange: rgb(217, 72, 15);
+  --theme-color-orange-light: #e06c3e;
 }

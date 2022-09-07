@@ -9,7 +9,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 
-	v1 "github.com/b4fun/ku/protos/api/v1"
 	"github.com/b4fun/ku/server/internal/db/dbext"
 )
 
@@ -90,12 +89,12 @@ func (p *SqliteProvider) CreateSession(
 	return sessionID, session, nil
 }
 
-func (p *SqliteProvider) ListSessions(ctx context.Context) ([]*v1.Session, error) {
-	return p.sessionBookkeeper.ListSessions(ctx)
-}
-
-func (p *SqliteProvider) CreateQueryService() (QueryService, error) {
+func (p *SqliteProvider) GetQueryService() (QueryService, error) {
 	rv := &SqliteQueryService{db: p.db}
 
 	return rv, nil
+}
+
+func (p *SqliteProvider) GetSessionRepository() (SessionRepository, error) {
+	return p.sessionBookkeeper, nil
 }

@@ -9,15 +9,15 @@ import (
 
 type apiServerParams struct {
 	logger       logr.Logger
-	dbProvider   db.Provider
 	queryService db.QueryService
+	sessionRepo  db.SessionRepository
 }
 
 func (p apiServerParams) createAndRegister(s *grpc.Server) {
 	rv := &apiServer{
 		logger:       p.logger.WithName("api"),
-		dbProvider:   p.dbProvider,
 		queryService: p.queryService,
+		sessionRepo:  p.sessionRepo,
 	}
 
 	v1.RegisterAPIServiceServer(s, rv)
@@ -27,6 +27,6 @@ type apiServer struct {
 	v1.UnimplementedAPIServiceServer
 
 	logger       logr.Logger
-	dbProvider   db.Provider
 	queryService db.QueryService
+	sessionRepo  db.SessionRepository
 }

@@ -53,6 +53,24 @@ export interface QueryTableResponse {
      */
     columns: TableColumn[];
 }
+/**
+ * @generated from protobuf message api.v1.UpdateSessionRequest
+ */
+export interface UpdateSessionRequest {
+    /**
+     * @generated from protobuf field: api.v1.Session session = 1;
+     */
+    session?: Session;
+}
+/**
+ * @generated from protobuf message api.v1.UpdateSessionResponse
+ */
+export interface UpdateSessionResponse {
+    /**
+     * @generated from protobuf field: api.v1.Session session = 1;
+     */
+    session?: Session;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class ListSessionsRequest$Type extends MessageType<ListSessionsRequest> {
     constructor() {
@@ -227,10 +245,105 @@ class QueryTableResponse$Type extends MessageType<QueryTableResponse> {
  * @generated MessageType for protobuf message api.v1.QueryTableResponse
  */
 export const QueryTableResponse = new QueryTableResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateSessionRequest$Type extends MessageType<UpdateSessionRequest> {
+    constructor() {
+        super("api.v1.UpdateSessionRequest", [
+            { no: 1, name: "session", kind: "message", T: () => Session }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateSessionRequest>): UpdateSessionRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateSessionRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateSessionRequest): UpdateSessionRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* api.v1.Session session */ 1:
+                    message.session = Session.internalBinaryRead(reader, reader.uint32(), options, message.session);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateSessionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* api.v1.Session session = 1; */
+        if (message.session)
+            Session.internalBinaryWrite(message.session, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.UpdateSessionRequest
+ */
+export const UpdateSessionRequest = new UpdateSessionRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateSessionResponse$Type extends MessageType<UpdateSessionResponse> {
+    constructor() {
+        super("api.v1.UpdateSessionResponse", [
+            { no: 1, name: "session", kind: "message", T: () => Session }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateSessionResponse>): UpdateSessionResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateSessionResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateSessionResponse): UpdateSessionResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* api.v1.Session session */ 1:
+                    message.session = Session.internalBinaryRead(reader, reader.uint32(), options, message.session);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateSessionResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* api.v1.Session session = 1; */
+        if (message.session)
+            Session.internalBinaryWrite(message.session, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.UpdateSessionResponse
+ */
+export const UpdateSessionResponse = new UpdateSessionResponse$Type();
 /**
  * @generated ServiceType for protobuf service api.v1.APIService
  */
 export const APIService = new ServiceType("api.v1.APIService", [
     { name: "ListSessions", options: {}, I: ListSessionsRequest, O: ListSessionsResponse },
+    { name: "UpdateSession", options: {}, I: UpdateSessionRequest, O: UpdateSessionResponse },
     { name: "QueryTable", options: {}, I: QueryTableRequest, O: QueryTableResponse }
 ]);

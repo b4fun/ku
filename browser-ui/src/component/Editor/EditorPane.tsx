@@ -1,5 +1,5 @@
 import { toSQL } from "@b4fun/kql";
-import { TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
+import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
 import { Monaco } from "@monaco-editor/react";
 import { IconPlayerPlay } from '@tabler/icons';
@@ -7,10 +7,11 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
-import React from "react";
+import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
 import { grpcClient } from "../../client/api";
 import useWindowSize from "../../hook/useWindowSize";
+import { sessionToKustoSchema } from "./kusto";
 import KustoEditor from "./KustoEditor";
 import ResultTable from "./ResultTable";
 import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRunQueryAction } from "./viewModel";
@@ -93,17 +94,39 @@ function EditorBody(props: EditorBodyProps) {
 
 export interface EditorPaneProps {
   table: TableSchema;
+  session: Session;
   className?: string;
 }
 
 const editorDefaultQuery = `
-source
+raw
 | take 100
 `.trim()
+
+function getEditorLineNumber(
+  editorModel: editor.ITextModel,
+  startLine: number,
+  nextLine: (n: number) => number,
+  pred: (s: string) => boolean,
+): number {
+  const maxLine = editorModel.getLineCount();
+
+  let line = startLine;
+  let lineText = editorModel.getLineContent(line);
+  while (pred(lineText)) {
+    line = nextLine(line);
+    if (line > maxLine || line < 1) {
+      break;
+    }
+    lineText = editorModel.getLineContent(line);
+  }
+  return line;
+}
 
 export default function EditorPane(props: EditorPaneProps) {
   const {
     table,
+    session,
     className,
   } = props;
 
@@ -111,9 +134,13 @@ export default function EditorPane(props: EditorPaneProps) {
 
   const [editorValue, editorLoaded] = useLoadedEditor();
 
-  if (editorLoaded) {
-    setSchema(editorValue.editor, editorValue.monaco)
-  }
+  useEffect(() => {
+    if (!editorLoaded) {
+      return;
+    }
+
+    setSchemas(editorValue.editor, editorValue.monaco, session);
+  }, [editorLoaded, session])
 
   const runQueryAction = useRunQueryAction();
 
@@ -125,13 +152,42 @@ export default function EditorPane(props: EditorPaneProps) {
       return;
     }
 
-    const queryInput = editorValue.editor.getValue();
+    let queryInput: string;
+
+    const editorModel = editorValue.editor.getModel();
+    const selection = editorValue.editor.getSelection();
+    if (selection && editorModel) {
+      {
+        const regionStartLine = getEditorLineNumber(
+          editorModel,
+          selection.startLineNumber,
+          (n) => n - 1,
+          (l) => !!l.trim(),
+        );
+        const regionEndLine = getEditorLineNumber(
+          editorModel,
+          selection.startLineNumber,
+          (n) => n + 1,
+          (l) => !!l.trim(),
+        );
+        queryInput = editorModel.getValueInRange({
+          startLineNumber: regionStartLine,
+          startColumn: 0,
+          endLineNumber: regionEndLine + 1,
+          endColumn: 0,
+        });
+      }
+    } else {
+      queryInput = editorValue.editor.getValue();
+    }
+
     if (!queryInput) {
       console.log('no user input');
       return;
     }
 
-    const query = toSQL(queryInput, { tableName: table.name });
+    console.log(`raw query input: ${queryInput}`);
+    const query = toSQL(queryInput, { tableName: table.id });
     console.log(`querying ${query.sql}`);
 
     runQueryAction.setRequesting(true);
@@ -189,8 +245,11 @@ export default function EditorPane(props: EditorPaneProps) {
   );
 }
 
-// TODO: pass in schema
-async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
+async function setSchemas(
+  editor: editor.IStandaloneCodeEditor,
+  monaco: Monaco,
+  session: Session,
+) {
   const kusto = (monaco.languages as any).kusto as any;
   const workerAccessor = await kusto.getKustoWorker();
   const model = editor.getModel();
@@ -198,34 +257,19 @@ async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
     throw new Error('no model');
   }
   const worker = await workerAccessor(model.uri);
+
+  const kustoSessionDatabaseSchema = sessionToKustoSchema(session);
+
   worker.setSchemaFromShowSchema(
     {
       Plugins: [
         { Name: 'pivot' },
       ],
       Databases: {
-        Ku: {
-          Name: 'Ku',
-          Tables: {
-            source: {
-              Name: 'source',
-              OrderedColumns: [
-                {
-                  Name: 'ts',
-                  CslType: 'datetime',
-                },
-                {
-                  Name: 'lines',
-                  CslType: 'string',
-                }
-              ],
-            },
-          },
-          Functions: {},
-        },
+        [kustoSessionDatabaseSchema.Name]: kustoSessionDatabaseSchema,
       },
     },
     "https://demo.example.com",
-    "Ku",
+    kustoSessionDatabaseSchema.Name,
   );
 }

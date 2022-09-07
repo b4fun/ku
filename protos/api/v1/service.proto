@@ -22,8 +22,17 @@ message QueryTableResponse {
   repeated TableColumn columns = 2;
 }
 
+message UpdateSessionRequest {
+  Session session = 1;
+}
+
+message UpdateSessionResponse {
+  Session session = 1;
+}
+
 service APIService {
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {}
+  rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse) {}
 
   rpc QueryTable(QueryTableRequest) returns (QueryTableResponse) {}
 }

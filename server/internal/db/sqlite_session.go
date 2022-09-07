@@ -29,6 +29,8 @@ func newSqliteSession(
 
 var _ Session = (*SqliteSession)(nil)
 
+const tableNameRaw = "raw"
+
 func (s *SqliteSession) bootstrap(ctx context.Context) error {
 	const dropTableTmpl = `DROP TABLE IF EXISTS %s`
 
@@ -38,7 +40,7 @@ CREATE TABLE %s (
 	lines text
 );
 `
-	rawTableName := s.rawTableName()
+	rawTableName := s.dbTableName(tableNameRaw)
 
 	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(dropTableTmpl, rawTableName)); err != nil {
 		return fmt.Errorf("drop raw table %q: %w", rawTableName, err)
@@ -52,7 +54,8 @@ CREATE TABLE %s (
 		ctx,
 		s.sessionID,
 		&v1.TableSchema{
-			Name: rawTableName,
+			Id:   rawTableName,
+			Name: tableNameRaw,
 			Type: v1.TableSchema_TYPE_RAW,
 			Columns: []*v1.TableColumn{
 				{
@@ -72,14 +75,14 @@ CREATE TABLE %s (
 	return nil
 }
 
-func (s *SqliteSession) rawTableName() string {
-	return fmt.Sprintf("%s_raw", s.sessionID)
+func (s *SqliteSession) dbTableName(tableName string) string {
+	return fmt.Sprintf("%s_%s", s.sessionID, tableName)
 }
 
 func (s *SqliteSession) WriteLogLine(ctx context.Context, payload WriteLogLinePayload) error {
 	const insertTmpl = `INSERT INTO %s (ts, lines) VALUES (?, ?)`
 
-	stmt := fmt.Sprintf(insertTmpl, s.rawTableName())
+	stmt := fmt.Sprintf(insertTmpl, s.dbTableName(tableNameRaw))
 	if _, err := s.db.ExecContext(ctx, stmt, payload.Timestamp, payload.Line); err != nil {
 		return fmt.Errorf("failed to insert log line: %w", err)
 	}

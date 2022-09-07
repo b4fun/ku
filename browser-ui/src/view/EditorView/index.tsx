@@ -3,11 +3,12 @@ import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core"
 import React, { useEffect } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
-import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/tableAtom";
+import { isSelectedTable, useSelectedTable, useSelectTable, useSessions } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
-import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
+import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
+import SessionSettingsModal, { useSessionSettingsModalAction } from "../SessionSettingsModal";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -25,34 +26,46 @@ function EditorNavBar(props: EditorNavBarProps) {
     viewModel,
   } = props;
 
+  const [sessions] = useSessions();
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
+  const sessionSettingModalAction = useSessionSettingsModalAction();
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
     sessionNav = (<Skeleton height={35} />);
   } else {
-    const sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
-
-    viewModel.sessions.forEach(session => {
-      session.tables.forEach(table => {
+    const sessionItems: React.ReactElement<SessionNavLinkGroupProps>[] = sessions.map(session => {
+      const tableItems: React.ReactElement<SessionNavLinkProps>[] = session.tables.map(table => {
         let isActive = false;
         if (hasSelected && isSelectedTable(selectedTable, table)) {
           isActive = true;
         }
 
-        sessionItems.push(
+        return (
           <SessionNav.Link
-            key={table.name}
+            key={table.id}
             active={isActive}
             onClick={() => {
-              selectTable(session, table);
+              selectTable(table);
             }}
           >
             <Text>{table.name}</Text>
           </SessionNav.Link>
         );
-      })
+      });
+
+      return (
+        <SessionNav.LinkGroup
+          name={session.name}
+          onActionIconClick={() => {
+            sessionSettingModalAction.showModal(session);
+          }}
+          key={session.id}
+        >
+          {tableItems}
+        </SessionNav.LinkGroup>
+      );
     });
 
     sessionNav = (
@@ -67,6 +80,7 @@ function EditorNavBar(props: EditorNavBarProps) {
       width={{ base: 180, lg: 360 }}
       height='100%'
     >
+      <SessionSettingsModal viewModelAction={sessionSettingModalAction} />
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
           <a href="#">
@@ -82,22 +96,16 @@ function EditorNavBar(props: EditorNavBarProps) {
 }
 
 function EditorView() {
+  const [, setSessions] = useSessions();
   const viewModelAction = useViewModelAction();
-  const selectTable = useSelectTable();
 
   useEffect(() => {
     viewModelAction.setLoading(true);
 
     bootstrap().
       then((sessions: Session[]) => {
-        viewModelAction.setSessions(sessions);
-
-        const firstAvailableSession = sessions.find(session => {
-          return session.tables.length > 0;
-        });
-        if (firstAvailableSession) {
-          selectTable(firstAvailableSession, firstAvailableSession.tables[0]);
-        }
+        setSessions(sessions);
+        viewModelAction.setLoading(false);
       }).
       catch((err) => {
         console.error(`bootstrap failed ${err}`);
@@ -123,6 +131,7 @@ function EditorView() {
       {tableSelected ?
         (<EditorPane
           table={selectedTable.table}
+          session={selectedTable.session}
           className="h-screen"
         />)
         :

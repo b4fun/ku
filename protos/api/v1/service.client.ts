@@ -6,6 +6,8 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { APIService } from "./service";
 import type { QueryTableResponse } from "./service";
 import type { QueryTableRequest } from "./service";
+import type { UpdateSessionResponse } from "./service";
+import type { UpdateSessionRequest } from "./service";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { ListSessionsResponse } from "./service";
 import type { ListSessionsRequest } from "./service";
@@ -19,6 +21,10 @@ export interface IAPIServiceClient {
      * @generated from protobuf rpc: ListSessions(api.v1.ListSessionsRequest) returns (api.v1.ListSessionsResponse);
      */
     listSessions(input: ListSessionsRequest, options?: RpcOptions): UnaryCall<ListSessionsRequest, ListSessionsResponse>;
+    /**
+     * @generated from protobuf rpc: UpdateSession(api.v1.UpdateSessionRequest) returns (api.v1.UpdateSessionResponse);
+     */
+    updateSession(input: UpdateSessionRequest, options?: RpcOptions): UnaryCall<UpdateSessionRequest, UpdateSessionResponse>;
     /**
      * @generated from protobuf rpc: QueryTable(api.v1.QueryTableRequest) returns (api.v1.QueryTableResponse);
      */
@@ -41,10 +47,17 @@ export class APIServiceClient implements IAPIServiceClient, ServiceInfo {
         return stackIntercept<ListSessionsRequest, ListSessionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: UpdateSession(api.v1.UpdateSessionRequest) returns (api.v1.UpdateSessionResponse);
+     */
+    updateSession(input: UpdateSessionRequest, options?: RpcOptions): UnaryCall<UpdateSessionRequest, UpdateSessionResponse> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateSessionRequest, UpdateSessionResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: QueryTable(api.v1.QueryTableRequest) returns (api.v1.QueryTableResponse);
      */
     queryTable(input: QueryTableRequest, options?: RpcOptions): UnaryCall<QueryTableRequest, QueryTableResponse> {
-        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
         return stackIntercept<QueryTableRequest, QueryTableResponse>("unary", this._transport, method, opt, input);
     }
 }
