@@ -71,6 +71,32 @@ export interface UpdateSessionResponse {
      */
     session?: Session;
 }
+/**
+ * @generated from protobuf message api.v1.CreateParsedTableRequest
+ */
+export interface CreateParsedTableRequest {
+    /**
+     * @generated from protobuf field: string session_id = 1;
+     */
+    sessionId: string;
+    /**
+     * @generated from protobuf field: string table_name = 2;
+     */
+    tableName: string;
+    /**
+     * @generated from protobuf field: string sql = 3;
+     */
+    sql: string;
+}
+/**
+ * @generated from protobuf message api.v1.CreateParsedTableResponse
+ */
+export interface CreateParsedTableResponse {
+    /**
+     * @generated from protobuf field: api.v1.Session session = 1;
+     */
+    session?: Session;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class ListSessionsRequest$Type extends MessageType<ListSessionsRequest> {
     constructor() {
@@ -339,11 +365,120 @@ class UpdateSessionResponse$Type extends MessageType<UpdateSessionResponse> {
  * @generated MessageType for protobuf message api.v1.UpdateSessionResponse
  */
 export const UpdateSessionResponse = new UpdateSessionResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateParsedTableRequest$Type extends MessageType<CreateParsedTableRequest> {
+    constructor() {
+        super("api.v1.CreateParsedTableRequest", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "table_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "sql", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateParsedTableRequest>): CreateParsedTableRequest {
+        const message = { sessionId: "", tableName: "", sql: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateParsedTableRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateParsedTableRequest): CreateParsedTableRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                case /* string table_name */ 2:
+                    message.tableName = reader.string();
+                    break;
+                case /* string sql */ 3:
+                    message.sql = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateParsedTableRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        /* string table_name = 2; */
+        if (message.tableName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.tableName);
+        /* string sql = 3; */
+        if (message.sql !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.sql);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.CreateParsedTableRequest
+ */
+export const CreateParsedTableRequest = new CreateParsedTableRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateParsedTableResponse$Type extends MessageType<CreateParsedTableResponse> {
+    constructor() {
+        super("api.v1.CreateParsedTableResponse", [
+            { no: 1, name: "session", kind: "message", T: () => Session }
+        ]);
+    }
+    create(value?: PartialMessage<CreateParsedTableResponse>): CreateParsedTableResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateParsedTableResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateParsedTableResponse): CreateParsedTableResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* api.v1.Session session */ 1:
+                    message.session = Session.internalBinaryRead(reader, reader.uint32(), options, message.session);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateParsedTableResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* api.v1.Session session = 1; */
+        if (message.session)
+            Session.internalBinaryWrite(message.session, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message api.v1.CreateParsedTableResponse
+ */
+export const CreateParsedTableResponse = new CreateParsedTableResponse$Type();
 /**
  * @generated ServiceType for protobuf service api.v1.APIService
  */
 export const APIService = new ServiceType("api.v1.APIService", [
     { name: "ListSessions", options: {}, I: ListSessionsRequest, O: ListSessionsResponse },
     { name: "UpdateSession", options: {}, I: UpdateSessionRequest, O: UpdateSessionResponse },
+    { name: "CreateParsedTable", options: {}, I: CreateParsedTableRequest, O: CreateParsedTableResponse },
     { name: "QueryTable", options: {}, I: QueryTableRequest, O: QueryTableResponse }
 ]);
