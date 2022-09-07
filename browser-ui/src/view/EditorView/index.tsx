@@ -1,6 +1,6 @@
 import { Session } from "@b4fun/ku-protos";
 import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/tableAtom";
@@ -8,6 +8,7 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
+import SessionSettingsModal from "../../component/SessionSettingsModal";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -27,6 +28,7 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
+  const [showSessionSettingsModal, setShowSessionSettingsModal] = useState(false);
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
@@ -55,6 +57,9 @@ function EditorNavBar(props: EditorNavBarProps) {
       return (
         <SessionNav.LinkGroup
           name={session.name}
+          onActionIconClick={() => {
+            setShowSessionSettingsModal(true);
+          }}
           key={session.id}
         >
           {tableItems}
@@ -74,6 +79,14 @@ function EditorNavBar(props: EditorNavBarProps) {
       width={{ base: 180, lg: 360 }}
       height='100%'
     >
+      <SessionSettingsModal
+        opened={showSessionSettingsModal}
+        session={selectedTable?.session}
+        title='Session Settings'
+        onClose={() => {
+          setShowSessionSettingsModal(false);
+        }}
+      />
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
           <a href="#">

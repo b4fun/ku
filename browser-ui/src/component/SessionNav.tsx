@@ -38,11 +38,12 @@ export function SessionNavLink(
 
 export interface SessionNavLinkGroupProps {
   name: string;
+  onActionIconClick: () => void;
   children: Iterable<React.ReactElement<SessionNavLinkProps>>;
 }
 
 export function SessionNavLinkGroup(props: SessionNavLinkGroupProps) {
-  const { name, children } = props;
+  const { name, onActionIconClick, children } = props;
 
   const [hoverTitle, setHoverTitle] = useState(false);
 
@@ -64,7 +65,11 @@ export function SessionNavLinkGroup(props: SessionNavLinkGroupProps) {
         <span className="flex-1 font-semibold text-sm align-middle h-[28px] leading-[28px]">
           {name}
         </span>
-        <ActionIcon color="gray" className={actionIconClassNames}>
+        <ActionIcon
+          color="gray"
+          className={actionIconClassNames}
+          onClick={onActionIconClick}
+        >
           <IconTableOptions size={18} />
         </ActionIcon>
       </div>
