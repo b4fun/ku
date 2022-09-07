@@ -143,7 +143,7 @@ func (s *SqliteSession) CreateParsedTable(ctx context.Context, opts *CreateParse
 		s.sessionID,
 		&v1.TableSchema{
 			Id:      parsedTableName,
-			Name:    parsedTableName,
+			Name:    opts.TableName,
 			Type:    v1.TableSchema_TYPE_PARSED,
 			Columns: tableColumns,
 		},
