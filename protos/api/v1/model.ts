@@ -35,6 +35,12 @@ export interface Session {
      * @generated from protobuf field: repeated api.v1.TableSchema tables = 2;
      */
     tables: TableSchema[];
+    /**
+     * name - display name of the session.
+     *
+     * @generated from protobuf field: string name = 3;
+     */
+    name: string;
 }
 /**
  * @generated from protobuf message api.v1.TableKeyValue
@@ -184,11 +190,12 @@ class Session$Type extends MessageType<Session> {
     constructor() {
         super("api.v1.Session", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "tables", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableSchema }
+            { no: 2, name: "tables", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableSchema },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Session>): Session {
-        const message = { id: "", tables: [] };
+        const message = { id: "", tables: [], name: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Session>(this, message, value);
@@ -204,6 +211,9 @@ class Session$Type extends MessageType<Session> {
                     break;
                 case /* repeated api.v1.TableSchema tables */ 2:
                     message.tables.push(TableSchema.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -223,6 +233,9 @@ class Session$Type extends MessageType<Session> {
         /* repeated api.v1.TableSchema tables = 2; */
         for (let i = 0; i < message.tables.length; i++)
             TableSchema.internalBinaryWrite(message.tables[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
