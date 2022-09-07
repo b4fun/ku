@@ -111,7 +111,7 @@ function getEditorLineNumber(
 
   let line = startLine;
   let lineText = editorModel.getLineContent(line);
-  while (pred(lineText) && line <= maxLine && line > 1) {
+  while (pred(lineText) && line < maxLine && line > 1) {
     line = nextLine(line);
     lineText = editorModel.getLineContent(line);
   }
