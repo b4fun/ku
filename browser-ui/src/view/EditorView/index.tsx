@@ -7,7 +7,7 @@ import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/ta
 import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
-import SessionNav, { SessionNavLinkProps } from "../../component/SessionNav";
+import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -32,16 +32,14 @@ function EditorNavBar(props: EditorNavBarProps) {
   if (viewModel.loading) {
     sessionNav = (<Skeleton height={35} />);
   } else {
-    const sessionItems: React.ReactElement<SessionNavLinkProps>[] = [];
-
-    viewModel.sessions.forEach(session => {
-      session.tables.forEach(table => {
+    const sessionItems: React.ReactElement<SessionNavLinkGroupProps>[] = viewModel.sessions.map(session => {
+      const tableItems: React.ReactElement<SessionNavLinkProps>[] = session.tables.map(table => {
         let isActive = false;
         if (hasSelected && isSelectedTable(selectedTable, table)) {
           isActive = true;
         }
 
-        sessionItems.push(
+        return (
           <SessionNav.Link
             key={table.name}
             active={isActive}
@@ -52,7 +50,16 @@ function EditorNavBar(props: EditorNavBarProps) {
             <Text>{table.name}</Text>
           </SessionNav.Link>
         );
-      })
+      });
+
+      return (
+        <SessionNav.LinkGroup
+          name={session.name}
+          key={session.id}
+        >
+          {tableItems}
+        </SessionNav.LinkGroup>
+      );
     });
 
     sessionNav = (

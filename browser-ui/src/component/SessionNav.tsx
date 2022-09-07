@@ -19,8 +19,8 @@ export function SessionNavLink(
   const cs = classNames(
     'w-full block py-1 px-2 mb-2 border border-solid rounded transition-colors',
     {
-      'border-slate-100 hover:border-slate-500': !active,
-      'border-slate-500': active,
+      'border-slate-100 hover:border-[color:var(--theme-color-orange)]': !active,
+      'border-[color:var(--theme-color-orange-light)] bg-[color:var(--theme-color-orange)] text-white': active,
     }
   );
 
@@ -35,8 +35,28 @@ export function SessionNavLink(
   );
 }
 
-export interface SessionNavProps {
+export interface SessionNavLinkGroupProps {
+  name: string;
   children: Iterable<React.ReactElement<SessionNavLinkProps>>;
+}
+
+export function SessionNavLinkGroup(props: SessionNavLinkGroupProps) {
+  const { name, children } = props;
+
+  return (
+    <div className="mb-2">
+      <div className="mb-2 font-semibold text-sm">
+        {name}
+      </div>
+      <div className="ml-2">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export interface SessionNavProps {
+  children: Iterable<React.ReactElement<SessionNavLinkGroupProps>>;
 }
 
 export default function SessionNav(props: SessionNavProps) {
@@ -50,3 +70,4 @@ export default function SessionNav(props: SessionNavProps) {
 }
 
 SessionNav.Link = SessionNavLink;
+SessionNav.LinkGroup = SessionNavLinkGroup
