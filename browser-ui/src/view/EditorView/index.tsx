@@ -50,7 +50,7 @@ function EditorNavBar(props: EditorNavBarProps) {
               selectTable(table);
             }}
           >
-            <Text>{table.id}</Text>
+            <Text>{table.name}</Text>
           </SessionNav.Link>
         );
       });

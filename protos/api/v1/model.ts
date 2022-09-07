@@ -167,6 +167,12 @@ export interface TableSchema {
      * @generated from protobuf field: string session_id = 4;
      */
     sessionId: string;
+    /**
+     * name - display name of the table.
+     *
+     * @generated from protobuf field: string name = 5;
+     */
+    name: string;
 }
 /**
  * @generated from protobuf enum api.v1.TableSchema.Type
@@ -443,11 +449,12 @@ class TableSchema$Type extends MessageType<TableSchema> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "enum", T: () => ["api.v1.TableSchema.Type", TableSchema_Type, "TYPE_"] },
             { no: 3, name: "columns", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TableColumn },
-            { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<TableSchema>): TableSchema {
-        const message = { id: "", type: 0, columns: [], sessionId: "" };
+        const message = { id: "", type: 0, columns: [], sessionId: "", name: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TableSchema>(this, message, value);
@@ -469,6 +476,9 @@ class TableSchema$Type extends MessageType<TableSchema> {
                     break;
                 case /* string session_id */ 4:
                     message.sessionId = reader.string();
+                    break;
+                case /* string name */ 5:
+                    message.name = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -494,6 +504,9 @@ class TableSchema$Type extends MessageType<TableSchema> {
         /* string session_id = 4; */
         if (message.sessionId !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.sessionId);
+        /* string name = 5; */
+        if (message.name !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.name);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

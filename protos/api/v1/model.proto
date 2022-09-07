@@ -70,4 +70,6 @@ message TableSchema {
   repeated TableColumn columns = 3;
   // session_id - the session id of the table.
   string session_id = 4;
+  // name - display name of the table.
+  string name = 5;
 }

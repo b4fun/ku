@@ -97,7 +97,7 @@ export interface EditorPaneProps {
 }
 
 const editorDefaultQuery = `
-source
+raw
 | take 100
 `.trim()
 
@@ -257,7 +257,7 @@ async function setSchema(editor: editor.IStandaloneCodeEditor, monaco: Monaco) {
           Name: 'Ku',
           Tables: {
             source: {
-              Name: 'source',
+              Name: 'raw',
               OrderedColumns: [
                 {
                   Name: 'ts',
