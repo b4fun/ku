@@ -1,6 +1,6 @@
 import { Session } from "@b4fun/ku-protos";
 import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable } from "../../atom/tableAtom";
@@ -8,7 +8,7 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
-import SessionSettingsModal from "../../component/SessionSettingsModal";
+import SessionSettingsModal, { useSessionSettingsModalAction } from "../SessionSettingsModal";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -28,13 +28,7 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
-  const [showSessionSettingsModal, setShowSessionSettingsModal] = useState<{
-    session?: Session;
-    show: boolean;
-  }>({
-    session: undefined,
-    show: false,
-  });
+  const sessionSettingModalAction = useSessionSettingsModalAction();
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
@@ -64,7 +58,7 @@ function EditorNavBar(props: EditorNavBarProps) {
         <SessionNav.LinkGroup
           name={session.name}
           onActionIconClick={() => {
-            setShowSessionSettingsModal({ show: true, session });
+            sessionSettingModalAction.showModal(session);
           }}
           key={session.id}
         >
@@ -85,26 +79,7 @@ function EditorNavBar(props: EditorNavBarProps) {
       width={{ base: 180, lg: 360 }}
       height='100%'
     >
-      <SessionSettingsModal
-        opened={showSessionSettingsModal.show}
-        session={showSessionSettingsModal.session}
-        title='Session Settings'
-        onClose={() => {
-          setShowSessionSettingsModal({ show: false });
-        }}
-        onSubmitForm={async (value) => {
-          const sessionToUpdate = showSessionSettingsModal.session;
-          if (!sessionToUpdate) {
-            console.warn('no selected session can be updated');
-            return;
-          }
-
-          sessionToUpdate.name = value.name;
-
-          await grpcClient().updateSession({ session: sessionToUpdate });
-          setShowSessionSettingsModal({ show: false });
-        }}
-      />
+      <SessionSettingsModal viewModelAction={sessionSettingModalAction} />
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
           <a href="#">
