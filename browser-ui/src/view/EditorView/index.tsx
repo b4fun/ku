@@ -1,6 +1,7 @@
 import { Session } from "@b4fun/ku-protos";
-import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
-import React, { useEffect } from 'react';
+import { LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
+import { Allotment, AllotmentHandle } from "allotment";
+import React, { useEffect, useRef } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable, useSessions } from "../../atom/sessionAtom";
@@ -77,7 +78,6 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   return (
     <Navbar
-      width={{ base: 180, lg: 360 }}
       height='100%'
     >
       <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
@@ -98,6 +98,8 @@ function EditorNavBar(props: EditorNavBarProps) {
 function EditorView() {
   const [, setSessions] = useSessions();
   const viewModelAction = useViewModelAction();
+  const { viewModel } = viewModelAction;
+  const allotmentRef = useRef<AllotmentHandle>(null);
 
   useEffect(() => {
     viewModelAction.setLoading(true);
@@ -117,27 +119,41 @@ function EditorView() {
   const [selectedTable, tableSelected] = useSelectedTable();
 
   return (
-    <AppShell
-      padding={0}
-      navbar={<EditorNavBar
-        viewModel={viewModelAction.viewModel}
-      />}
-      className='h-screen relative'
-    >
-      <LoadingOverlay
-        visible={viewModelAction.viewModel.loading || isEditorLoading}
-        overlayOpacity={1}
-      />
-      {tableSelected ?
-        (<EditorPane
-          table={selectedTable.table}
-          session={selectedTable.session}
-          className="h-screen"
-        />)
-        :
-        (<></>)
-      }
-    </AppShell>
+    <div className="h-screen relative w-full">
+      <Allotment
+        ref={allotmentRef}
+        onChange={(sizes) => {
+          if (sizes.length === 2) {
+            viewModelAction.setWidths([sizes[0], sizes[1]]);
+          }
+        }}
+      >
+        <Allotment.Pane preferredSize={300} minSize={0} maxSize={300}>
+          <EditorNavBar viewModel={viewModel} />
+        </Allotment.Pane>
+        <Allotment.Pane>
+          <LoadingOverlay
+            visible={viewModel.loading || isEditorLoading}
+            overlayOpacity={1}
+          />
+          {tableSelected ?
+            (<EditorPane
+              editorNavVisible={viewModel.widths[0] > 30}
+              editorWidth={viewModel.widths[1]}
+              showEditorNav={() => {
+                allotmentRef.current?.reset();
+              }}
+
+              table={selectedTable.table}
+              session={selectedTable.session}
+              className="h-screen"
+            />)
+            :
+            (<></>)
+          }
+        </Allotment.Pane>
+      </Allotment>
+    </div >
   )
 }
 

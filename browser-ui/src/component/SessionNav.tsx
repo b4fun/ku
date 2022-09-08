@@ -88,7 +88,7 @@ export default function SessionNav(props: SessionNavProps) {
   const { children } = props;
 
   return (
-    <div className="m-1">
+    <div className="p-1 mr-2 max-w-[300px]">
       {children}
     </div>
   );
