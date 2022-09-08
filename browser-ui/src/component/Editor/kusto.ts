@@ -1,4 +1,5 @@
 import { Session, TableColumn_Type, TableSchema } from "@b4fun/ku-protos";
+import { sessionHash } from "../../atom/sessionAtom";
 
 export interface KustoDatabaseSchema {
   readonly Name: string;
@@ -46,10 +47,16 @@ export function tableSchemaToKustoSchema(table: TableSchema): KustoTableSchema {
   };
 }
 
-export function sessionToKustoSchema(session: Session): KustoDatabaseSchema {
+export function sessionToKustoSchema(
+  session: Session,
+  tables: TableSchema[],
+): KustoDatabaseSchema {
   return {
-    Name: session.name,
-    Tables: session.tables.reduce((acc, table) => {
+    // NOTE: kusto schema won't refresh for the same database name
+    //       As a workaround, we generate a hash from the session to ensure
+    //       we get unique name on session tables change & selected table change.
+    Name: sessionHash(session, tables),
+    Tables: tables.reduce((acc, table) => {
       const kustoTableSchema = tableSchemaToKustoSchema(table);
 
       return {

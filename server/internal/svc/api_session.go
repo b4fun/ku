@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/b4fun/ku/protos/api/v1"
+	"github.com/b4fun/ku/server/internal/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -55,7 +56,7 @@ func (s *apiServer) UpdateSession(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	s.logger.V(8).Info(
+	s.logger.Info(
 		"update session",
 		"session.id", sessionToUpdate.Id,
 		"session.nameOriginal", sessionToUpdate.Name,
@@ -75,5 +76,64 @@ func (s *apiServer) UpdateSession(
 	}
 
 	resp := &v1.UpdateSessionResponse{Session: sessionUpdated}
+	return resp, nil
+}
+
+func (s *apiServer) validateCreateParsedTablePayload(
+	payload *v1.CreateParsedTableRequest,
+) (*db.CreateParsedTableOpts, error) {
+	if payload.SessionId == "" {
+		return nil, status.Error(codes.InvalidArgument, "session id is required")
+	}
+
+	if payload.TableName == "" {
+		return nil, status.Error(codes.InvalidArgument, "table name is required")
+	}
+
+	if payload.Sql == "" {
+		return nil, status.Error(codes.InvalidArgument, "sql is required")
+	}
+
+	session, err := s.sessionRepo.GetSessionByID(context.Background(), payload.SessionId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	createOpts := &db.CreateParsedTableOpts{
+		Session:   session,
+		TableName: payload.TableName,
+		SQL:       payload.Sql,
+	}
+
+	return createOpts, nil
+}
+
+func (s *apiServer) CreateParsedTable(
+	ctx context.Context,
+	req *v1.CreateParsedTableRequest,
+) (*v1.CreateParsedTableResponse, error) {
+	createPayload, err := s.validateCreateParsedTablePayload(req)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Info(
+		"create parsed table",
+		"session.id", createPayload.Session.Id,
+		"table.name", createPayload.TableName,
+	)
+
+	if err := s.dbProvider.CreateParsedTable(ctx, createPayload); err != nil {
+		s.logger.Error(err, "dbProvider.CreateParsedTable")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	sessionUpdated, err := s.sessionRepo.GetSessionByID(ctx, createPayload.Session.Id)
+	if err != nil {
+		s.logger.Error(err, "sessionRepo.GetSessionByID")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	resp := &v1.CreateParsedTableResponse{Session: sessionUpdated}
 	return resp, nil
 }

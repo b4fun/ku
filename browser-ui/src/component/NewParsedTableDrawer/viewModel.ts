@@ -1,14 +1,21 @@
 import { Session } from "@b4fun/ku-protos";
 import { useState } from "react";
 
+export interface ViewModelData {
+  session: Session;
+  sql: string;
+  queryInput: string;
+}
+
 export interface ViewModel {
-  session?: Session;
+  data?: ViewModelData;
+
   show: boolean;
   submitting: boolean;
 }
 
-export interface ViewModelWithSession extends ViewModel {
-  session: Session;
+export interface ViewModelWithData extends ViewModel {
+  data: ViewModelData;
 }
 
 export interface ViewModelAction<T extends ViewModel = ViewModel> {
@@ -16,10 +23,9 @@ export interface ViewModelAction<T extends ViewModel = ViewModel> {
 
   startSubmit: () => void;
   finishSubmit: () => void;
-  showModal: (session: Session) => void;
-  hideModal: () => void;
+  showDrawer: (data: ViewModelData) => void;
+  hideDrawer: () => void;
 }
-
 
 export function useViewModelAction(): ViewModelAction {
   const [viewModel, setViewModel] = useState<ViewModel>({
@@ -35,19 +41,19 @@ export function useViewModelAction(): ViewModelAction {
     setViewModel(prev => ({ ...prev, submitting: false }));
   };
 
-  const showModal = (session: Session) => {
-    setViewModel(prev => ({ ...prev, show: true, submitting: false, session }));
+  const showDrawer = (data: ViewModelData) => {
+    setViewModel(prev => ({ ...prev, show: true, submitting: false, data }));
   };
 
-  const hideModal = () => {
-    setViewModel(prev => ({ ...prev, show: false, session: undefined }));
+  const hideDrawer = () => {
+    setViewModel(prev => ({ ...prev, show: false, data: undefined }));
   };
 
   return {
     viewModel,
     startSubmit,
     finishSubmit,
-    showModal,
-    hideModal,
+    showDrawer,
+    hideDrawer,
   };
 }

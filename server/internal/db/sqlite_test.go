@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -104,5 +105,21 @@ func TestSqliteProvider(t *testing.T) {
 		require.NoError(tc, err)
 		require.NotNil(tc, sessionUpdated)
 		require.Equal(tc, "updated-name", sessionUpdated.Name)
+
+		err = provider.CreateParsedTable(ctx, &CreateParsedTableOpts{
+			Session:   sessionUpdated,
+			TableName: "parsed",
+			SQL:       fmt.Sprintf("select ts from %s", sqliteSession.dbTableName(tableNameRaw)),
+		})
+		require.NoError(tc, err)
+
+		sessionUpdated, err = sessionRepo.GetSessionByID(ctx, sessionID)
+		require.NoError(tc, err)
+		require.NotNil(tc, sessionUpdated)
+		require.Len(tc, sessionUpdated.Tables, 2)
+		for _, table := range sessionUpdated.Tables {
+			fmt.Println(table.Columns)
+			require.NotEmpty(tc, table.Columns)
+		}
 	})
 }

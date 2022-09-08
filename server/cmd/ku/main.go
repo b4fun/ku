@@ -55,6 +55,7 @@ func createCmd() *cobra.Command {
 
 			svcOpts := &svc.Options{
 				Logger:       logger,
+				DBProvider:   dbProvider,
 				QueryService: queryService,
 				SessionRepo:  sessionRepo,
 			}

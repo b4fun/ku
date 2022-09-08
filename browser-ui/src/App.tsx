@@ -1,5 +1,5 @@
+import "allotment/dist/style.css";
 import { Provider } from 'jotai';
-
 import './App.css';
 import EditorView from './view/EditorView';
 

@@ -30,9 +30,20 @@ message UpdateSessionResponse {
   Session session = 1;
 }
 
+message CreateParsedTableRequest {
+  string session_id = 1;
+  string table_name = 2;
+  string sql = 3;
+}
+
+message CreateParsedTableResponse {
+  Session session = 1;
+}
+
 service APIService {
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {}
   rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse) {}
+  rpc CreateParsedTable(CreateParsedTableRequest) returns (CreateParsedTableResponse) {}
 
   rpc QueryTable(QueryTableRequest) returns (QueryTableResponse) {}
 }

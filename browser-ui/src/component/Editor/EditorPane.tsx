@@ -2,29 +2,36 @@ import { toSQL } from "@b4fun/kql";
 import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
 import { Monaco } from "@monaco-editor/react";
-import { IconPlayerPlay } from '@tabler/icons';
+import { IconLayoutSidebarRightCollapse, IconPlayerPlay, IconTransform } from '@tabler/icons';
 import { Allotment } from "allotment";
-import "allotment/dist/style.css";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
 import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
+import { sessionHash } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
-import useWindowSize from "../../hook/useWindowSize";
+import NewParsedTableDrawer, { useNewParsedTableDrawerAction } from "../NewParsedTableDrawer";
 import { sessionToKustoSchema } from "./kusto";
 import KustoEditor from "./KustoEditor";
 import ResultTable from "./ResultTable";
 import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRunQueryAction } from "./viewModel";
 
 interface EditorHeaderProps {
+  editorNavVisible: boolean;
+  showEditorNav: () => void;
+
   runQueryViewModel: RunQueryViewModel;
   onRunQuery: () => void;
+  onNewParsedTable: () => void;
 }
 
 function EditorHeader(props: EditorHeaderProps) {
   const {
+    editorNavVisible,
+    showEditorNav,
     runQueryViewModel,
     onRunQuery,
+    onNewParsedTable,
   } = props;
 
   const cs = classNames(
@@ -32,11 +39,35 @@ function EditorHeader(props: EditorHeaderProps) {
     'border-b-[1px] border-[color:var(--border-color-light)]',
     'p-2',
     'text-justify',
-  )
+  );
+
+  const buttonClassName = 'mr-2'
+
+  // need to run at least 1 time before creating table from current query
+  const canNewTable = !runQueryViewModel.requesting && !!runQueryViewModel.response;
+
+  let toggleNavBar: React.ReactNode;
+  if (!editorNavVisible) {
+    toggleNavBar = (
+      <Button
+        className={buttonClassName}
+        variant="default"
+        size='xs'
+        disabled={runQueryViewModel.requesting}
+        title="Show sidebar"
+        onClick={showEditorNav}
+      >
+        <IconLayoutSidebarRightCollapse size={12} />
+      </Button>
+    );
+  }
 
   return (
     <div className={cs}>
+      {toggleNavBar}
+
       <Button
+        className={buttonClassName}
         variant="default"
         size='xs'
         leftIcon={<IconPlayerPlay size={12} />}
@@ -45,37 +76,39 @@ function EditorHeader(props: EditorHeaderProps) {
       >
         Run
       </Button>
+
+      <Button
+        className={buttonClassName}
+        variant="default"
+        size='xs'
+        leftIcon={<IconTransform size={12} />}
+        disabled={!canNewTable}
+        title="New table from current query"
+        onClick={onNewParsedTable}
+      >
+        New
+      </Button>
     </div>
   );
 }
 
 interface EditorBodyProps {
+  editorWidth: number;
   editorValue: string;
   resultViewModel: ResultTableViewModel;
 }
 
 function EditorBody(props: EditorBodyProps) {
   const {
+    editorWidth,
     editorValue,
     resultViewModel,
   } = props;
 
   const [editorHeight, setEditorHeight] = React.useState(200);
-  const [viewWidth, setViewWidth] = React.useState(0);
-  const [windowWidth] = useWindowSize();
-
-  const setViewRef = React.useCallback(
-    (view: HTMLDivElement | null) => {
-      if (view) {
-        setViewWidth(view.getBoundingClientRect().width);
-      }
-    },
-    // NOTE: ensure recalculate bounding client size on window resize
-    [windowWidth],
-  );
 
   return (
-    <div className="flex-1" ref={setViewRef}>
+    <div className="flex-1">
       <Allotment className="w-full flex" vertical onChange={(sizes) => {
         if (sizes.length === 2) {
           setEditorHeight(sizes[0]);
@@ -86,7 +119,7 @@ function EditorBody(props: EditorBodyProps) {
             editorValue={editorValue}
           />
         </div>
-        <ResultTable viewWidth={viewWidth} viewModel={resultViewModel} />
+        <ResultTable viewWidth={editorWidth} viewModel={resultViewModel} />
       </Allotment>
     </div>
   );
@@ -96,12 +129,11 @@ export interface EditorPaneProps {
   table: TableSchema;
   session: Session;
   className?: string;
-}
 
-const editorDefaultQuery = `
-raw
-| take 100
-`.trim()
+  editorWidth: number;
+  editorNavVisible: boolean;
+  showEditorNav: () => void;
+}
 
 function getEditorLineNumber(
   editorModel: editor.ITextModel,
@@ -128,26 +160,30 @@ export default function EditorPane(props: EditorPaneProps) {
     table,
     session,
     className,
+    editorWidth,
+    editorNavVisible,
+    showEditorNav,
   } = props;
 
   const [resultViewModel, setResultViewModel] = useResultTableViewModel();
 
   const [editorValue, editorLoaded] = useLoadedEditor();
 
-  useEffect(() => {
-    if (!editorLoaded) {
-      return;
-    }
+  useEffect(
+    () => {
+      if (!editorLoaded) {
+        return;
+      }
 
-    setSchemas(editorValue.editor, editorValue.monaco, session);
-  }, [editorLoaded, session])
+      setSchemas(editorValue.editor, editorValue.monaco, session, table);
+    },
+    [editorLoaded, sessionHash(session, [table])],
+  );
 
   const runQueryAction = useRunQueryAction();
+  const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
 
-  const onRunQuery = () => {
-    if (runQueryAction.viewModel.requesting) {
-      return;
-    }
+  const getUserInput = (): { queryInput: string; sql: string; } | undefined => {
     if (!editorLoaded) {
       return;
     }
@@ -181,18 +217,39 @@ export default function EditorPane(props: EditorPaneProps) {
       queryInput = editorValue.editor.getValue();
     }
 
-    if (!queryInput) {
-      console.log('no user input');
+    queryInput = queryInput.trim();
+
+    const query = toSQL(queryInput, { tableName: table.id });
+
+    return {
+      queryInput,
+      sql: query.sql,
+    };
+  };
+
+  const onRunQuery = () => {
+    if (runQueryAction.viewModel.requesting) {
+      return;
+    }
+    if (!editorLoaded) {
       return;
     }
 
+    const userInput = getUserInput();
+
+    if (!userInput) {
+      console.error('no valid user input');
+      return;
+    }
+
+    const { queryInput, sql } = userInput;
+
     console.log(`raw query input: ${queryInput}`);
-    const query = toSQL(queryInput, { tableName: table.id });
-    console.log(`querying ${query.sql}`);
+    console.log(`querying ${sql}`);
 
     runQueryAction.setRequesting(true);
 
-    grpcClient().queryTable({ sql: query.sql }).
+    grpcClient().queryTable({ sql }).
       then((resp) => {
         const result: ResultTableViewModel = {
           columns: [],
@@ -234,12 +291,34 @@ export default function EditorPane(props: EditorPaneProps) {
   return (
     <div className={cs}>
       <EditorHeader
+        editorNavVisible={editorNavVisible}
+        showEditorNav={showEditorNav}
         runQueryViewModel={runQueryAction.viewModel}
         onRunQuery={onRunQuery}
+        onNewParsedTable={() => {
+          const userInput = getUserInput();
+          if (!userInput) {
+            console.error('no valid user input');
+            return;
+          }
+
+          newParsedTableDrawerAction.showDrawer({
+            session,
+            sql: userInput.sql,
+            queryInput: userInput.queryInput,
+          });
+        }}
       />
       <EditorBody
-        editorValue={editorDefaultQuery}
+        editorWidth={editorWidth}
+        editorValue={`
+${table.name}
+| take 100
+`.trim()}
         resultViewModel={resultViewModel}
+      />
+      <NewParsedTableDrawer
+        viewModelAction={newParsedTableDrawerAction}
       />
     </div>
   );
@@ -249,6 +328,7 @@ async function setSchemas(
   editor: editor.IStandaloneCodeEditor,
   monaco: Monaco,
   session: Session,
+  table: TableSchema,
 ) {
   const kusto = (monaco.languages as any).kusto as any;
   const workerAccessor = await kusto.getKustoWorker();
@@ -258,9 +338,9 @@ async function setSchemas(
   }
   const worker = await workerAccessor(model.uri);
 
-  const kustoSessionDatabaseSchema = sessionToKustoSchema(session);
+  const kustoSessionDatabaseSchema = sessionToKustoSchema(session, [table]);
 
-  worker.setSchemaFromShowSchema(
+  await worker.setSchemaFromShowSchema(
     {
       Plugins: [
         { Name: 'pivot' },

@@ -1,6 +1,7 @@
 import { Session } from "@b4fun/ku-protos";
-import { AppShell, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
-import React, { useEffect } from 'react';
+import { LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
+import { Allotment, AllotmentHandle } from "allotment";
+import React, { useEffect, useRef } from 'react';
 
 import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable, useSessions } from "../../atom/sessionAtom";
@@ -8,7 +9,7 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
-import SessionSettingsModal, { useSessionSettingsModalAction } from "../SessionSettingsModal";
+import SessionSettingsDrawer, { useSessionSettingsDrawerAction } from "../../component/SessionSettingsDrawer";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -29,7 +30,7 @@ function EditorNavBar(props: EditorNavBarProps) {
   const [sessions] = useSessions();
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
-  const sessionSettingModalAction = useSessionSettingsModalAction();
+  const sessionSettingsDrawerAction = useSessionSettingsDrawerAction();
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
@@ -59,7 +60,7 @@ function EditorNavBar(props: EditorNavBarProps) {
         <SessionNav.LinkGroup
           name={session.name}
           onActionIconClick={() => {
-            sessionSettingModalAction.showModal(session);
+            sessionSettingsDrawerAction.showDrawer({ session });
           }}
           key={session.id}
         >
@@ -77,10 +78,9 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   return (
     <Navbar
-      width={{ base: 180, lg: 360 }}
       height='100%'
     >
-      <SessionSettingsModal viewModelAction={sessionSettingModalAction} />
+      <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
           <a href="#">
@@ -98,6 +98,8 @@ function EditorNavBar(props: EditorNavBarProps) {
 function EditorView() {
   const [, setSessions] = useSessions();
   const viewModelAction = useViewModelAction();
+  const { viewModel } = viewModelAction;
+  const allotmentRef = useRef<AllotmentHandle>(null);
 
   useEffect(() => {
     viewModelAction.setLoading(true);
@@ -117,27 +119,41 @@ function EditorView() {
   const [selectedTable, tableSelected] = useSelectedTable();
 
   return (
-    <AppShell
-      padding={0}
-      navbar={<EditorNavBar
-        viewModel={viewModelAction.viewModel}
-      />}
-      className='h-screen relative'
-    >
-      <LoadingOverlay
-        visible={viewModelAction.viewModel.loading || isEditorLoading}
-        overlayOpacity={1}
-      />
-      {tableSelected ?
-        (<EditorPane
-          table={selectedTable.table}
-          session={selectedTable.session}
-          className="h-screen"
-        />)
-        :
-        (<></>)
-      }
-    </AppShell>
+    <div className="h-screen relative w-full">
+      <Allotment
+        ref={allotmentRef}
+        onChange={(sizes) => {
+          if (sizes.length === 2) {
+            viewModelAction.setWidths([sizes[0], sizes[1]]);
+          }
+        }}
+      >
+        <Allotment.Pane preferredSize={300} minSize={0} maxSize={300}>
+          <EditorNavBar viewModel={viewModel} />
+        </Allotment.Pane>
+        <Allotment.Pane>
+          <LoadingOverlay
+            visible={viewModel.loading || isEditorLoading}
+            overlayOpacity={1}
+          />
+          {tableSelected ?
+            (<EditorPane
+              editorNavVisible={viewModel.widths[0] > 30}
+              editorWidth={viewModel.widths[1]}
+              showEditorNav={() => {
+                allotmentRef.current?.reset();
+              }}
+
+              table={selectedTable.table}
+              session={selectedTable.session}
+              className="h-screen"
+            />)
+            :
+            (<></>)
+          }
+        </Allotment.Pane>
+      </Allotment>
+    </div >
   )
 }
 

@@ -89,6 +89,19 @@ func (p *SqliteProvider) CreateSession(
 	return sessionID, session, nil
 }
 
+func (p *SqliteProvider) CreateParsedTable(
+	ctx context.Context,
+	opts *CreateParsedTableOpts,
+) error {
+	if opts.Session == nil {
+		return fmt.Errorf("session is required")
+	}
+
+	session := newSqliteSession(opts.Session.Id, p.db, p.sessionBookkeeper)
+
+	return session.CreateParsedTable(ctx, opts)
+}
+
 func (p *SqliteProvider) GetQueryService() (QueryService, error) {
 	rv := &SqliteQueryService{db: p.db}
 

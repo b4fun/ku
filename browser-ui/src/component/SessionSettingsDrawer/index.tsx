@@ -1,29 +1,25 @@
-import { Button, Group, Modal, TextInput } from "@mantine/core";
+import { Session } from "@b4fun/ku-protos";
+import { Button, Drawer, Group, TextInput } from "@mantine/core";
 import { useForm } from '@mantine/form';
 import { useUpdateSession } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
-import { useViewModelAction, ViewModelAction, ViewModelWithSession } from "./viewModel";
+import { useViewModelAction, ViewModelAction, ViewModelWithData } from "./viewModel";
 
-interface SessionSettingsModalFormValue {
-  id: string;
+interface FormValue {
   name: string;
 }
 
-export interface SessionSettingsModalProps {
-  viewModelAction: ViewModelAction;
-}
-
-function SessionSettingsModalForm(props: {
-  viewModelAction: ViewModelAction<ViewModelWithSession>,
+function SessionSettingsForm(props: {
+  viewModelAction: ViewModelAction<ViewModelWithData>,
 }) {
   const { viewModelAction } = props;
   const { viewModel } = viewModelAction;
+  const { data: { session } } = viewModel;
   const updateSession = useUpdateSession();
 
-  const form = useForm<SessionSettingsModalFormValue>({
+  const form = useForm<FormValue>({
     initialValues: {
-      id: viewModel.session.id,
-      name: viewModel.session.name,
+      name: session.name,
     },
 
     validate: {
@@ -42,11 +38,13 @@ function SessionSettingsModalForm(props: {
         return;
       }
 
-      viewModel.session.name = form.values.name;
+      session.name = form.values.name;
 
       viewModelAction.startSubmit();
+      let updatedSession: Session | undefined;
       try {
-        await grpcClient().updateSession({ session: viewModel.session });
+        const resp = await grpcClient().updateSession({ session });
+        updatedSession = resp.response.session;
       } catch (e) {
         console.error('submit failed', e);
         form.setErrors({
@@ -57,14 +55,16 @@ function SessionSettingsModalForm(props: {
         viewModelAction.finishSubmit();
       }
 
-      updateSession(viewModel.session);
-      viewModelAction.hideModal();
+      if (updatedSession) {
+        updateSession(updatedSession);
+      }
+      viewModelAction.hideDrawer();
     }}>
       <TextInput
         label="Session ID"
         disabled
         className="mb-2"
-        {...form.getInputProps('id')}
+        value={session.id}
       />
       <TextInput
         label="Session Name"
@@ -87,30 +87,41 @@ function SessionSettingsModalForm(props: {
   );
 }
 
-export default function SessionSettingsModal(
-  props: SessionSettingsModalProps,
+export interface SessionSettingsDrawerProps {
+  viewModelAction: ViewModelAction;
+}
+
+export default function SessionSettingsDrawer(
+  props: SessionSettingsDrawerProps,
 ) {
   const { viewModelAction } = props;
-
   const { viewModel } = viewModelAction;
 
-  if (!viewModel.session) {
-    return (<></>);
+  let content = (<></>);
+
+  if (viewModel.data) {
+    const formViewModelAction = viewModelAction as ViewModelAction<ViewModelWithData>;
+    content = (
+      <SessionSettingsForm viewModelAction={formViewModelAction} />
+    );
   }
 
   return (
-    <Modal
-      title="Session Settings"
+    <Drawer
       opened={viewModel.show}
+      padding="sm"
+      title="Session Settings"
+      position="left"
+      overlayColor="#909296"
+      overlayOpacity={0.1}
+      overlayBlur={1}
       onClose={() => {
-        viewModelAction.hideModal();
+        viewModelAction.hideDrawer();
       }}
     >
-      <SessionSettingsModalForm
-        viewModelAction={viewModelAction as ViewModelAction<ViewModelWithSession>}
-      />
-    </Modal>
+      {content}
+    </Drawer>
   );
 }
 
-export const useSessionSettingsModalAction = useViewModelAction;
+export const useSessionSettingsDrawerAction = useViewModelAction;

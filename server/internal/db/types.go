@@ -20,8 +20,15 @@ type CreateSessionOpts struct {
 	Prefix string
 }
 
+type CreateParsedTableOpts struct {
+	Session   *v1.Session
+	TableName string
+	SQL       string
+}
+
 type Provider interface {
 	CreateSession(ctx context.Context, opts *CreateSessionOpts) (string, Session, error)
+	CreateParsedTable(ctx context.Context, opts *CreateParsedTableOpts) error
 
 	GetQueryService() (QueryService, error)
 

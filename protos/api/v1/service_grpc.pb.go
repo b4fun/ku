@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type APIServiceClient interface {
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	UpdateSession(ctx context.Context, in *UpdateSessionRequest, opts ...grpc.CallOption) (*UpdateSessionResponse, error)
+	CreateParsedTable(ctx context.Context, in *CreateParsedTableRequest, opts ...grpc.CallOption) (*CreateParsedTableResponse, error)
 	QueryTable(ctx context.Context, in *QueryTableRequest, opts ...grpc.CallOption) (*QueryTableResponse, error)
 }
 
@@ -53,6 +54,15 @@ func (c *aPIServiceClient) UpdateSession(ctx context.Context, in *UpdateSessionR
 	return out, nil
 }
 
+func (c *aPIServiceClient) CreateParsedTable(ctx context.Context, in *CreateParsedTableRequest, opts ...grpc.CallOption) (*CreateParsedTableResponse, error) {
+	out := new(CreateParsedTableResponse)
+	err := c.cc.Invoke(ctx, "/api.v1.APIService/CreateParsedTable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aPIServiceClient) QueryTable(ctx context.Context, in *QueryTableRequest, opts ...grpc.CallOption) (*QueryTableResponse, error) {
 	out := new(QueryTableResponse)
 	err := c.cc.Invoke(ctx, "/api.v1.APIService/QueryTable", in, out, opts...)
@@ -68,6 +78,7 @@ func (c *aPIServiceClient) QueryTable(ctx context.Context, in *QueryTableRequest
 type APIServiceServer interface {
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error)
+	CreateParsedTable(context.Context, *CreateParsedTableRequest) (*CreateParsedTableResponse, error)
 	QueryTable(context.Context, *QueryTableRequest) (*QueryTableResponse, error)
 	mustEmbedUnimplementedAPIServiceServer()
 }
@@ -81,6 +92,9 @@ func (UnimplementedAPIServiceServer) ListSessions(context.Context, *ListSessions
 }
 func (UnimplementedAPIServiceServer) UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSession not implemented")
+}
+func (UnimplementedAPIServiceServer) CreateParsedTable(context.Context, *CreateParsedTableRequest) (*CreateParsedTableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateParsedTable not implemented")
 }
 func (UnimplementedAPIServiceServer) QueryTable(context.Context, *QueryTableRequest) (*QueryTableResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryTable not implemented")
@@ -134,6 +148,24 @@ func _APIService_UpdateSession_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _APIService_CreateParsedTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateParsedTableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APIServiceServer).CreateParsedTable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.v1.APIService/CreateParsedTable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APIServiceServer).CreateParsedTable(ctx, req.(*CreateParsedTableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _APIService_QueryTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryTableRequest)
 	if err := dec(in); err != nil {
@@ -166,6 +198,10 @@ var APIService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSession",
 			Handler:    _APIService_UpdateSession_Handler,
+		},
+		{
+			MethodName: "CreateParsedTable",
+			Handler:    _APIService_CreateParsedTable_Handler,
 		},
 		{
 			MethodName: "QueryTable",
