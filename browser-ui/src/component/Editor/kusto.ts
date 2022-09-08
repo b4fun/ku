@@ -47,13 +47,16 @@ export function tableSchemaToKustoSchema(table: TableSchema): KustoTableSchema {
   };
 }
 
-export function sessionToKustoSchema(session: Session): KustoDatabaseSchema {
+export function sessionToKustoSchema(
+  session: Session,
+  tables: TableSchema[],
+): KustoDatabaseSchema {
   return {
     // NOTE: kusto schema won't refresh for the same database name
     //       As a workaround, we generate a hash from the session to ensure
     //       we get unique name on session tables change & selected table change.
-    Name: sessionHash(session),
-    Tables: session.tables.reduce((acc, table) => {
+    Name: sessionHash(session, tables),
+    Tables: tables.reduce((acc, table) => {
       const kustoTableSchema = tableSchemaToKustoSchema(table);
 
       return {

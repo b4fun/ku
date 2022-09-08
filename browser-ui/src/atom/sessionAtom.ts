@@ -173,10 +173,10 @@ function hash(str: string) {
 
 // sessionHash calculates a simple hash from a session by aware of its id and tables.
 // We use this function to generate unique identifier for hook and Kusto schema manipulation.
-export function sessionHash(session: Session): string {
+export function sessionHash(session: Session, tables: TableSchema[]): string {
   const hashStr = hash([
     session.id,
-    ...session.tables.map(t => t.id).sort(),
+    ...tables.map(t => t.id).sort(),
   ].join(' '));
 
   return `${session.id}_${hashStr}`;

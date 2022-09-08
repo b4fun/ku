@@ -180,9 +180,9 @@ export default function EditorPane(props: EditorPaneProps) {
         return;
       }
 
-      setSchemas(editorValue.editor, editorValue.monaco, session);
+      setSchemas(editorValue.editor, editorValue.monaco, session, table);
     },
-    [editorLoaded, sessionHash(session)],
+    [editorLoaded, sessionHash(session, [table])],
   );
 
   const runQueryAction = useRunQueryAction();
@@ -330,6 +330,7 @@ async function setSchemas(
   editor: editor.IStandaloneCodeEditor,
   monaco: Monaco,
   session: Session,
+  table: TableSchema,
 ) {
   const kusto = (monaco.languages as any).kusto as any;
   const workerAccessor = await kusto.getKustoWorker();
@@ -339,7 +340,7 @@ async function setSchemas(
   }
   const worker = await workerAccessor(model.uri);
 
-  const kustoSessionDatabaseSchema = sessionToKustoSchema(session);
+  const kustoSessionDatabaseSchema = sessionToKustoSchema(session, [table]);
 
   await worker.setSchemaFromShowSchema(
     {
