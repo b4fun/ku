@@ -15,12 +15,14 @@ type httpServerParams struct {
 	logger     logr.Logger
 	addr       string
 	grpcServer *grpc.Server
+	uiServer   http.Handler
 }
 
 type httpServer struct {
 	logger     logr.Logger
 	addr       string
 	grpcServer *grpc.Server
+	uiServer   http.Handler
 }
 
 func newHTTPServer(params *httpServerParams) *httpServer {
@@ -28,6 +30,7 @@ func newHTTPServer(params *httpServerParams) *httpServer {
 		logger:     params.logger,
 		addr:       params.addr,
 		grpcServer: params.grpcServer,
+		uiServer:   params.uiServer,
 	}
 }
 
@@ -46,7 +49,7 @@ func (s *httpServer) Start(ctx context.Context) error {
 			return
 		}
 
-		http.NotFound(w, r)
+		s.uiServer.ServeHTTP(w, r)
 	})
 	httpHandler = cors.AllowAll().Handler(httpHandler)
 

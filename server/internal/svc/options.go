@@ -5,6 +5,7 @@ import (
 
 	"github.com/b4fun/ku/server/internal/base"
 	"github.com/b4fun/ku/server/internal/db"
+	"github.com/b4fun/ku/server/internal/ui"
 	"github.com/go-logr/logr"
 )
 
@@ -53,6 +54,7 @@ func New(opts *Options) (base.Runnable, error) {
 		logger:     opts.Logger.WithName("http-server"),
 		addr:       opts.HTTPAddr,
 		grpcServer: grpcServer,
+		uiServer:   ui.MustNewHTTP(),
 	})
 
 	return httpServer, nil
