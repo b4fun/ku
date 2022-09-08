@@ -1,3 +1,4 @@
+import { Session } from "@b4fun/ku-protos";
 import { Button, Group, Modal, TextInput } from "@mantine/core";
 import { useForm } from '@mantine/form';
 import { useUpdateSession } from "../../atom/sessionAtom";
@@ -41,8 +42,10 @@ function SessionSettingsModalForm(props: {
       viewModel.session.name = form.values.name;
 
       viewModelAction.startSubmit();
+      let updatedSession: Session | undefined;
       try {
-        await grpcClient().updateSession({ session: viewModel.session });
+        const resp = await grpcClient().updateSession({ session: viewModel.session });
+        updatedSession = resp.response.session;
       } catch (e) {
         console.error('submit failed', e);
         form.setErrors({
@@ -53,7 +56,9 @@ function SessionSettingsModalForm(props: {
         viewModelAction.finishSubmit();
       }
 
-      updateSession(viewModel.session);
+      if (updatedSession) {
+        updateSession(updatedSession);
+      }
       viewModelAction.hideModal();
     }}>
       <TextInput

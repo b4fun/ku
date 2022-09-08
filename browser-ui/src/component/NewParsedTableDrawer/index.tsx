@@ -1,5 +1,8 @@
+import { Session } from "@b4fun/ku-protos";
 import { Button, Drawer, Group, Textarea, TextInput } from "@mantine/core";
 import { useForm } from '@mantine/form';
+import { useUpdateSession } from "../../atom/sessionAtom";
+import { grpcClient } from "../../client/api";
 import { useViewModelAction, ViewModelAction, ViewModelWithData } from "./viewModel";
 
 interface FormValue {
@@ -11,7 +14,8 @@ function NewParsedTableForm(props: {
 }) {
   const { viewModelAction } = props;
   const { viewModel } = viewModelAction;
-  const { session, queryInput } = viewModel.data;
+  const { session, sql, queryInput } = viewModel.data;
+  const updateSession = useUpdateSession();
 
   const form = useForm<FormValue>({
     initialValues: {
@@ -21,8 +25,6 @@ function NewParsedTableForm(props: {
     validate: {
       // TODO: finalize name rules
       tableName: (value) => {
-        console.log(value);
-
         if (!value) {
           return 'Table name is required';
         }
@@ -37,8 +39,38 @@ function NewParsedTableForm(props: {
   });
 
   return (
-    <form onSubmit={(e) => {
+    <form onSubmit={async (e) => {
       e.preventDefault();
+
+      const validateResult = form.validate();
+      if (validateResult.hasErrors) {
+        console.warn('form validation failed', validateResult.errors);
+        return;
+      }
+
+      viewModelAction.startSubmit();
+      let updatedSession: Session | undefined;
+      try {
+        const resp = await grpcClient().createParsedTable({
+          sessionId: session.id,
+          tableName: form.values.tableName,
+          sql,
+        });
+        updatedSession = resp.response.session
+      } catch (e) {
+        console.error('create failed', e);
+        form.setErrors({
+          tableName: `${e}`,
+        });
+        return;
+      } finally {
+        viewModelAction.finishSubmit();
+      }
+
+      if (updatedSession) {
+        updateSession(updatedSession);
+      }
+      viewModelAction.hideDrawer();
     }}>
       <TextInput
         label="Session name"
