@@ -8,7 +8,7 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
-import SessionSettingsModal, { useSessionSettingsModalAction } from "../../component/SessionSettingsModal";
+import SessionSettingsDrawer, { useSessionSettingsDrawerAction } from "../../component/SessionSettingsDrawer";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -29,7 +29,7 @@ function EditorNavBar(props: EditorNavBarProps) {
   const [sessions] = useSessions();
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
-  const sessionSettingModalAction = useSessionSettingsModalAction();
+  const sessionSettingsDrawerAction = useSessionSettingsDrawerAction();
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
@@ -59,7 +59,7 @@ function EditorNavBar(props: EditorNavBarProps) {
         <SessionNav.LinkGroup
           name={session.name}
           onActionIconClick={() => {
-            sessionSettingModalAction.showModal(session);
+            sessionSettingsDrawerAction.showDrawer({ session });
           }}
           key={session.id}
         >
@@ -80,7 +80,7 @@ function EditorNavBar(props: EditorNavBarProps) {
       width={{ base: 180, lg: 360 }}
       height='100%'
     >
-      <SessionSettingsModal viewModelAction={sessionSettingModalAction} />
+      <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
       <Navbar.Section>
         <div className='h-[var(--header-height)]'>
           <a href="#">
