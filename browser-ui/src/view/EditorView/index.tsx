@@ -8,7 +8,7 @@ import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
 import KuLogo from "../../component/KuLogo";
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
-import SessionSettingsModal, { useSessionSettingsModalAction } from "../SessionSettingsModal";
+import SessionSettingsModal, { useSessionSettingsModalAction } from "../../component/SessionSettingsModal";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
