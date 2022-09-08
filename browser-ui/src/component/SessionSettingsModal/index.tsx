@@ -9,10 +9,6 @@ interface SessionSettingsModalFormValue {
   name: string;
 }
 
-export interface SessionSettingsModalProps {
-  viewModelAction: ViewModelAction;
-}
-
 function SessionSettingsModalForm(props: {
   viewModelAction: ViewModelAction<ViewModelWithSession>,
 }) {
@@ -85,6 +81,10 @@ function SessionSettingsModalForm(props: {
       </Group>
     </form>
   );
+}
+
+export interface SessionSettingsModalProps {
+  viewModelAction: ViewModelAction;
 }
 
 export default function SessionSettingsModal(

@@ -11,6 +11,7 @@ import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
 import { grpcClient } from "../../client/api";
 import useWindowSize from "../../hook/useWindowSize";
+import NewParsedTableDrawer, { useNewParsedTableDrawerAction } from "../NewParsedTableDrawer";
 import { sessionToKustoSchema } from "./kusto";
 import KustoEditor from "./KustoEditor";
 import ResultTable from "./ResultTable";
@@ -163,6 +164,7 @@ export default function EditorPane(props: EditorPaneProps) {
   }, [editorLoaded, session])
 
   const runQueryAction = useRunQueryAction();
+  const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
 
   const getUserInput = (): { queryInput: string; sql: string; } | undefined => {
     if (!editorLoaded) {
@@ -197,6 +199,8 @@ export default function EditorPane(props: EditorPaneProps) {
     } else {
       queryInput = editorValue.editor.getValue();
     }
+
+    queryInput = queryInput.trim();
 
     const query = toSQL(queryInput, { tableName: table.id });
 
@@ -273,12 +277,25 @@ export default function EditorPane(props: EditorPaneProps) {
         runQueryViewModel={runQueryAction.viewModel}
         onRunQuery={onRunQuery}
         onNewParsedTable={() => {
+          const userInput = getUserInput();
+          if (!userInput) {
+            console.error('no valid user input');
+            return;
+          }
 
+          newParsedTableDrawerAction.showDrawer({
+            session,
+            sql: userInput.sql,
+            queryInput: userInput.queryInput,
+          });
         }}
       />
       <EditorBody
         editorValue={editorDefaultQuery}
         resultViewModel={resultViewModel}
+      />
+      <NewParsedTableDrawer
+        viewModelAction={newParsedTableDrawerAction}
       />
     </div>
   );
