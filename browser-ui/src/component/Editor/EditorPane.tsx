@@ -9,6 +9,7 @@ import classNames from "classnames";
 import { editor } from "monaco-editor";
 import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
+import { sessionHash } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import useWindowSize from "../../hook/useWindowSize";
 import NewParsedTableDrawer, { useNewParsedTableDrawerAction } from "../NewParsedTableDrawer";
@@ -155,13 +156,16 @@ export default function EditorPane(props: EditorPaneProps) {
 
   const [editorValue, editorLoaded] = useLoadedEditor();
 
-  useEffect(() => {
-    if (!editorLoaded) {
-      return;
-    }
+  useEffect(
+    () => {
+      if (!editorLoaded) {
+        return;
+      }
 
-    setSchemas(editorValue.editor, editorValue.monaco, session);
-  }, [editorLoaded, session])
+      setSchemas(editorValue.editor, editorValue.monaco, session);
+    },
+    [editorLoaded, sessionHash(session)],
+  );
 
   const runQueryAction = useRunQueryAction();
   const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
@@ -316,7 +320,7 @@ async function setSchemas(
 
   const kustoSessionDatabaseSchema = sessionToKustoSchema(session);
 
-  worker.setSchemaFromShowSchema(
+  await worker.setSchemaFromShowSchema(
     {
       Plugins: [
         { Name: 'pivot' },

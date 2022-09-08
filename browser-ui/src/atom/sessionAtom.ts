@@ -155,3 +155,29 @@ export function useUpdateSession(): (session: Session) => void {
     });
   };
 }
+
+// ref: https://github.com/darkskyapp/string-hash/blob/cb38ab492aba198b9658b286bb2391278bb6992b/index.js#L3
+function hash(str: string) {
+  var hash = 5381,
+    i = str.length;
+
+  while (i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+
+  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+   * integers. Since we want the results to be always positive, convert the
+   * signed int to an unsigned by doing an unsigned bitshift. */
+  return hash >>> 0;
+}
+
+// sessionHash calculates a simple hash from a session by aware of its id and tables.
+// We use this function to generate unique identifier for hook and Kusto schema manipulation.
+export function sessionHash(session: Session): string {
+  const hashStr = hash([
+    session.id,
+    ...session.tables.map(t => t.id).sort(),
+  ].join(' '));
+
+  return `${session.id}_${hashStr}`;
+}
