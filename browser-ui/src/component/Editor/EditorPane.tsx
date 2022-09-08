@@ -135,11 +135,6 @@ export interface EditorPaneProps {
   showEditorNav: () => void;
 }
 
-const editorDefaultQuery = `
-raw
-| take 100
-`.trim()
-
 function getEditorLineNumber(
   editorModel: editor.ITextModel,
   startLine: number,
@@ -316,7 +311,10 @@ export default function EditorPane(props: EditorPaneProps) {
       />
       <EditorBody
         editorWidth={editorWidth}
-        editorValue={editorDefaultQuery}
+        editorValue={`
+${table.name}
+| take 100
+`.trim()}
         resultViewModel={resultViewModel}
       />
       <NewParsedTableDrawer
