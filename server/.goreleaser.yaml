@@ -69,3 +69,8 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+release:
+  mode: append
+  draft: true
+  prerelease: auto
