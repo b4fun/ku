@@ -1,0 +1,36 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - release-test/*
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - run: git fetch --force --tags
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18"
+
+      - run: |
+          npm ci
+          make release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
