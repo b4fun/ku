@@ -16,8 +16,20 @@ all: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-##@ Build
+##@ Release
 
-build: ## Build the application.
+release: build-frontend release-cli ## Build and relase the application.
+
+build-frontend: ## Build frontend.
 	npm run build
-	make -C server ku
+
+GO_BUILDER_VERSION ?= v1.19.0
+
+release-cli: ## Build and release the cli application.
+	docker run --rm --privileged \
+		-v $(CURDIR):/workspace \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(GOPATH)/src:/go/src \
+		-w /workspace/server \
+		-e "GITHUB_TOKEN=$(GITHUB_TOKEN)" \
+		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist
