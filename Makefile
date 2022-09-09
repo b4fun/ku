@@ -31,4 +31,5 @@ release-cli: ## Build and release the cli application.
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v $(GOPATH)/src:/go/src \
 		-w /workspace/server \
+		-e "GITHUB_TOKEN=$(GITHUB_TOKEN)" \
 		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist
