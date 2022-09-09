@@ -21,6 +21,7 @@ help: ## Display this help.
 ##@ Local Developement
 
 ku: fmt vet ## Build ku
+	@go generate ./...
 	@go build $(GO_BUILD_FLAGS) -o bin/ku ./cmd/ku/
 
 fmt: ## Run go fmt against code.

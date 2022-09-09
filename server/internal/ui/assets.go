@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-//go:generate sh -c 'cp -r ../../../browser-ui/dist . || mkdir dist'
+//go:generate cp -r ../../../browser-ui/dist .
 
 //go:embed dist/*
 var assets embed.FS
