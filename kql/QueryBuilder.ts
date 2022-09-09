@@ -1,7 +1,13 @@
 import { Knex } from 'knex';
 import * as Sqlite3Knex from 'knex/lib/dialects/sqlite3';
 
-const _client = new Sqlite3Knex({
+// FIXME: workaround to use in both dev and prod environment
+let Sqlite3KnexCtor = Sqlite3Knex;
+if (Sqlite3Knex.default) {
+  Sqlite3KnexCtor = Sqlite3Knex.default;
+}
+
+const _client = new Sqlite3KnexCtor({
   client: 'sqlite3',
   // for insertion, we don't care this
   useNullAsDefault: false,
