@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "*"
+    branches:
+      - usage
   workflow_dispatch: {}
 
 permissions:
