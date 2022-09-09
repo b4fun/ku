@@ -1,0 +1,71 @@
+project_name: ku
+
+before:
+  hooks:
+    - go generate ./...
+
+builds:
+  - id: ku-darwin-amd64
+    binary: ku
+    main: ./cmd/ku
+    env:
+      - CGO_ENABLED=1
+      - CC=o64-clang
+      - CXX=o64-clang++
+    goos: [darwin]
+    goarch: [amd64]
+  - id: ku-darwin-arm64
+    binary: ku
+    main: ./cmd/ku
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-apple-darwin20.2-clang
+      - CXX=aarch64-apple-darwin20.2-clang++
+    goos: [darwin]
+    goarch: [arm64]
+
+  - id: ku-linux-amd64
+    binary: ku
+    main: ./cmd/ku
+    env:
+      - CGO_ENABLED=1
+    goos: [linux]
+    goarch: [amd64]
+
+  - id: ku-windows-amd64
+    binary: ku
+    main: ./cmd/ku
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    ldflags: -buildmode=exe
+    goos: [windows]
+    goarch: [amd64]
+
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    name_template: "{{ .Binary }}-v{{ .Version }}-{{ .ShortCommit }}-{{ .Os }}-{{ .Arch }}"
+    allow_different_binary_count: true
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
