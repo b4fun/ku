@@ -337,6 +337,7 @@ export default function ResultTable(props: ResultTableProps) {
           height: '100%',
         }}
         expandable={tableExpand}
+        emptyText={() => (<></>)}
       />
     </div>
   );
