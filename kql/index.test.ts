@@ -74,6 +74,20 @@ describe('toSQL', () => {
       `,
       `select a + 10 as p0, b + 10 as p1, a + b * 2 as c from source`,
     ],
+    [
+      `
+      source
+      | count
+      `,
+      `with q0 as (select count(*) as Count from source) select * from q0`,
+    ],
+    [
+      `
+      source
+      | count as x
+      `,
+      `with q0 as (select count(*) as x from source) select * from q0`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 

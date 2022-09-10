@@ -219,7 +219,17 @@ export default function EditorPane(props: EditorPaneProps) {
 
     queryInput = queryInput.trim();
 
-    const query = toSQL(queryInput, { tableName: table.id });
+    const query = toSQL(
+      queryInput,
+      {
+        tableName: table.id,
+        debug: {
+          logUnknown: (msg: string, ...args: any[]) => {
+            console.warn(msg, ...args);
+          },
+        },
+      },
+    );
 
     return {
       queryInput,

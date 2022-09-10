@@ -1,7 +1,7 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString } from './parseExpressionHelper';
-import { getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
+import { DebugSQLOptions, getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
 
 function toSQLString(v: Syntax.SyntaxElement): string {
   switch (v.Kind) {
@@ -205,12 +205,37 @@ function visitParseOperator(
   return qb;
 }
 
+function visitCountOperator(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.CountOperator,
+): QueryInterface {
+  const countOpts: { as: string } = { as: 'Count' };
+  if (v.AsIdentifier && v.AsIdentifier.Identifier) {
+    countOpts.as = toSQLString(v.AsIdentifier.Identifier);
+  }
+
+  const cteQuery = qb;
+  cteQuery.count('*', countOpts);
+  const cteTableName = qc.acquireCTETableName();
+
+  qb = getQueryBuilder();
+  qb.with(cteTableName, raw(cteQuery.toQuery())).from(cteTableName);
+
+  return qb;
+}
+
 function visit(
   qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.SyntaxElement,
   indent?: string,
 ): QueryInterface {
+  if (v.Kind === SyntaxKind.EndOfTextToken) {
+    // fast path: EOF
+    return qb;
+  }
+
   indent = indent || '';
 
   // kustoHelper.printElement(v, indent);
@@ -231,6 +256,12 @@ function visit(
     case SyntaxKind.ParseOperator:
       qb = visitParseOperator(qc, qb, v as Syntax.ParseOperator);
       break;
+    case SyntaxKind.CountOperator:
+      qb = visitCountOperator(qc, qb, v as Syntax.CountOperator);
+      break;
+    default:
+      qc.logUnknown(`unhandled kind: ${kustoHelper.getSyntaxKindName(v.Kind)}`);
+      break;
   }
 
   kustoHelper.visitChild(
@@ -247,6 +278,8 @@ const parseKQL = Kusto.Language.KustoCode.Parse;
 
 export interface ToSQLOptions {
   tableName: string;
+
+  debug?: DebugSQLOptions;
 }
 
 function defaultToSQLOptions(): ToSQLOptions {
@@ -267,7 +300,7 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
     throw new Error(`failed to parse input KQL`);
   }
 
-  const qc = new QueryContext();
+  const qc = new QueryContext(opts.debug);
   const qb = getQueryBuilder().from(opts.tableName);
 
   const compiledQB = visit(qc, qb, parsedKQL.Syntax);

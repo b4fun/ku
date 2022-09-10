@@ -29,10 +29,20 @@ export interface SQLResult {
 
 export type QueryInterface = Knex.QueryBuilder;
 
+export interface DebugSQLOptions {
+  logUnknown?: (msg: string, ...args: any[]) => void;
+}
+
 export class QueryContext {
+
+  private debug: DebugSQLOptions;
 
   private _cteTableIdx = 0;
   private _projectIdx = 0;
+
+  constructor(debug?: DebugSQLOptions) {
+    this.debug = debug ?? {};
+  }
 
   public acquireCTETableName(): string {
     return `q${this._cteTableIdx++}`;
@@ -40,6 +50,12 @@ export class QueryContext {
 
   public acquireAutoProjectAsName(): string {
     return `p${this._projectIdx++}`;
+  }
+
+  public logUnknown(msg: string, ...args: any[]) {
+    if (this.debug.logUnknown) {
+      this.debug.logUnknown(msg, ...args);
+    }
   }
 
 }
