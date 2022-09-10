@@ -88,6 +88,13 @@ describe('toSQL', () => {
       `,
       `with q0 as (select count(*) as x from source) select * from q0`,
     ],
+    [
+      `
+      source
+      | where x == 'foo'
+      `,
+      `select * from source where x == 'foo'`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 

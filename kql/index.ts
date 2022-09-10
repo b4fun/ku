@@ -3,27 +3,15 @@ import { Syntax, SyntaxKind } from './kustoHelper';
 import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString } from './parseExpressionHelper';
 import { DebugSQLOptions, getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
 
-function toSQLString(v: Syntax.SyntaxElement): string {
-  switch (v.Kind) {
-    case SyntaxKind.StringLiteralExpression:
-    case SyntaxKind.StringLiteralToken:
-    case SyntaxKind.CompoundStringLiteralExpression:
-      // string literals
-      return kustoHelper.getTokenValue(v);
-    default:
-      return kustoHelper.kqlToString(v);
-  }
-}
-
 function visitBinaryExpression(
   qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.BinaryExpression,
 ) {
   // TODO: recursive visit
-  const left = toSQLString(v.Left!);
-  const right = toSQLString(v.Right!);
-  const op = toSQLString(v.Operator!);
+  const left = kustoHelper.kqlToString(v.Left!);
+  const right = kustoHelper.kqlToString(v.Right!);
+  const op = kustoHelper.kqlToString(v.Operator!);
 
   const raw = `${left} ${op} ${right}`;
   qb.whereRaw(raw);
@@ -34,9 +22,10 @@ function visitContainsExpression(
   qb: QueryInterface,
   v: Syntax.BinaryExpression,
 ) {
-  const left = toSQLString(v.Left!);
-  const right = toSQLString(v.Right!);
-  const op = toSQLString(v.Operator!).toLowerCase();
+  const left = kustoHelper.kqlToString(v.Left!);
+  // use getTokenValue to unquote string
+  const right = kustoHelper.getTokenValue(v.Right!);
+  const op = kustoHelper.kqlToString(v.Operator!).toLowerCase();
 
   switch (op) {
     case 'contains':
@@ -69,6 +58,7 @@ function visitFilterOperator(
     case SyntaxKind.LessThanExpression:
     case SyntaxKind.LessThanOrEqualExpression:
     case SyntaxKind.NotEqualExpression:
+    case SyntaxKind.EqualExpression:
       visitBinaryExpression(qc, qb, v.Condition as Syntax.BinaryExpression);
       break;
     case SyntaxKind.ContainsExpression:
@@ -95,21 +85,21 @@ function visitProjectOperator_SeparatedElement(
   switch (exprChild.Kind) {
     case SyntaxKind.NameReference:
       // case: project foo
-      qb.select(toSQLString(exprChild));
+      qb.select(kustoHelper.kqlToString(exprChild));
       break;
     case SyntaxKind.SimpleNamedExpression:
       // case: project a = foo
       {
         const projectAsExpr = (exprChild as Syntax.SimpleNamedExpression);
-        const projectAsName = toSQLString(projectAsExpr.Name);
-        const projectSource = toSQLString(projectAsExpr.Expression);
+        const projectAsName = kustoHelper.kqlToString(projectAsExpr.Name);
+        const projectSource = kustoHelper.kqlToString(projectAsExpr.Expression);
         qb.select(raw(`${projectSource} as ${projectAsName}`));
       }
       break;
     default:
       // case: project foo + 10
       {
-        const projectSource = toSQLString(exprChild);
+        const projectSource = kustoHelper.kqlToString(exprChild);
         const projectAsName = qc.acquireAutoProjectAsName();
         qb.select(raw(`${projectSource} as ${projectAsName}`));
       }
@@ -148,7 +138,7 @@ function visitSortOperator(
   qb: QueryInterface,
   v: Syntax.SortOperator,
 ) {
-  qb.orderByRaw(toSQLString(v.Expressions!));
+  qb.orderByRaw(kustoHelper.kqlToString(v.Expressions!));
 }
 
 function visitTakeOperator(
@@ -156,7 +146,7 @@ function visitTakeOperator(
   qb: QueryInterface,
   v: Syntax.TakeOperator,
 ) {
-  const limitStr = toSQLString(v.Expression);
+  const limitStr = kustoHelper.kqlToString(v.Expression);
   const limit = parseInt(limitStr, 10);
 
   qb.limit(limit);
@@ -167,7 +157,7 @@ function visitParseOperator(
   qb: QueryInterface,
   v: Syntax.ParseOperator,
 ): QueryInterface {
-  const sourceColumn = toSQLString(v.Expression);
+  const sourceColumn = kustoHelper.kqlToString(v.Expression);
 
   const parseTarget = parsePatternsToRe2(v.Patterns);
 
@@ -212,7 +202,7 @@ function visitCountOperator(
 ): QueryInterface {
   const countOpts: { as: string } = { as: 'Count' };
   if (v.AsIdentifier && v.AsIdentifier.Identifier) {
-    countOpts.as = toSQLString(v.AsIdentifier.Identifier);
+    countOpts.as = kustoHelper.kqlToString(v.AsIdentifier.Identifier);
   }
 
   const cteQuery = qb;
