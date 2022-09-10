@@ -48,6 +48,19 @@ export class QueryContext {
     return `q${this._cteTableIdx++}`;
   }
 
+  public wrapAsCTE(qb: QueryInterface): QueryInterface {
+    const cteQuery = qb;
+
+    const cteTableName = this.acquireCTETableName();
+    const wrapped = getQueryBuilder();
+    wrapped.with(
+      cteTableName,
+      raw(cteQuery.toQuery()),
+    ).from(cteTableName);
+
+    return wrapped;
+  }
+
   public acquireAutoProjectAsName(): string {
     return `p${this._projectIdx++}`;
   }

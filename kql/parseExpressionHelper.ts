@@ -1,6 +1,16 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 
+// regexQuestionMark defines the special placeholder for the `?` used in the regex.
+// We need this to avoid mixing with knex's query parameter placeholder, which is also `?`.
+// We will use `regexQuestionMark` to represent the `?` in the regex, and replace back with `?`
+// after compiling by knex.
+const regexQuestionMark = '<regexQuestionMark>';
+
+export function unescapeRegexPlaceholders(s: string): string {
+  return s.replaceAll(regexQuestionMark, '?');
+}
+
 export type PrimitiveType = 'string' | 'long';
 
 export const PrimitiveTypeString: PrimitiveType = 'string';
@@ -24,15 +34,14 @@ interface CaptureTarget {
 
 // TODO: support other types (implement coercion)
 const primitiveTypeToPattern = {
-  [PrimitiveTypeString]: '.*\\\\?',
+  [PrimitiveTypeString]: `.*${regexQuestionMark}`,
   [PrimitiveTypeLong]: '\\d+',
 };
 
 function asRe2CaptureGroup(name: string, pattern: string, primitiveType: PrimitiveType): CaptureTarget {
   return {
     columnName: name,
-    // using \\\\? to escape the \?
-    captureGroup: `(\\\\?P<${name.trim()}>${pattern.trim()})`,
+    captureGroup: `(${regexQuestionMark}P<${name.trim()}>${pattern.trim()})`,
     primitiveType,
   };
 }
@@ -68,8 +77,7 @@ export function parsePatternsToRe2(
 
     switch (child.Kind) {
       case SyntaxKind.StarExpression:
-        // * -> .*
-        regexpPattern.push('.*\\\\?');
+        regexpPattern.push(primitiveTypeToPattern[PrimitiveTypeString]);
         break;
       case SyntaxKind.StringLiteralExpression:
         regexpPattern.push(kustoHelper.getTokenValue(child));

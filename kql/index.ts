@@ -1,6 +1,6 @@
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
-import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString } from './parseExpressionHelper';
+import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString, unescapeRegexPlaceholders } from './parseExpressionHelper';
 import { DebugSQLOptions, getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
 
 function visitBinaryExpression(
@@ -111,7 +111,7 @@ function visitProjectOperator(
   qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.ProjectOperator,
-) {
+): QueryInterface {
   if (!v.Expressions) {
     return;
   }
@@ -131,6 +131,8 @@ function visitProjectOperator(
       );
     },
   );
+
+  return qc.wrapAsCTE(qb);
 }
 
 function visitSortOperator(
@@ -161,8 +163,7 @@ function visitParseOperator(
 
   const parseTarget = parsePatternsToRe2(v.Patterns);
 
-  const cteQuery = qb;
-  cteQuery.clearSelect();
+  qb.clearSelect();
   parseTarget.virtualColumns.forEach(virtualColumn => {
     const { columnName, primitiveType } = virtualColumn;
 
@@ -180,19 +181,14 @@ function visitParseOperator(
 
     rawQuery = `${rawQuery} as ${columnName}`;
 
-    cteQuery.select(raw(rawQuery));
+    qb.select(raw(rawQuery));
   });
 
   // select all fields from CTE, but after virtual columns as virtual columns
   // take higher precedence.
-  cteQuery.select('*');
+  qb.select('*');
 
-  const cteTableName = qc.acquireCTETableName();
-
-  qb = getQueryBuilder();
-  qb.with(cteTableName, raw(cteQuery.toQuery())).from(cteTableName);
-
-  return qb;
+  return qc.wrapAsCTE(qb);
 }
 
 function visitCountOperator(
@@ -205,14 +201,9 @@ function visitCountOperator(
     countOpts.as = kustoHelper.kqlToString(v.AsIdentifier.Identifier);
   }
 
-  const cteQuery = qb;
-  cteQuery.count('*', countOpts);
-  const cteTableName = qc.acquireCTETableName();
+  qb.count('*', countOpts);
 
-  qb = getQueryBuilder();
-  qb.with(cteTableName, raw(cteQuery.toQuery())).from(cteTableName);
-
-  return qb;
+  return qc.wrapAsCTE(qb);
 }
 
 function visit(
@@ -235,7 +226,7 @@ function visit(
       visitFilterOperator(qc, qb, v as Syntax.FilterOperator);
       break;
     case SyntaxKind.ProjectOperator:
-      visitProjectOperator(qc, qb, v as Syntax.ProjectOperator);
+      qb = visitProjectOperator(qc, qb, v as Syntax.ProjectOperator);
       break;
     case SyntaxKind.SortOperator:
       visitSortOperator(qc, qb, v as Syntax.SortOperator);
@@ -295,5 +286,8 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
 
   const compiledQB = visit(qc, qb, parsedKQL.Syntax);
 
-  return { sql: compiledQB.toQuery() };
+  let sql = compiledQB.toQuery();
+  sql = unescapeRegexPlaceholders(sql);
+
+  return { sql };
 }

@@ -8,19 +8,19 @@ describe('toSQL', () => {
     ],
     [
       'source | project name',
-      'select name from source',
+      'with q0 as (select name from source) select * from q0',
     ],
     [
       'source |   project name ',
-      'select name from source',
+      'with q0 as (select name from source) select * from q0',
     ],
     [
       'source | project x, y',
-      'select x, y from source',
+      'with q0 as (select x, y from source) select * from q0',
     ],
     [
       'source | project x, y | order by x',
-      'select x, y from source order by x',
+      'with q0 as (select x, y from source) select * from q0 order by x',
     ],
     [
       `
@@ -31,7 +31,7 @@ describe('toSQL', () => {
       | order by y desc
       | project y, x
       `,
-      'select y, x from source where x > 2 and y < 3 order by x asc, y desc',
+      'with q0 as (select y, x from source where x > 2 and y < 3 order by x asc, y desc) select * from q0',
     ],
     [
       `
@@ -65,14 +65,14 @@ describe('toSQL', () => {
       | project foo, bar
       | take 100
       `,
-      `with q0 as (select cast(json_extract(ku_parse(lines, '^.*?foo=(?P<foo>\\d+) , bar=(?P<bar>.*?)$'), '$.foo') as integer) as foo, cast(json_extract(ku_parse(lines, '^.*?foo=(?P<foo>\\d+) , bar=(?P<bar>.*?)$'), '$.bar') as text) as bar, * from source where lines like '%foo%') select foo, bar from q0 limit 100`,
+      `with q1 as (with q0 as (select cast(json_extract(ku_parse(lines, '^.*?foo=(?P<foo>\\d+) , bar=(?P<bar>.*?)$'), '$.foo') as integer) as foo, cast(json_extract(ku_parse(lines, '^.*?foo=(?P<foo>\\d+) , bar=(?P<bar>.*?)$'), '$.bar') as text) as bar, * from source where lines like '%foo%') select foo, bar from q0) select * from q1 limit 100`,
     ],
     [
       `
       source
       | project a + 10, b + 10, c = a + b * 2
       `,
-      `select a + 10 as p0, b + 10 as p1, a + b * 2 as c from source`,
+      `with q0 as (select a + 10 as p0, b + 10 as p1, a + b * 2 as c from source) select * from q0`,
     ],
     [
       `
@@ -94,6 +94,14 @@ describe('toSQL', () => {
       | where x == 'foo'
       `,
       `select * from source where x == 'foo'`,
+    ],
+    [
+      `
+      source
+      | project x, y, z
+      | project y, x, z
+      `,
+      `with q1 as (with q0 as (select x, y, z from source) select y, x, z from q0) select * from q1`,
     ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
