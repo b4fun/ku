@@ -1,5 +1,5 @@
 <h3 align="center">
-<img src="docs/assets/logo.svg" /> Ku
+<img src="docs/assets/logo.svg" width="120px" height="60px" style="inline-block" /> Ku
 </h3>
 
 <h5 align="center">
