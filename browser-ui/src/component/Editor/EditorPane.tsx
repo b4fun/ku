@@ -249,7 +249,7 @@ export default function EditorPane(props: EditorPaneProps) {
       return getUserInputInner();
     } catch (e) {
       showNotification({
-        title: 'Query Error',
+        title: '😱 Query Error',
         message: `${e}`,
         color: 'red',
       });
@@ -309,6 +309,12 @@ export default function EditorPane(props: EditorPaneProps) {
         console.error(err);
 
         runQueryAction.setRequesting(false);
+
+        showNotification({
+          color: 'red',
+          title: '😱 Query Error',
+          message: `${err}`,
+        });
       });
   };
 
