@@ -244,56 +244,78 @@ function visitDistinctOperator(
   return qc.wrapAsCTE(qb);
 }
 
+function visitQueryBlock(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.QueryBlock,
+): QueryInterface {
+  kustoHelper.visitChild(
+    v.Statements,
+    (separatedElement) => {
+      if (separatedElement.Kind !== SyntaxKind.SeparatedElement) {
+        // unexpected
+        return;
+      }
+
+      const child = (separatedElement as Syntax.SeparatedElement).Element;
+      qb = visit(qc, qb, child);
+    },
+  );
+
+  return qb;
+}
+
+function visitPipeExpression(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.PipeExpression,
+): QueryInterface {
+  const expr = v.Expression;
+  if (expr.Kind !== SyntaxKind.NameReference) {
+    // skip `source | <...>`
+    qb = visit(qc, qb, expr);
+  }
+
+  qb = visit(qc, qb, v.Operator);
+
+  return qb;
+}
+
 function visit(
   qc: QueryContext,
   qb: QueryInterface,
   v: Syntax.SyntaxElement,
-  indent?: string,
 ): QueryInterface {
-  if (v.Kind === SyntaxKind.EndOfTextToken) {
-    // fast path: EOF
-    return qb;
-  }
-
-  indent = indent || '';
-
-  // kustoHelper.printElement(v, indent);
-
   switch (v.Kind) {
+    case SyntaxKind.EndOfTextToken:
+      return qb;
+    case SyntaxKind.QueryBlock:
+      return visitQueryBlock(qc, qb, v as Syntax.QueryBlock);
+    case SyntaxKind.ExpressionStatement:
+      return visit(qc, qb, (v as Syntax.ExpressionStatement).Expression);
+    case SyntaxKind.PipeExpression:
+      return visitPipeExpression(qc, qb, v as Syntax.PipeExpression);
     case SyntaxKind.FilterOperator:
       visitFilterOperator(qc, qb, v as Syntax.FilterOperator);
-      break;
+      return qb;
     case SyntaxKind.ProjectOperator:
-      qb = visitProjectOperator(qc, qb, v as Syntax.ProjectOperator);
-      break;
+      return visitProjectOperator(qc, qb, v as Syntax.ProjectOperator);
     case SyntaxKind.SortOperator:
       visitSortOperator(qc, qb, v as Syntax.SortOperator);
-      break;
+      return qb;
     case SyntaxKind.TakeOperator:
       visitTakeOperator(qc, qb, v as Syntax.TakeOperator);
-      break;
+      return qb;
     case SyntaxKind.ParseOperator:
-      qb = visitParseOperator(qc, qb, v as Syntax.ParseOperator);
-      break;
+      return visitParseOperator(qc, qb, v as Syntax.ParseOperator);
     case SyntaxKind.CountOperator:
-      qb = visitCountOperator(qc, qb, v as Syntax.CountOperator);
-      break;
+      return visitCountOperator(qc, qb, v as Syntax.CountOperator);
     case SyntaxKind.DistinctOperator:
-      qb = visitDistinctOperator(qc, qb, v as Syntax.DistinctOperator);
-      break;
+      return visitDistinctOperator(qc, qb, v as Syntax.DistinctOperator);
     default:
       qc.logUnknown(`unhandled kind: ${kustoHelper.getSyntaxKindName(v.Kind)}`);
-      break;
+      return qb;
   }
-
-  kustoHelper.visitChild(
-    v,
-    (child) => {
-      qb = visit(qc, qb, child, indent + '  ');
-    },
-  )
-
-  return qb;
 }
 
 const parseKQL = Kusto.Language.KustoCode.Parse;
@@ -325,7 +347,6 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
   const qc = new QueryContext(opts.debug);
   const qb = getQueryBuilder().from(opts.tableName);
 
-  // FIXME: start from query block instead of recursively visiting all children
   const compiledQB = visit(qc, qb, parsedKQL.Syntax);
 
   let sql = compiledQB.toQuery();
