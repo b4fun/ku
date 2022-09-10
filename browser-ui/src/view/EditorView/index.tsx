@@ -242,7 +242,7 @@ function EditorView() {
             <div className='flex-none'>
               <EditorNavBar viewModel={viewModel} />
             </div>
-            <div className="grow h-full py-2 pr-2">
+            <div className="grow h-full py-2 pr-2 editor-manual-rotation">
               <EditorManual />
             </div>
           </div>
@@ -254,7 +254,7 @@ function EditorView() {
           />
           {tableSelected ?
             (<EditorPane
-              editorNavVisible={viewModel.widths[0] > 30}
+              editorNavVisible={viewModel.widths[0] > EditorNavBarMinSizePixel - 5}
               editorWidth={viewModel.widths[1]}
               showEditorNav={() => {
                 allotmentRef.current?.reset();
