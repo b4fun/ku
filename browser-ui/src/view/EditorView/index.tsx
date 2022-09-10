@@ -1,5 +1,5 @@
 import { Session } from "@b4fun/ku-protos";
-import { LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
+import { Card, Code, Group, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
 import { Allotment, AllotmentHandle } from "allotment";
 import React, { useEffect, useRef } from 'react';
 
@@ -17,6 +17,9 @@ async function bootstrap(): Promise<Session[]> {
 
   return resp.response.sessions;
 };
+
+// FIXME: responsive
+const EditorNavBarMinSizePixel = 300;
 
 interface EditorNavBarProps {
   viewModel: ViewModel;
@@ -79,6 +82,7 @@ function EditorNavBar(props: EditorNavBarProps) {
   return (
     <Navbar
       height='100%'
+      className='border-r-[0px]'
     >
       <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
       <Navbar.Section>
@@ -92,6 +96,111 @@ function EditorNavBar(props: EditorNavBarProps) {
         {sessionNav}
       </Navbar.Section>
     </Navbar>
+  );
+}
+
+const supportedKeywords = [
+  'project', 'where', 'take', 'order by', 'parse', 'count', 'distinct',
+  'and', 'or', '>/>=/</<=/==/!=', 'contains', '!contains',
+];
+
+const supportedDataTypes = [
+  'boolean', 'string', 'integer/long', 'real/float/double',
+];
+
+const partialSupportedDataTypes = [
+  'datetime', 'timespan', 'dynamic',
+];
+
+function EditorManual() {
+  const supportedKeywordsList = supportedKeywords.map((keyword, idx) => {
+    return (
+      <Code color="blue" key={`${idx}`}>
+        {keyword}
+      </Code>
+    );
+  });
+
+  const supportedDataTypesList = supportedDataTypes.map((dataType, idx) => {
+    return (
+      <Code color="blue" key={`${idx}`}>
+        {dataType}
+      </Code>
+    );
+  });
+
+  const partialSupportedDataTypesList = partialSupportedDataTypes.map((dataType, idx) => {
+    return (
+      <Code color="yellow" key={`${idx}`}>
+        {dataType}
+      </Code>
+    );
+  });
+
+  return (
+    <Card
+      shadow="xs" radius="md" p={0}
+      className="w-[300px] h-full text-sm leading-6 pb-20"
+    >
+      <Card.Section className="bg-[color:var(--theme-color-orange)] text-white py-2 px-4 mb-2">
+        <h3 className="font-semibold text-base">
+          Manual
+        </h3>
+      </Card.Section>
+
+      <div className="h-full overflow-scroll pt-2 px-4">
+        <Card.Section className="mb-1">
+          <p className="font-semibold">What's KQL?</p>
+        </Card.Section>
+        <Card.Section className="mb-2">
+          <p>KQL (Kusto Query Language) is a way to explore data with SQL like language.</p>
+          <p>Different than typical SQL syntax, KQL adapts the language to a ML like DSL, which allows easier reading / writing while keeping declarative style.</p>
+          <a href="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/" target="_blank" rel="noreferrer" className="underline">
+            Learn more about on Microsoft Docs
+          </a>
+        </Card.Section>
+
+        <Card.Section className="mb-1">
+          <p className="font-semibold">
+            What's Ku?
+          </p>
+        </Card.Section>
+        <Card.Section className="mb-3">
+          <p>Ku is a simple tool for collecting and exploring logs using KQL and sqlite.</p>
+          <p>This page is the query UI for Ku, where we can write and execute KQL upon on our data.</p>
+          <a href="https://github.com/b4fun/ku" target="_blank" className="underline">
+            Checkout on GitHub
+          </a>
+        </Card.Section>
+
+        <Card.Section className="mb-1">
+          <p className="font-semibold">Supported KQL Keywords</p>
+        </Card.Section>
+        <Card.Section className="mb-2">
+          <Group spacing="xs">
+            {supportedKeywordsList}
+          </Group>
+        </Card.Section>
+
+        <Card.Section className="mb-1">
+          <p className="font-semibold">Supported KQL Data Types</p>
+        </Card.Section>
+        <Card.Section className="mb-2">
+          <Group spacing="xs">
+            {supportedDataTypesList}
+          </Group>
+        </Card.Section>
+
+        <Card.Section className="mb-1">
+          <p className="font-semibold">Partial Supported KQL Data Types</p>
+        </Card.Section>
+        <Card.Section inheritPadding className="mb-2">
+          <Group spacing="xs">
+            {partialSupportedDataTypesList}
+          </Group>
+        </Card.Section>
+      </div>
+    </Card>
   );
 }
 
@@ -128,8 +237,15 @@ function EditorView() {
           }
         }}
       >
-        <Allotment.Pane preferredSize={300} minSize={0} maxSize={300}>
-          <EditorNavBar viewModel={viewModel} />
+        <Allotment.Pane preferredSize={EditorNavBarMinSizePixel + 5} maxSize={EditorNavBarMinSizePixel * 2 + 10} minSize={0}>
+          <div className='flex h-full'>
+            <div className='flex-none'>
+              <EditorNavBar viewModel={viewModel} />
+            </div>
+            <div className="grow h-full py-2 pr-2">
+              <EditorManual />
+            </div>
+          </div>
         </Allotment.Pane>
         <Allotment.Pane>
           <LoadingOverlay

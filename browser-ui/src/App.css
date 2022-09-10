@@ -4,6 +4,11 @@
   --border-color-light: #e9ecef;
   --separator-border: var(var(--border-color-light));
 
-  --theme-color-orange: rgb(217, 72, 15);
+  --theme-color-orange: #d9480f;
   --theme-color-orange-light: #e06c3e;
+}
+
+.sash {
+  /* make sure the sash can be show in the top */
+  z-index: 1000;
 }
