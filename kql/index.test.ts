@@ -103,6 +103,20 @@ describe('toSQL', () => {
       `,
       `with q1 as (with q0 as (select x, y, z from source) select y, x, z from q0) select * from q1`,
     ],
+    [
+      `
+      source
+      | distinct x
+      `,
+      `with q0 as (select distinct x from source) select * from q0`,
+    ],
+    [
+      `
+      source
+      | distinct x, y
+      `,
+      `with q0 as (select distinct x, y from source) select * from q0`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 

@@ -206,6 +206,44 @@ function visitCountOperator(
   return qc.wrapAsCTE(qb);
 }
 
+function visitDistinctOperator(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.DistinctOperator,
+): QueryInterface {
+  if (!v.Expressions) {
+    return;
+  }
+
+  const distinctColumns = [];
+  kustoHelper.visitChild(
+    v.Expressions,
+    (child) => {
+      if (child.Kind !== SyntaxKind.SeparatedElement) {
+        // unexpected
+        return;
+      }
+
+      kustoHelper.visitChild(
+        child,
+        (childValue) => {
+          if (childValue.Kind !== SyntaxKind.NameReference) {
+            // unexpected
+            return;
+          }
+
+          const columnName = kustoHelper.kqlToString(childValue);
+          distinctColumns.push(columnName);
+        },
+      );
+    },
+  );
+
+  qb.distinct(...distinctColumns);
+
+  return qc.wrapAsCTE(qb);
+}
+
 function visit(
   qc: QueryContext,
   qb: QueryInterface,
@@ -239,6 +277,9 @@ function visit(
       break;
     case SyntaxKind.CountOperator:
       qb = visitCountOperator(qc, qb, v as Syntax.CountOperator);
+      break;
+    case SyntaxKind.DistinctOperator:
+      qb = visitDistinctOperator(qc, qb, v as Syntax.DistinctOperator);
       break;
     default:
       qc.logUnknown(`unhandled kind: ${kustoHelper.getSyntaxKindName(v.Kind)}`);
@@ -284,6 +325,7 @@ export function toSQL(kql: string, opts?: ToSQLOptions): SQLResult {
   const qc = new QueryContext(opts.debug);
   const qb = getQueryBuilder().from(opts.tableName);
 
+  // FIXME: start from query block instead of recursively visiting all children
   const compiledQB = visit(qc, qb, parsedKQL.Syntax);
 
   let sql = compiledQB.toQuery();
