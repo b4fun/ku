@@ -16,20 +16,36 @@ type CLI struct {
 	Ku struct {
 		DBPath     string `required:"" help:"path to the logs db" default:"./db.sqlite" type:"path"`
 		ServerAddr string `required:"" help:"server listen address" default:"127.0.0.1:4000"`
+		Readonly   bool   `help:"set to true to serve without reading logs from cli"`
 	} `embed:"" prefix:"ku-"`
 
 	Cmd struct {
-		CommandAndFlags []string `arg:"" passthrough:""`
+		CommandAndFlags []string `arg:"" passthrough:"" optional:""`
 	} `embed:""`
 }
 
-func (c *CLI) Run() error {
+// Validates implements kong.Validatable.
+func (c *CLI) Validate() error {
+	if err := c.validateCommand(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CLI) validateCommand() error {
+	if c.Ku.Readonly {
+		return nil
+	}
+
 	if len(c.Cmd.CommandAndFlags) < 1 {
 		return fmt.Errorf("no command specified")
 	}
 
-	childCmdName, childArgs := c.Cmd.CommandAndFlags[0], c.Cmd.CommandAndFlags[1:]
+	return nil
+}
 
+func (c *CLI) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -44,7 +60,7 @@ func (c *CLI) Run() error {
 		return err
 	}
 
-	logger, err := applog.NewLogger("ku_cli")
+	logger, err := applog.NewLogger("ku_cli", applog.LogToStderr(c.Ku.Readonly))
 	if err != nil {
 		applog.Setup.Error(err, "new db logger")
 		return err
@@ -71,18 +87,21 @@ func (c *CLI) Run() error {
 	}
 	go apiServer.Start(ctx)
 
-	childCmd, err := exec.Command(&exec.Opts{
-		Logger:          logger,
-		Command:         childCmdName,
-		Args:            childArgs,
-		Stdout:          os.Stdout,
-		Stderr:          os.Stderr,
-		SessionProvider: dbProvider,
-	})
-	if err != nil {
-		return err
+	if !c.Ku.Readonly {
+		childCmdName, childArgs := c.Cmd.CommandAndFlags[0], c.Cmd.CommandAndFlags[1:]
+		childCmd, err := exec.Command(&exec.Opts{
+			Logger:          logger,
+			Command:         childCmdName,
+			Args:            childArgs,
+			Stdout:          os.Stdout,
+			Stderr:          os.Stderr,
+			SessionProvider: dbProvider,
+		})
+		if err != nil {
+			return err
+		}
+		go childCmd.Start(ctx)
 	}
-	go childCmd.Start(ctx)
 
 	<-ctx.Done()
 

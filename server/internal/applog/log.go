@@ -23,11 +23,42 @@ func init() {
 	Setup = mustNewSetupLogger()
 }
 
+// LoggerConfigOption applies extra configuration to the logger config.
+type LoggerConfigOption interface {
+	apply(*zap.Config)
+}
+
+type loggerConfigOptionFunc func(*zap.Config)
+
+func (f loggerConfigOptionFunc) apply(c *zap.Config) {
+	f(c)
+}
+
+// LogToStderr configures the logger to log to stderr.
+func LogToStderr(enabled bool) LoggerConfigOption {
+	return loggerConfigOptionFunc(func(c *zap.Config) {
+		if !enabled {
+			return
+		}
+
+		c.OutputPaths = append(
+			c.OutputPaths,
+			"stderr",
+		)
+	})
+}
+
 // NewLogger creates a logger with database driver enabled.
-func NewLogger(sessionPrefix string) (logr.Logger, error) {
+func NewLogger(
+	sessionPrefix string,
+	opts ...LoggerConfigOption,
+) (logr.Logger, error) {
 	config := zap.NewDevelopmentConfig()
 	config.OutputPaths = []string{
 		fmt.Sprintf("%s://%s", logSinkScheme, sessionPrefix),
+	}
+	for _, opt := range opts {
+		opt.apply(&config)
 	}
 
 	zapLog, err := config.Build()

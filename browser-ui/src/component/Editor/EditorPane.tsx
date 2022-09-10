@@ -1,6 +1,7 @@
 import { toSQL } from "@b4fun/kql";
 import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { Button } from "@mantine/core";
+import { showNotification } from '@mantine/notifications';
 import { Monaco } from "@monaco-editor/react";
 import { IconLayoutSidebarRightCollapse, IconPlayerPlay, IconTransform } from '@tabler/icons';
 import { Allotment } from "allotment";
@@ -155,6 +156,11 @@ function getEditorLineNumber(
   return line;
 }
 
+interface UserInput {
+  queryInput: string;
+  sql: string;
+}
+
 export default function EditorPane(props: EditorPaneProps) {
   const {
     table,
@@ -183,9 +189,9 @@ export default function EditorPane(props: EditorPaneProps) {
   const runQueryAction = useRunQueryAction();
   const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
 
-  const getUserInput = (): { queryInput: string; sql: string; } | undefined => {
+  const getUserInputInner = (): UserInput => {
     if (!editorLoaded) {
-      return;
+      throw new Error('editor not loaded');
     }
 
     let queryInput: string;
@@ -219,12 +225,36 @@ export default function EditorPane(props: EditorPaneProps) {
 
     queryInput = queryInput.trim();
 
-    const query = toSQL(queryInput, { tableName: table.id });
+    const query = toSQL(
+      queryInput,
+      {
+        tableName: table.id,
+        debug: {
+          logUnknown: (msg: string, ...args: any[]) => {
+            console.warn(msg, ...args);
+            throw new Error(msg);
+          },
+        },
+      },
+    );
 
     return {
       queryInput,
       sql: query.sql,
     };
+  };
+
+  const getUserInput = (): UserInput | undefined => {
+    try {
+      return getUserInputInner();
+    } catch (e) {
+      showNotification({
+        title: 'Query Error',
+        message: `${e}`,
+        color: 'red',
+      });
+      return;
+    }
   };
 
   const onRunQuery = () => {
@@ -236,7 +266,6 @@ export default function EditorPane(props: EditorPaneProps) {
     }
 
     const userInput = getUserInput();
-
     if (!userInput) {
       console.error('no valid user input');
       return;

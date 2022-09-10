@@ -29,17 +29,46 @@ export interface SQLResult {
 
 export type QueryInterface = Knex.QueryBuilder;
 
+export interface DebugSQLOptions {
+  logUnknown?: (msg: string, ...args: any[]) => void;
+}
+
 export class QueryContext {
+
+  private debug: DebugSQLOptions;
 
   private _cteTableIdx = 0;
   private _projectIdx = 0;
+
+  constructor(debug?: DebugSQLOptions) {
+    this.debug = debug ?? {};
+  }
 
   public acquireCTETableName(): string {
     return `q${this._cteTableIdx++}`;
   }
 
+  public wrapAsCTE(qb: QueryInterface): QueryInterface {
+    const cteQuery = qb;
+
+    const cteTableName = this.acquireCTETableName();
+    const wrapped = getQueryBuilder();
+    wrapped.with(
+      cteTableName,
+      raw(cteQuery.toQuery()),
+    ).from(cteTableName);
+
+    return wrapped;
+  }
+
   public acquireAutoProjectAsName(): string {
     return `p${this._projectIdx++}`;
+  }
+
+  public logUnknown(msg: string, ...args: any[]) {
+    if (this.debug.logUnknown) {
+      this.debug.logUnknown(msg, ...args);
+    }
   }
 
 }
