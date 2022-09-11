@@ -16,4 +16,6 @@ Ku collects logs from program output and persists in a sqlite database. It provi
 
 **Why sqlite?** Sqlite is a lightweight, self-contained RDBMS with rich features set. It can be used in local and in the cloud. Ku uses sqlite as data backend to archive data persistency and portability.
 
+<img src="docs/assets/screenshot 1.png" align="right" width="50%">
+
 **Why Ku?** It's a common issue that when querying logs form cloud-native applications in both local and production. One straightforward way is to use grep to perform quick navigation - however, in most of the cases we need more powerful querying languages to explore the data. For this scenario, Ku provides a user friendly interface for collecting logs and exploring.
