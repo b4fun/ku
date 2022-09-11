@@ -17,13 +17,10 @@ $ ku sh -c 'echo hello, world'
 hello, world
 ```
 
-When you can see this output, open your browser and navigate to `http://localhost:4000`. You should see the Ku web interface similar to this:
-
-<img src="assets/getting-started 1.png" width="400px" />
-
-Select the `raw` *table* under the `sh_xxxx` item, and press the `Run` button on the top:
-
-<img src="assets/getting-started 2.png" width="400px" />
+| | |
+|:------|:-------|
+| When you can see this output, open your browser and navigate to `http://localhost:4000`. You should see the Ku web interface similar to this: | <img src="assets/getting-started 1.png" /> |
+| Select the `raw` *table* under the `sh_xxxx` item, and press the `Run` button on the top: | <img src="assets/getting-started 2.png" /> |
 
 ### Second Run
 
