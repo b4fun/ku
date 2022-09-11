@@ -1,38 +1,56 @@
 package db
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
-	"strings"
+	"sync"
 	"time"
 )
 
-type sessionWriter struct {
+type sessionLogWriter struct {
 	Session
 
 	createCtx func() (context.Context, context.CancelFunc)
 	nowFn     func() time.Time
+
+	scannerInput io.WriteCloser
+	scanner      *bufio.Scanner
+	scannerErr   error
+	scanning     *sync.WaitGroup
 }
 
 // SessionLogWriteCloser wraps the session as a io.WriteCloser instance.
+// The behavior of concurrency write to this writer is undefined.
 func SessionLogWriteCloser(
 	rootCtx context.Context,
 	session Session,
 	logWriteTimeout time.Duration,
 ) io.WriteCloser {
-	return &sessionWriter{
+	pr, pw := io.Pipe()
+
+	rv := &sessionLogWriter{
 		Session: session,
 		createCtx: func() (context.Context, context.CancelFunc) {
 			return context.WithTimeout(rootCtx, logWriteTimeout)
 		},
 		nowFn: time.Now,
+
+		scannerInput: pw,
+		scanner:      bufio.NewScanner(pr),
+		scanning:     new(sync.WaitGroup),
 	}
+
+	rv.scanning.Add(1)
+	go rv.scan()
+
+	return rv
 }
 
-var _ io.WriteCloser = (*sessionWriter)(nil)
+var _ io.WriteCloser = (*sessionLogWriter)(nil)
 
-func (swr *sessionWriter) Write(p []byte) (int, error) {
+func (swr *sessionLogWriter) writeLogLine(logLine string) error {
 	ctx, cancel := swr.createCtx()
 	defer cancel()
 
@@ -40,20 +58,41 @@ func (swr *sessionWriter) Write(p []byte) (int, error) {
 		ctx,
 		WriteLogLinePayload{
 			Timestamp: swr.nowFn(),
-			// FIXME: just assuming the data is a full line
-			// TODO(hbc): allow passing a customize separator and
-			//            maintain an internal buffer for data to write
-			Line: strings.TrimSuffix(string(p), "\n"),
+			Line:      logLine,
 		},
 	)
 	if err != nil {
-		return -1, fmt.Errorf("WriteLogLine: %w", err)
+		return fmt.Errorf("WriteLogLine: %w", err)
 	}
 
-	return len(p), nil
+	return nil
 }
 
-func (swr *sessionWriter) Close() error {
-	// no-op
-	return nil
+func (swr *sessionLogWriter) scan() {
+	defer swr.scanning.Done()
+
+	for swr.scanner.Scan() {
+		if err := swr.writeLogLine(swr.scanner.Text()); err != nil {
+			swr.scannerErr = err
+			return
+		}
+	}
+
+	if err := swr.scanner.Err(); err != nil {
+		swr.scannerErr = err
+	}
+}
+
+func (swr *sessionLogWriter) Write(p []byte) (int, error) {
+	return swr.scannerInput.Write(p)
+}
+
+func (swr *sessionLogWriter) Close() error {
+	if err := swr.scannerInput.Close(); err != nil {
+		return err
+	}
+
+	// wait for scanner to finish
+	swr.scanning.Wait()
+	return swr.scannerErr
 }
