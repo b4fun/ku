@@ -154,7 +154,7 @@ function EditorManual() {
         </Card.Section>
         <Card.Section className="mb-2">
           <p>KQL (Kusto Query Language) is a way to explore data with SQL like language.</p>
-          <p>Different than typical SQL syntax, KQL adapts the language to a ML like DSL, which allows easier reading / writing while keeping declarative style.</p>
+          <p>Different than typical SQL, KQL uses ML like syntax, which provides better reading / writing experience.</p>
           <a href="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/" target="_blank" rel="noreferrer" className="underline">
             Learn more about on Microsoft Docs
           </a>
