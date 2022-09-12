@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -120,6 +121,56 @@ func TestSqliteProvider(t *testing.T) {
 		for _, table := range sessionUpdated.Tables {
 			fmt.Println(table.Columns)
 			require.NotEmpty(tc, table.Columns)
+		}
+	})
+
+	t.Run("reuse session", func(t *testing.T) {
+		tc := newSqliteProviderTestContext(t)
+		provider := tc.Provider()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		sessionID1, session, err := provider.CreateSession(ctx, &CreateSessionOpts{
+			Prefix: "test",
+		})
+		require.NoError(tc, err)
+		require.NotEmpty(tc, sessionID1)
+		require.NotNil(tc, session)
+
+		{
+			sessionIDReused, session, err := provider.CreateSession(ctx, &CreateSessionOpts{
+				Prefix:        "test",
+				ReuseExisting: true,
+			})
+			require.NoError(tc, err)
+			require.NotEmpty(tc, sessionIDReused)
+			require.Equal(tc, sessionID1, sessionIDReused)
+			require.NotNil(tc, session)
+		}
+
+		sessionID2, session, err := provider.CreateSession(ctx, &CreateSessionOpts{
+			Prefix: "test",
+		})
+		require.NoError(tc, err)
+		require.NotEmpty(tc, sessionID2)
+		require.NotEqual(tc, sessionID1, sessionID2)
+		require.NotNil(tc, session)
+
+		sessionIDExpectedToReuse := sessionID1
+		if strings.Compare(sessionID1, sessionID2) > 0 {
+			sessionIDExpectedToReuse = sessionID2
+		}
+
+		{
+			sessionIDReused, session, err := provider.CreateSession(ctx, &CreateSessionOpts{
+				Prefix:        "test",
+				ReuseExisting: true,
+			})
+			require.NoError(tc, err)
+			require.NotEmpty(tc, sessionIDReused)
+			require.Equal(tc, sessionIDExpectedToReuse, sessionIDReused)
+			require.NotNil(tc, session)
 		}
 	})
 }
