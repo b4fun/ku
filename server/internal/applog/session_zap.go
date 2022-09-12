@@ -30,7 +30,8 @@ func InstallDBLogger(ctx context.Context, sessionProvider db.Provider) error {
 		logSinkScheme,
 		func(u *url.URL) (zap.Sink, error) {
 			_, session, err := sessionProvider.CreateSession(ctx, &db.CreateSessionOpts{
-				Prefix: strings.ToLower(u.Host),
+				Prefix:        strings.ToLower(u.Host),
+				ReuseExisting: true,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("CreateSession: %w", err)

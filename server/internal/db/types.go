@@ -17,7 +17,13 @@ type Session interface {
 }
 
 type CreateSessionOpts struct {
+	// Prefix specifies the session name prefix.
 	Prefix string
+
+	// ReuseExisting - if true, will try to reuse existing session with the same prefix.
+	// If there are multiple existing sessions with the same prefix, the first one
+	// in ascending alphabetical order will be used.
+	ReuseExisting bool
 }
 
 type CreateParsedTableOpts struct {
