@@ -4,7 +4,13 @@ on:
   push:
     tags:
       - "*"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      goReleaserExtraFlags:
+        description: "Extra flags to pass to goreleaser"
+        default: "--snapshot"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -31,6 +37,7 @@ jobs:
       - name: Release
         run: |
           npm ci
-          make release
+          GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GO_RELEASER_EXTRA_FLAGS: ${{ github.event.inputs.goReleaserExtraFlags }}
