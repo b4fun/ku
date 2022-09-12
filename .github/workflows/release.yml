@@ -43,7 +43,7 @@ jobs:
 
       - name: Release
         run: |
-          docker login ghcr.io -p "$GITHUB_TOKEN" ghcr.io
+          docker login -u bcho -p "$GITHUB_TOKEN" ghcr.io
           npm ci
           GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
         env:
