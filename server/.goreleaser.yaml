@@ -75,7 +75,7 @@ dockers:
       - ku-linux-amd64
 
     image_templates:
-      - "ghcr.io/b4fun/ku:${{ .Tag }}"
+      - "ghcr.io/b4fun/ku:{{ .Tag }}"
 
 changelog:
   sort: asc
