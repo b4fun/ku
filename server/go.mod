@@ -12,7 +12,7 @@ require (
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mattn/go-sqlite3 v1.14.14
 	github.com/rs/cors v1.8.2
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.19.0
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
