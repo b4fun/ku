@@ -12,12 +12,11 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
   release:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -44,6 +43,7 @@ jobs:
 
       - name: Release
         run: |
+          docker login ghcr.io -p "$GITHUB_TOKEN" ghcr.io
           npm ci
           GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
         env:
