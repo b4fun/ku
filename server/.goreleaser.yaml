@@ -29,6 +29,9 @@ builds:
     main: ./cmd/ku
     env:
       - CGO_ENABLED=1
+    flags:
+      - -ldflags
+      - '-extldflags "-static"'
     goos: [linux]
     goarch: [amd64]
 
@@ -62,6 +65,17 @@ checksum:
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
+dockers:
+  - id: ku-image
+    goos: linux
+    goarch: amd64
+
+    ids:
+      - ku-linux-amd64
+
+    image_templates:
+      - "ghcr.io/b4fun/ku:{{ .Tag }}"
 
 changelog:
   sort: asc

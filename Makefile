@@ -24,6 +24,7 @@ build-frontend: ## Build frontend.
 	npm run build
 
 GO_BUILDER_VERSION ?= v1.19.0
+GO_RELEASER_EXTRA_FLAGS ?=
 
 release-cli: ## Build and release the cli application.
 	docker run --rm --privileged \
@@ -32,4 +33,4 @@ release-cli: ## Build and release the cli application.
 		-v $(GOPATH)/src:/go/src \
 		-w /workspace/server \
 		-e "GITHUB_TOKEN=$(GITHUB_TOKEN)" \
-		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist
+		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist $(GO_RELEASER_EXTRA_FLAGS)
