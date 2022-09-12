@@ -173,4 +173,25 @@ func TestSqliteProvider(t *testing.T) {
 			require.NotNil(tc, session)
 		}
 	})
+
+	t.Run("create session with name", func(t *testing.T) {
+		tc := newSqliteProviderTestContext(t)
+		provider := tc.Provider()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		sessionID, _, err := provider.CreateSession(ctx, &CreateSessionOpts{
+			Prefix: "test",
+			Name:   "foobar",
+		})
+		require.NoError(tc, err)
+		require.NotEmpty(tc, sessionID)
+
+		sessionRepo, err := provider.GetSessionRepository()
+		require.NoError(tc, err)
+		dbSession, err := sessionRepo.GetSessionByID(ctx, sessionID)
+		require.NoError(tc, err)
+		require.Equal(tc, "foobar", dbSession.Name)
+	})
 }

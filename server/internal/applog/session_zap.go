@@ -31,6 +31,7 @@ func InstallDBLogger(ctx context.Context, sessionProvider db.Provider) error {
 		func(u *url.URL) (zap.Sink, error) {
 			_, session, err := sessionProvider.CreateSession(ctx, &db.CreateSessionOpts{
 				Prefix:        strings.ToLower(u.Host),
+				Name:          "ku cli logs",
 				ReuseExisting: true,
 			})
 			if err != nil {

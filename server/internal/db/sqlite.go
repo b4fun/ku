@@ -121,7 +121,7 @@ func (p *SqliteProvider) CreateSession(
 
 	if sessionID == "" {
 		// needs to create one
-		sessionID, err = p.sessionBookkeeper.CreateSession(ctx, opts.Prefix)
+		sessionID, err = p.sessionBookkeeper.CreateSession(ctx, opts.Prefix, opts.Name)
 		if err != nil {
 			return "", nil, fmt.Errorf("sqliteSessionBookkeeper create session: %w", err)
 		}

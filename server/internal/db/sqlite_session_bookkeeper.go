@@ -75,15 +75,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS %s_session_id_table_id ON %s (session_id, tabl
 func (bk *sqliteSessionBookkeeper) CreateSession(
 	ctx context.Context,
 	prefix string,
+	name string,
 ) (string, error) {
 	const insertStmtTmpl = `
 INSERT INTO %s (session_id, session_protos) VALUES (?, ?)
 `
 
 	session := &v1.Session{
-		Id: fmt.Sprintf("%s_%s", prefix, shortuuid.New()),
+		Id:   fmt.Sprintf("%s_%s", prefix, shortuuid.New()),
+		Name: name,
 	}
-	session.Name = session.Id
+	if session.Name == "" {
+		session.Name = session.Id
+	}
 	sessionProtos, err := proto.Marshal(session)
 	if err != nil {
 		return "", fmt.Errorf("encode session protos: %w", err)
