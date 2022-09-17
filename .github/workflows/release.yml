@@ -48,4 +48,5 @@ jobs:
           GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
           GO_RELEASER_EXTRA_FLAGS: ${{ github.event.inputs.goReleaserExtraFlags }}
