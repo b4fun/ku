@@ -12,11 +12,11 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-
 jobs:
   release:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,8 +34,16 @@ jobs:
         with:
           go-version: ">=1.18"
 
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release
         run: |
+          docker login -u bcho -p "$GITHUB_TOKEN" ghcr.io
           npm ci
           GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
         env:
