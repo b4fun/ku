@@ -29,9 +29,11 @@ builds:
     main: ./cmd/ku
     env:
       - CGO_ENABLED=1
+      # to static link libc - DONT quote the value
+      - CGO_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -Bdynamic -static
     flags:
-      - -ldflags
-      - '-extldflags "-static"'
+      - --ldflags
+      - '-linkmode external -extldflags "-static"'
     goos: [linux]
     goarch: [amd64]
 

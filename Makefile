@@ -34,3 +34,6 @@ release-cli: ## Build and release the cli application.
 		-w /workspace/server \
 		-e "GITHUB_TOKEN=$(GITHUB_TOKEN)" \
 		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist $(GO_RELEASER_EXTRA_FLAGS)
+
+release-cli-snapshot: ## Build and release the cli application with snapshot mode
+	GO_RELEASER_EXTRA_FLAGS="$(GO_RELEASER_EXTRA_FLAGS) --snapshot" make release-cli
