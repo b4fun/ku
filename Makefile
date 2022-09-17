@@ -25,6 +25,7 @@ build-frontend: ## Build frontend.
 
 GO_BUILDER_VERSION ?= v1.19.0
 GO_RELEASER_EXTRA_FLAGS ?=
+GITHUB_ACTOR ?=
 
 release-cli: ## Build and release the cli application.
 	docker run --rm --privileged \
@@ -33,7 +34,9 @@ release-cli: ## Build and release the cli application.
 		-v $(GOPATH)/src:/go/src \
 		-w /workspace/server \
 		-e "GITHUB_TOKEN=$(GITHUB_TOKEN)" \
-		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) --rm-dist $(GO_RELEASER_EXTRA_FLAGS)
+		--entrypoint /bin/bash \
+		ghcr.io/gythialy/golang-cross:$(GO_BUILDER_VERSION) \
+		-c 'echo $$GITHUB_TOKEN | docker login -u $(GITHUB_ACTOR) --password-stdin ghcr.io && goreleaser --rm-dist $(GO_RELEASER_EXTRA_FLAGS)'
 
 release-cli-snapshot: ## Build and release the cli application with snapshot mode
 	GO_RELEASER_EXTRA_FLAGS="$(GO_RELEASER_EXTRA_FLAGS) --snapshot" make release-cli
