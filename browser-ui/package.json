@@ -30,7 +30,7 @@
     "jotai": "^1.8.3",
     "monaco-editor": "^0.34.0",
     "process": "^0.11.10",
-    "rc-table": "^7.26.0",
+    "rc-table": "^7.27.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-resizable": "^3.0.4",
