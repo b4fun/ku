@@ -58,14 +58,14 @@ func TestSqliteProvider(t *testing.T) {
 		require.NotEmpty(tc, sessionID)
 		require.NotNil(tc, session)
 
-		err = session.WriteLogLine(ctx, WriteLogLinePayload{
+		err = session.WriteLogLinesBatch(ctx, WriteLogLinesBatchPayload{
 			Timestamp: time.Now(),
-			Line:      "hello",
+			Lines:     []string{"hello"},
 		})
 		require.NoError(tc, err)
-		err = session.WriteLogLine(ctx, WriteLogLinePayload{
+		err = session.WriteLogLinesBatch(ctx, WriteLogLinesBatchPayload{
 			Timestamp: time.Now(),
-			Line:      "world",
+			Lines:     []string{"world"},
 		})
 		require.NoError(tc, err)
 		sqliteSession := session.(*SqliteSession)
@@ -119,7 +119,6 @@ func TestSqliteProvider(t *testing.T) {
 		require.NotNil(tc, sessionUpdated)
 		require.Len(tc, sessionUpdated.Tables, 2)
 		for _, table := range sessionUpdated.Tables {
-			fmt.Println(table.Columns)
 			require.NotEmpty(tc, table.Columns)
 		}
 	})

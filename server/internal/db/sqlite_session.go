@@ -79,11 +79,19 @@ func (s *SqliteSession) dbTableName(tableName string) string {
 	return fmt.Sprintf("%s_%s", s.sessionID, tableName)
 }
 
-func (s *SqliteSession) WriteLogLine(ctx context.Context, payload WriteLogLinePayload) error {
-	const insertTmpl = `INSERT INTO %s (ts, lines) VALUES (?, ?)`
+func (s *SqliteSession) WriteLogLinesBatch(ctx context.Context, payload WriteLogLinesBatchPayload) error {
+	const insertTmpl = `INSERT INTO %s (ts, lines) VALUES (:ts, :lines)`
+
+	insertPayload := make([]map[string]interface{}, len(payload.Lines))
+	for i, line := range payload.Lines {
+		insertPayload[i] = map[string]interface{}{
+			"ts":    payload.Timestamp,
+			"lines": line,
+		}
+	}
 
 	stmt := fmt.Sprintf(insertTmpl, s.dbTableName(tableNameRaw))
-	if _, err := s.db.ExecContext(ctx, stmt, payload.Timestamp, payload.Line); err != nil {
+	if _, err := s.db.NamedExecContext(ctx, stmt, insertPayload); err != nil {
 		return fmt.Errorf("failed to insert log line: %w", err)
 	}
 

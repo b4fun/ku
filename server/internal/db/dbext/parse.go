@@ -16,7 +16,7 @@ type kqlParse struct {
 
 // Parse implements the ku_parse function.
 //
-//   select json_extract(ku_parse(lines, '.*'), '$.foo') as foo from source
+//	select json_extract(ku_parse(lines, '.*'), '$.foo') as foo from source
 func (p *kqlParse) Parse(fieldValue string, regexpPattern string) (string, error) {
 	re, err := regexp.Compile("(?m)" + regexpPattern)
 	if err != nil {

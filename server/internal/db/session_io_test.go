@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -9,16 +10,16 @@ import (
 )
 
 type mockSession struct {
-	WriteLogLineFuc func(ctx context.Context, payload WriteLogLinePayload) error
+	WriteLogLinesBatchFunc func(ctx context.Context, payload WriteLogLinesBatchPayload) error
 }
 
 var _ Session = (*mockSession)(nil)
 
-func (s *mockSession) WriteLogLine(
+func (s *mockSession) WriteLogLinesBatch(
 	ctx context.Context,
-	payload WriteLogLinePayload,
+	payload WriteLogLinesBatchPayload,
 ) error {
-	return s.WriteLogLineFuc(ctx, payload)
+	return s.WriteLogLinesBatchFunc(ctx, payload)
 }
 
 func TestSessionLogWriter(t *testing.T) {
@@ -32,11 +33,11 @@ func TestSessionLogWriter(t *testing.T) {
 	}
 
 	t.Run("write serial", func(t *testing.T) {
-		var wrote []WriteLogLinePayload
+		var wrote []string
 
 		mockSession := &mockSession{
-			WriteLogLineFuc: func(ctx context.Context, payload WriteLogLinePayload) error {
-				wrote = append(wrote, payload)
+			WriteLogLinesBatchFunc: func(ctx context.Context, payload WriteLogLinesBatchPayload) error {
+				wrote = append(wrote, payload.Lines...)
 
 				return nil
 			},
@@ -53,16 +54,16 @@ func TestSessionLogWriter(t *testing.T) {
 		require.NoError(t, w.Close())
 
 		require.Len(t, wrote, 2)
-		require.Equal(t, "hello", wrote[0].Line)
-		require.Equal(t, "world", wrote[1].Line)
+		require.Equal(t, "hello", wrote[0])
+		require.Equal(t, "world", wrote[1])
 	})
 
 	t.Run("write partial", func(t *testing.T) {
-		var wrote []WriteLogLinePayload
+		var wrote []string
 
 		mockSession := &mockSession{
-			WriteLogLineFuc: func(ctx context.Context, payload WriteLogLinePayload) error {
-				wrote = append(wrote, payload)
+			WriteLogLinesBatchFunc: func(ctx context.Context, payload WriteLogLinesBatchPayload) error {
+				wrote = append(wrote, payload.Lines...)
 
 				return nil
 			},
@@ -81,8 +82,39 @@ func TestSessionLogWriter(t *testing.T) {
 		require.NoError(t, w.Close())
 
 		require.Len(t, wrote, 3)
-		require.Equal(t, "hello", wrote[0].Line)
-		require.Equal(t, "world", wrote[1].Line)
-		require.Equal(t, "foo", wrote[2].Line)
+		require.Equal(t, "hello", wrote[0])
+		require.Equal(t, "world", wrote[1])
+		require.Equal(t, "foo", wrote[2])
 	})
+}
+
+// go test -run=^$ -benchtime 30s -bench ^BenchmarkSessionLogWriter$ github.com/b4fun/ku/server/internal/db
+func BenchmarkSessionLogWriter(b *testing.B) {
+	run := func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		p := b.TempDir()
+		dbFile := filepath.Join(p, "test.db")
+		dbProvider, err := NewSqliteProvider(dbFile)
+		require.NoError(b, err)
+
+		_, session, err := dbProvider.CreateSession(ctx, &CreateSessionOpts{Prefix: "test"})
+		require.NoError(b, err)
+
+		writer := SessionLogWriteCloser(ctx, session, 100*time.Millisecond)
+
+		for i := 0; i < 10000; i++ {
+			content := []byte("hello world\n")
+
+			_, err := writer.Write(content)
+			require.NoError(b, err)
+		}
+
+		require.NoError(b, writer.Close())
+	}
+
+	for i := 0; i < b.N; i++ {
+		run()
+	}
 }
