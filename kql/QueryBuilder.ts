@@ -21,7 +21,7 @@ export function getQueryBuilder(): Knex.QueryBuilder {
   return _client.queryBuilder();
 }
 
-export const raw = _client.raw;
+export const raw: Knex.RawBuilder = _client.raw;
 
 export interface SQLResult {
   readonly sql: string;

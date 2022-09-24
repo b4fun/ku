@@ -1,45 +1,8 @@
+import { expressionToWhereRaw } from './expressionHelper';
 import * as kustoHelper from './kustoHelper';
 import { Syntax, SyntaxKind } from './kustoHelper';
 import { parsePatternsToRe2, PrimitiveTypeLong, PrimitiveTypeString, unescapeRegexPlaceholders } from './parseExpressionHelper';
 import { DebugSQLOptions, getQueryBuilder, QueryContext, QueryInterface, raw, SQLResult } from "./QueryBuilder";
-
-function visitBinaryExpression(
-  qc: QueryContext,
-  qb: QueryInterface,
-  v: Syntax.BinaryExpression,
-) {
-  // TODO: recursive visit
-  const left = kustoHelper.kqlToString(v.Left!);
-  const right = kustoHelper.kqlToString(v.Right!);
-  const op = kustoHelper.kqlToString(v.Operator!);
-
-  const raw = `${left} ${op} ${right}`;
-  qb.whereRaw(raw);
-}
-
-function visitContainsExpression(
-  qc: QueryContext,
-  qb: QueryInterface,
-  v: Syntax.BinaryExpression,
-) {
-  const left = kustoHelper.kqlToString(v.Left!);
-  // use getTokenValue to unquote string
-  const right = kustoHelper.getTokenValue(v.Right!);
-  const op = kustoHelper.kqlToString(v.Operator!).toLowerCase();
-
-  switch (op) {
-    case 'contains':
-      qb.whereLike(left, `%${right}%`);
-      break;
-    case '!contains':
-      qb.not.whereLike(left, `%${right}%`);
-      break
-    case 'contains_cs':
-      throw new Error(`contains_cs not implemented`);
-    case '!contains_cs':
-      throw new Error(`!contains_cs not implemented`);
-  }
-}
 
 function visitFilterOperator(
   qc: QueryContext,
@@ -50,26 +13,8 @@ function visitFilterOperator(
     throw new Error(`missing condition`);
   }
 
-  switch (v.Condition.Kind) {
-    case SyntaxKind.AndExpression:
-    case SyntaxKind.OrExpression:
-    case SyntaxKind.GreaterThanExpression:
-    case SyntaxKind.GreaterThanOrEqualExpression:
-    case SyntaxKind.LessThanExpression:
-    case SyntaxKind.LessThanOrEqualExpression:
-    case SyntaxKind.NotEqualExpression:
-    case SyntaxKind.EqualExpression:
-      visitBinaryExpression(qc, qb, v.Condition as Syntax.BinaryExpression);
-      break;
-    case SyntaxKind.ContainsExpression:
-    case SyntaxKind.ContainsCsExpression:
-    case SyntaxKind.NotContainsExpression:
-    case SyntaxKind.NotContainsCsExpression:
-      visitContainsExpression(qc, qb, v.Condition as Syntax.BinaryExpression);
-      break
-    default:
-      throw new Error(`unsupported condition type ${kustoHelper.getSyntaxKindName(v.Condition.Kind)}`);
-  }
+  const whereRaw = expressionToWhereRaw(v.Condition);
+  qb.whereRaw(whereRaw.sql, whereRaw.bindings);
 }
 
 function visitProjectOperator_SeparatedElement(
@@ -91,17 +36,17 @@ function visitProjectOperator_SeparatedElement(
       // case: project a = foo
       {
         const projectAsExpr = (exprChild as Syntax.SimpleNamedExpression);
+        const projectSource = expressionToWhereRaw(projectAsExpr.Expression);
         const projectAsName = kustoHelper.kqlToString(projectAsExpr.Name);
-        const projectSource = kustoHelper.kqlToString(projectAsExpr.Expression);
-        qb.select(raw(`${projectSource} as ${projectAsName}`));
+        qb.select(raw(`${projectSource.sql} as ${projectAsName}`, projectSource.bindings));
       }
       break;
     default:
       // case: project foo + 10
       {
-        const projectSource = kustoHelper.kqlToString(exprChild);
+        const projectSource = expressionToWhereRaw(exprChild as Syntax.Expression);
         const projectAsName = qc.acquireAutoProjectAsName();
-        qb.select(raw(`${projectSource} as ${projectAsName}`));
+        qb.select(raw(`${projectSource.sql} as ${projectAsName}`, projectSource.bindings));
       }
   }
 
@@ -244,6 +189,38 @@ function visitDistinctOperator(
   return qc.wrapAsCTE(qb);
 }
 
+function visitExtendOperator(
+  qc: QueryContext,
+  qb: QueryInterface,
+  v: Syntax.ExtendOperator,
+): QueryInterface {
+  if (!v.Expressions) {
+    return qb;
+  }
+
+  kustoHelper.visitChild(
+    v.Expressions,
+    (child) => {
+      if (child.Kind !== SyntaxKind.SeparatedElement) {
+        // unexpected
+        return;
+      }
+
+      visitProjectOperator_SeparatedElement(
+        qc,
+        qb,
+        child as Syntax.SeparatedElement,
+      );
+    }
+  );
+
+  // select all fields from CTE, but after extended columns as extended columns
+  // take higher precedence.
+  qb.select('*');
+
+  return qc.wrapAsCTE(qb);
+}
+
 function visitQueryBlock(
   qc: QueryContext,
   qb: QueryInterface,
@@ -312,6 +289,8 @@ function visit(
       return visitCountOperator(qc, qb, v as Syntax.CountOperator);
     case SyntaxKind.DistinctOperator:
       return visitDistinctOperator(qc, qb, v as Syntax.DistinctOperator);
+    case SyntaxKind.ExtendOperator:
+      return visitExtendOperator(qc, qb, v as Syntax.ExtendOperator);
     default:
       qc.logUnknown(`unhandled kind: ${kustoHelper.getSyntaxKindName(v.Kind)}`);
       return qb;

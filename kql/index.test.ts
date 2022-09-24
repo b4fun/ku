@@ -117,6 +117,29 @@ describe('toSQL', () => {
       `,
       `with q0 as (select distinct x, y from source) select * from q0`,
     ],
+    [
+      `
+      source
+      | project x = y contains 'foobar'
+      `,
+      `with q0 as (select y like '%foobar%' as x from source) select * from q0`,
+    ],
+    [
+      `
+      source
+      | extend x = y contains 'foobar'
+      | project x
+      `,
+      `with q1 as (with q0 as (select y like '%foobar%' as x, * from source) select x from q0) select * from q1`,
+    ],
+    [
+      `
+      source
+      | extend x = 1 + y
+      | project x, y
+      `,
+      `with q1 as (with q0 as (select 1 + y as x, * from source) select x, y from q0) select * from q1`,
+    ],
   ].forEach((testCase, idx) => {
     const [kql, expectedSQL] = testCase;
 
