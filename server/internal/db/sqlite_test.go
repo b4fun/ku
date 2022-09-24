@@ -119,7 +119,6 @@ func TestSqliteProvider(t *testing.T) {
 		require.NotNil(tc, sessionUpdated)
 		require.Len(tc, sessionUpdated.Tables, 2)
 		for _, table := range sessionUpdated.Tables {
-			fmt.Println(table.Columns)
 			require.NotEmpty(tc, table.Columns)
 		}
 	})
