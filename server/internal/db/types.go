@@ -7,13 +7,13 @@ import (
 	v1 "github.com/b4fun/ku/protos/api/v1"
 )
 
-type WriteLogLinePayload struct {
+type WriteLogLinesBatchPayload struct {
 	Timestamp time.Time
-	Line      string
+	Lines     []string
 }
 
 type Session interface {
-	WriteLogLine(ctx context.Context, payload WriteLogLinePayload) error
+	WriteLogLinesBatch(ctx context.Context, payload WriteLogLinesBatchPayload) error
 }
 
 type CreateSessionOpts struct {

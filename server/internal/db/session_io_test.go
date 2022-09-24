@@ -10,16 +10,16 @@ import (
 )
 
 type mockSession struct {
-	WriteLogLineFuc func(ctx context.Context, payload WriteLogLinePayload) error
+	WriteLogLinesBatchFunc func(ctx context.Context, payload WriteLogLinesBatchPayload) error
 }
 
 var _ Session = (*mockSession)(nil)
 
-func (s *mockSession) WriteLogLine(
+func (s *mockSession) WriteLogLinesBatch(
 	ctx context.Context,
-	payload WriteLogLinePayload,
+	payload WriteLogLinesBatchPayload,
 ) error {
-	return s.WriteLogLineFuc(ctx, payload)
+	return s.WriteLogLinesBatchFunc(ctx, payload)
 }
 
 func TestSessionLogWriter(t *testing.T) {
@@ -33,11 +33,11 @@ func TestSessionLogWriter(t *testing.T) {
 	}
 
 	t.Run("write serial", func(t *testing.T) {
-		var wrote []WriteLogLinePayload
+		var wrote []string
 
 		mockSession := &mockSession{
-			WriteLogLineFuc: func(ctx context.Context, payload WriteLogLinePayload) error {
-				wrote = append(wrote, payload)
+			WriteLogLinesBatchFunc: func(ctx context.Context, payload WriteLogLinesBatchPayload) error {
+				wrote = append(wrote, payload.Lines...)
 
 				return nil
 			},
@@ -54,16 +54,16 @@ func TestSessionLogWriter(t *testing.T) {
 		require.NoError(t, w.Close())
 
 		require.Len(t, wrote, 2)
-		require.Equal(t, "hello", wrote[0].Line)
-		require.Equal(t, "world", wrote[1].Line)
+		require.Equal(t, "hello", wrote[0])
+		require.Equal(t, "world", wrote[1])
 	})
 
 	t.Run("write partial", func(t *testing.T) {
-		var wrote []WriteLogLinePayload
+		var wrote []string
 
 		mockSession := &mockSession{
-			WriteLogLineFuc: func(ctx context.Context, payload WriteLogLinePayload) error {
-				wrote = append(wrote, payload)
+			WriteLogLinesBatchFunc: func(ctx context.Context, payload WriteLogLinesBatchPayload) error {
+				wrote = append(wrote, payload.Lines...)
 
 				return nil
 			},
@@ -82,9 +82,9 @@ func TestSessionLogWriter(t *testing.T) {
 		require.NoError(t, w.Close())
 
 		require.Len(t, wrote, 3)
-		require.Equal(t, "hello", wrote[0].Line)
-		require.Equal(t, "world", wrote[1].Line)
-		require.Equal(t, "foo", wrote[2].Line)
+		require.Equal(t, "hello", wrote[0])
+		require.Equal(t, "world", wrote[1])
+		require.Equal(t, "foo", wrote[2])
 	})
 }
 
