@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -85,4 +86,35 @@ func TestSessionLogWriter(t *testing.T) {
 		require.Equal(t, "world", wrote[1].Line)
 		require.Equal(t, "foo", wrote[2].Line)
 	})
+}
+
+// go test -run=^$ -benchtime 30s -bench ^BenchmarkSessionLogWriter$ github.com/b4fun/ku/server/internal/db
+func BenchmarkSessionLogWriter(b *testing.B) {
+	run := func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		p := b.TempDir()
+		dbFile := filepath.Join(p, "test.db")
+		dbProvider, err := NewSqliteProvider(dbFile)
+		require.NoError(b, err)
+
+		_, session, err := dbProvider.CreateSession(ctx, &CreateSessionOpts{Prefix: "test"})
+		require.NoError(b, err)
+
+		writer := SessionLogWriteCloser(ctx, session, 100*time.Millisecond)
+
+		for i := 0; i < 10000; i++ {
+			content := []byte("hello world\n")
+
+			_, err := writer.Write(content)
+			require.NoError(b, err)
+		}
+
+		require.NoError(b, writer.Close())
+	}
+
+	for i := 0; i < b.N; i++ {
+		run()
+	}
 }
