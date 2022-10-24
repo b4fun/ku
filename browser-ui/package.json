@@ -19,7 +19,7 @@
     "@mantine/core": "^5.0.3",
     "@mantine/form": "^5.2.6",
     "@mantine/hooks": "^5.4.0",
-    "@mantine/notifications": "^5.3.0",
+    "@mantine/notifications": "^5.6.1",
     "@monaco-editor/react": "^4.4.5",
     "@protobuf-ts/grpcweb-transport": "^2.7.0",
     "@tabler/icons": "^1.93.0",
