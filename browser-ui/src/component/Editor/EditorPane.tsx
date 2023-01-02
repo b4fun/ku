@@ -7,6 +7,7 @@ import { IconLayoutSidebarRightCollapse, IconPlayerPlay, IconTransform } from '@
 import { Allotment } from "allotment";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
+import { compile } from "prql-js/dist/bundler";
 import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
 import { sessionHash } from "../../atom/sessionAtom";
@@ -224,6 +225,14 @@ export default function EditorPane(props: EditorPaneProps) {
     }
 
     queryInput = queryInput.trim();
+
+    console.log(queryInput);
+    const p = compile(queryInput);
+    console.log(p.sql);
+    if (p.error) {
+      console.log(p.error.message);
+    }
+    p.free();
 
     const query = toSQL(
       queryInput,
