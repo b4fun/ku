@@ -4,10 +4,16 @@
     {
       "type": "npm",
       "script": "dev",
+      "path": "ui",
+      "problemMatcher": [],
+      "label": "npm: dev - ui",
+    },
+    {
+      "type": "npm",
+      "script": "dev",
       "path": "browser-ui",
       "problemMatcher": [],
       "label": "npm: dev - browser-ui",
-      "detail": "npm-run-all prepare && vite"
     },
     {
       "type": "shell",
