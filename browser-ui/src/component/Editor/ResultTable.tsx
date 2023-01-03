@@ -300,7 +300,7 @@ export default function ResultTable(props: ResultTableProps) {
   }
 
   return (
-    <div className='w-full h-full overflow-scroll'>
+    <div className='w-full h-full overflow-scroll overflow-scroll-noscrollbar'>
       <Table
         tableLayout='auto'
         components={tableComponents}

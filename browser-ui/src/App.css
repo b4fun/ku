@@ -31,3 +31,13 @@
 .editor-manual-rotation {
   animation: editor-manual-rotation 1s ease 0.5s;
 }
+
+.overflow-scroll-noscrollbar {
+  overflow: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.overflow-scroll-noscrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

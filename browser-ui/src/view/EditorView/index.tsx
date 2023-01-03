@@ -92,7 +92,7 @@ function EditorNavBar(props: EditorNavBarProps) {
           </a>
         </div>
       </Navbar.Section>
-      <Navbar.Section grow mt='md' className="h-full overflow-scroll">
+      <Navbar.Section grow mt='md' className="h-full overflow-scroll overflow-scroll-noscrollbar">
         {sessionNav}
       </Navbar.Section>
     </Navbar>
@@ -148,7 +148,7 @@ function EditorManual() {
         </h3>
       </Card.Section>
 
-      <div className="h-full overflow-scroll pt-2 px-4">
+      <div className="h-full overflow-scroll overflow-scroll-noscrollbar pt-2 px-4">
         <Card.Section className="mb-1">
           <p className="font-semibold">What's KQL?</p>
         </Card.Section>
