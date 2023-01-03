@@ -7,18 +7,12 @@
     "protos/"
   ],
   "scripts": {
-    "build:browser-ui": "npm run build -w browser-ui",
-    "build:kql": "npm run build -w kql",
-    "build:protos": "npm run build -w protos",
-    "build": "npm-run-all build:kql build:protos build:browser-ui",
-    "test:kql": "npm run test -w kql",
-    "test:protos": "npm run test -w protos",
-    "test": "npm-run-all test:kql test:protos"
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",
     "jest": "^28.1.3",
-    "npm-run-all": "^4.1.5",
     "ts-jest": "^28.0.7",
     "ts-node": "^10.9.1"
   }
