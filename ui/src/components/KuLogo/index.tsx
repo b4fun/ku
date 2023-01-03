@@ -1,7 +1,9 @@
-import './style.css';
-
 export default function KuLogo() {
   return (
+    <>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+    </style>
     <svg className="h-full">
       <g strokeLinecap="round" transform="translate(10 15.115514195431047) rotate(0 10.532453443930535 10.11951854463996)">
         <path d="M1.18 5 C1.18 5, 1.18 5, 1.18 5 M1.18 5 C1.18 5, 1.18 5, 1.18 5 M4.45 12.37 C7.63 10.44, 7.55 8.04, 13.91 -0.3 M4.26 13.39 C8.01 10.28, 11.7 5.72, 14.9 1.8 M8.39 18.86 C14.54 16.27, 17.12 11.39, 19.71 6.41 M8.78 20.7 C12.03 17.26, 14.04 14.62, 21.43 6.57" stroke="#fa5252" strokeWidth="1" fill="none"></path>
@@ -11,5 +13,6 @@ export default function KuLogo() {
         </text>
       </g>
     </svg>
+    </>
   );
 }
