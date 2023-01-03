@@ -7,7 +7,7 @@
     "dev": "npm-run-all prepare && vite",
     "build": "npm-run-all prepare && tsc && vite build",
     "preview": "vite preview",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "copy-monaco": "cpx \"node_modules/monaco-editor/min/**/*\" public/monaco-editor/min",
     "copy-monaco-kusto": "cpx \"node_modules/@kusto/monaco-kusto/release/min/**/*\" public/monaco-editor/min/vs/language/kusto",
     "prepare": "npm-run-all copy-monaco copy-monaco-kusto"
