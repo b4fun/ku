@@ -10,6 +10,13 @@
     },
     {
       "type": "npm",
+      "script": "storybook",
+      "path": "ui",
+      "problemMatcher": [],
+      "label": "npm: storybook - ui",
+    },
+    {
+      "type": "npm",
       "script": "dev",
       "path": "browser-ui",
       "problemMatcher": [],
