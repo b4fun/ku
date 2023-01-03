@@ -3,6 +3,7 @@ import Editor, { loader, OnMount, useMonaco } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { useEffect, useState } from 'react';
 import { useSetEditor } from '../../atom/editorAtom';
+import * as prql from './prql';
 
 let promiseResolve: (v: any) => void;
 const monacoKustoInitPromise = new Promise((resolve) => {
@@ -57,6 +58,9 @@ export default function KustoEditor(props: KustoEditorProps) {
       return;
     }
 
+    monaco.languages.register({ id: 'prql', extensions: ['prql'] });
+    monaco.languages.setMonarchTokensProvider('prql', prql.syntax as any);
+
     monacoKustoInitPromise.then(() => setLoading(false));
   }, [monaco]);
 
@@ -74,7 +78,8 @@ export default function KustoEditor(props: KustoEditorProps) {
   return (
     <Editor
       className='mt-1'
-      language='kusto'
+      // language='kusto'
+      language='prql'
       defaultValue={editorValue}
       onMount={setEditor}
       options={editorOptions}
