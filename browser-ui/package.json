@@ -13,6 +13,7 @@
     "prepare": "npm-run-all copy-monaco copy-monaco-kusto"
   },
   "dependencies": {
+    "@b4fun/ku-ui": "^0.0.1",
     "@b4fun/kql": "^0.0.1",
     "@b4fun/ku-protos": "^0.0.1",
     "@kusto/monaco-kusto": "^5.2.0",

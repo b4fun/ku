@@ -7,7 +7,7 @@ import { useEditorLoaded } from "../../atom/editorAtom";
 import { isSelectedTable, useSelectedTable, useSelectTable, useSessions } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
-import KuLogo from "../../component/KuLogo";
+import { KuLogo } from '@b4fun/ku-ui';
 import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
 import SessionSettingsDrawer, { useSessionSettingsDrawerAction } from "../../component/SessionSettingsDrawer";
 import { useViewModelAction, ViewModel } from "./viewModel";
