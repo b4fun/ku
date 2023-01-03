@@ -1,5 +1,11 @@
-import KuLogo from "./components/KuLogo";
+export { default as KuLogo } from "./components/KuLogo";
 
 export {
-  KuLogo,
-};
+  SessionNav,
+  SessionNavLink,
+  SessionNavLinkGroup,
+} from "./components/SessionNav";
+export type {
+  SessionNavLinkProps,
+  SessionNavLinkGroupProps,
+} from "./components/SessionNav";
