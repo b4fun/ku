@@ -60,6 +60,26 @@ export default function KustoEditor(props: KustoEditorProps) {
 
     monaco.languages.register({ id: 'prql', extensions: ['prql'] });
     monaco.languages.setMonarchTokensProvider('prql', prql.syntax as any);
+    monaco.languages.registerCompletionItemProvider(
+      'prql',
+      {
+        async provideCompletionItems(model, position, context, token) {
+          const line = model.getLineContent(position.lineNumber);
+          console.log(line);
+
+          const suggestions = [
+            {
+              label: 'foobar',
+              kind: context.triggerKind,
+              sortText: '0',
+              insertText: 'foobar ' + line,
+            },
+          ] as any as monaco.languages.CompletionItem[];
+
+          return { suggestions, incomplete: false };
+        },
+      },
+    )
 
     monacoKustoInitPromise.then(() => setLoading(false));
   }, [monaco]);
