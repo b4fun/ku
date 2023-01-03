@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 public/monaco-editor
+public/vscode-oniguruma
 
 # Editor directories and files
 .vscode/*

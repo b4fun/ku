@@ -10,6 +10,7 @@
     "test": "jest",
     "copy-monaco": "cpx \"node_modules/monaco-editor/min/**/*\" public/monaco-editor/min",
     "copy-monaco-kusto": "cpx \"node_modules/@kusto/monaco-kusto/release/min/**/*\" public/monaco-editor/min/vs/language/kusto",
+    "copy-vscode-oniguruma": "cpx \"../node_modules/vscode-oniguruma/release/**/*\" public/vscode-oniguruma",
     "prepare": "npm-run-all copy-monaco copy-monaco-kusto"
   },
   "dependencies": {
@@ -36,7 +37,9 @@
     "react-dom": "^18.2.0",
     "react-resizable": "^3.0.4",
     "util": "^0.12.4",
-    "vite-plugin-wasm": "^3.1.0"
+    "vite-plugin-wasm": "^3.1.0",
+    "vscode-oniguruma": "^1.7.0",
+    "vscode-textmate": "^8.0.0"
   },
   "devDependencies": {
     "@kusto/language-service-next": "^0.0.57",
