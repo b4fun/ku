@@ -11,28 +11,26 @@ import {
 import { Allotment, AllotmentHandle } from "allotment";
 import React, { useEffect, useRef } from "react";
 
+import {
+  KuLogo,
+  SessionNav,
+  SessionNavLink,
+  SessionNavLinkGroup,
+  SessionNavLinkGroupProps,
+  SessionNavLinkProps,
+  SessionSettingsDrawer,
+  useSessionSettingsDrawerAction,
+} from "@b4fun/ku-ui";
 import { useEditorLoaded } from "../../atom/editorAtom";
 import {
   isSelectedTable,
   useSelectedTable,
   useSelectTable,
   useSessions,
+  useUpdateSession,
 } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
-import {
-  KuLogo,
-  SessionNav,
-  SessionNavLink,
-  SessionNavLinkGroup,
-} from "@b4fun/ku-ui";
-import type {
-  SessionNavLinkGroupProps,
-  SessionNavLinkProps,
-} from "@b4fun/ku-ui";
-import SessionSettingsDrawer, {
-  useSessionSettingsDrawerAction,
-} from "../../component/SessionSettingsDrawer";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
@@ -52,6 +50,7 @@ function EditorNavBar(props: EditorNavBarProps) {
   const { viewModel } = props;
 
   const [sessions] = useSessions();
+  const updateSession = useUpdateSession();
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
   const sessionSettingsDrawerAction = useSessionSettingsDrawerAction();
@@ -100,7 +99,17 @@ function EditorNavBar(props: EditorNavBarProps) {
 
   return (
     <Navbar height="100%" className="border-r-[0px]">
-      <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
+      <SessionSettingsDrawer
+        viewModelAction={sessionSettingsDrawerAction}
+        onSubmit={async (session) => {
+          const resp = await grpcClient().updateSession({ session });
+          const updatedSession = resp.response.session;
+          if (!updatedSession) {
+            return;
+          }
+          updateSession(updatedSession);
+        }}
+      />
       <Navbar.Section>
         <div className="h-[var(--header-height)]">
           <a href="#">
