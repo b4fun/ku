@@ -1,21 +1,18 @@
-import useStyles from "./useStyles";
-import { ActionIcon, UnstyledButton } from "@mantine/core";
-import { IconTableOptions } from "@tabler/icons";
-import { useState } from "react";
-import classNames from "classnames";
+import { ActionIcon, UnstyledButton } from '@mantine/core';
+import { IconTableOptions } from '@tabler/icons';
+import { useState } from 'react';
+import useStyles from './useStyles';
 
 export interface SessionNavLinkProps {
   active?: boolean;
   onClick?: () => void;
 }
 
-export function SessionNavLink(
-  props: React.PropsWithChildren<SessionNavLinkProps>
-) {
+export function SessionNavLink(props: React.PropsWithChildren<SessionNavLinkProps>) {
   const { active, onClick, children } = props;
-  const { classes } = useStyles();
+  const { classes, cx } = useStyles();
 
-  const cs = classNames(classes.sessionNavLink, {
+  const cs = cx(classes.sessionNavLink, {
     [classes.sessionNavLinkActive]: active,
     [classes.sessionNavLinkInactive]: !active,
   });
@@ -32,15 +29,13 @@ export interface SessionNavLinkGroupProps {
   onActionIconClick: () => void;
 }
 
-export function SessionNavLinkGroup(
-  props: React.PropsWithChildren<SessionNavLinkGroupProps>
-) {
-  const { classes } = useStyles();
+export function SessionNavLinkGroup(props: React.PropsWithChildren<SessionNavLinkGroupProps>) {
+  const { classes, cx } = useStyles();
   const { name, onActionIconClick, children } = props;
 
   const [hoverTitle, setHoverTitle] = useState(false);
 
-  const actionIconClassNames = classNames({
+  const actionIconClassNames = cx({
     [classes.sessionNavLinkGroupTitleIconHidden]: !hoverTitle,
   });
 
@@ -56,17 +51,11 @@ export function SessionNavLinkGroup(
         }}
       >
         <span className={classes.sessionNavLinkGroupTitle}>{name}</span>
-        <ActionIcon
-          color="gray"
-          className={actionIconClassNames}
-          onClick={onActionIconClick}
-        >
+        <ActionIcon color="gray" className={actionIconClassNames} onClick={onActionIconClick}>
           <IconTableOptions size={18} />
         </ActionIcon>
       </div>
-      <div className={classes.sessionNavLinkGroupChildrenWrapper}>
-        {children}
-      </div>
+      <div className={classes.sessionNavLinkGroupChildrenWrapper}>{children}</div>
     </div>
   );
 }
