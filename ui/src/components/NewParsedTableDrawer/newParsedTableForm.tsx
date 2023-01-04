@@ -1,31 +1,42 @@
 import { Session } from '@b4fun/ku-protos';
-import { Group, TextInput } from '@mantine/core';
+import { Group, Textarea, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { SubmitButton } from '../form';
 import { ViewModelAction } from './viewModel';
 
 interface FormValue {
-  name: string;
+  tableName: string;
 }
 
-export interface SessionSettingsFormProps {
+export interface NewParsedTableFormProps {
   session: Session;
+  queryInput: string;
   viewModelAction: ViewModelAction;
-  onSubmit: (session: Session) => Promise<void>;
+  onSubmit: (tableName: string) => Promise<void>;
 }
 
-export function SessionSettingsForm(props: SessionSettingsFormProps) {
-  const { session, viewModelAction, onSubmit } = props;
+export function NewParsedTableForm(props: NewParsedTableFormProps) {
+  const { viewModelAction, session, queryInput, onSubmit } = props;
   const { viewModel } = viewModelAction;
 
   const form = useForm<FormValue>({
     initialValues: {
-      name: session.name,
+      tableName: '',
     },
 
     validate: {
       // TODO: finalize name rules
-      name: (value) => (!!value ? null : 'Session name is required'),
+      tableName: (value) => {
+        if (!value) {
+          return 'Table name is required';
+        }
+
+        if (session.tables.find((table) => table.name === value)) {
+          return 'Table name already exists';
+        }
+
+        return null;
+      },
     },
   });
 
@@ -40,15 +51,13 @@ export function SessionSettingsForm(props: SessionSettingsFormProps) {
           return;
         }
 
-        session.name = form.values.name;
-
         viewModelAction.startSubmit();
         try {
-          await onSubmit(session);
+          onSubmit(form.values.tableName);
         } catch (e) {
-          console.error('submit failed', e);
+          console.error('create failed', e);
           form.setErrors({
-            name: `${e}`,
+            tableName: `${e}`,
           });
           return;
         } finally {
@@ -58,8 +67,16 @@ export function SessionSettingsForm(props: SessionSettingsFormProps) {
         viewModelAction.hideDrawer();
       }}
     >
-      <TextInput label="Session ID" disabled className="mb-2" value={session.id} />
-      <TextInput label="Session Name" className="mb-2" {...form.getInputProps('name')} />
+      <TextInput label="Session name" className="mb-2" disabled value={session.name} />
+      <Textarea label="Query" className="mb-2" disabled autosize maxRows={15} value={queryInput} />
+      <TextInput
+        required
+        autoFocus
+        data-autofocus
+        label="Table name"
+        className="mb-2"
+        {...form.getInputProps('tableName')}
+      />
       <Group mt="md">
         <SubmitButton
           compact
@@ -68,7 +85,7 @@ export function SessionSettingsForm(props: SessionSettingsFormProps) {
           loading={viewModel.submitting}
           disabled={!form.isDirty() || !form.isValid()}
         >
-          Update
+          Create
         </SubmitButton>
       </Group>
     </form>

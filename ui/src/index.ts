@@ -1,4 +1,9 @@
 export { default as KuLogo } from './components/KuLogo';
+export {
+  NewParsedTableDrawer,
+  useNewParsedTableDrawerAction,
+} from './components/NewParsedTableDrawer';
+export type { NewParsedTableDrawerProps } from './components/NewParsedTableDrawer';
 export { SessionNav, SessionNavLink, SessionNavLinkGroup } from './components/SessionNav';
 export type { SessionNavLinkGroupProps, SessionNavLinkProps } from './components/SessionNav';
 export {
