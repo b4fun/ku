@@ -2,6 +2,7 @@ import { toSQL } from "@b4fun/kql";
 import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import {
   NewParsedTableDrawer,
+  ResultTable,
   useNewParsedTableDrawerAction,
 } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
@@ -21,7 +22,6 @@ import { sessionHash, useUpdateSession } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import { sessionToKustoSchema } from "./kusto";
 import KustoEditor from "./KustoEditor";
-import ResultTable from "./ResultTable";
 import {
   ResultTableViewModel,
   RunQueryViewModel,

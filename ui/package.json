@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "dist/style.css"
   ],
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
@@ -13,7 +14,8 @@
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.umd.cjs"
-    }
+    },
+    "./style.css": "./dist/style.css"
   },
   "scripts": {
     "dev": "vite",
@@ -23,17 +25,22 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
+    "@b4fun/ku-protos": "^0.0.1",
     "@emotion/react": "^11.10.5",
     "@mantine/core": "^5.9.6",
     "@mantine/form": "^5.10.0",
     "@mantine/hooks": "^5.9.6",
+    "@monaco-editor/react": "^4.4.6",
     "@tabler/icons": "^1.119.0",
+    "monaco-editor": "^0.34.1",
+    "rc-table": "^7.30.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@b4fun/ku-protos": "^0.0.1"
+    "react-resizable": "^3.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.7",
+    "@faker-js/faker": "^7.6.0",
     "@storybook/addon-actions": "^6.5.15",
     "@storybook/addon-essentials": "^6.5.15",
     "@storybook/addon-interactions": "^6.5.15",

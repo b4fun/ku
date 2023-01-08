@@ -1,39 +1,33 @@
-import Editor from "@monaco-editor/react";
-import classNames from "classnames";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import Table from "rc-table";
+import Editor from '@monaco-editor/react';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import Table from 'rc-table';
 import {
   ColumnType,
   DefaultRecordType,
   ExpandableConfig,
   TableComponents,
-} from "rc-table/lib/interface";
-import { useEffect, useState } from "react";
-import { Resizable, ResizableProps, ResizeCallbackData } from "react-resizable";
-import "react-resizable/css/styles.css";
-import { ResultTableColumn, ResultTableViewModel } from "./viewModel";
+} from 'rc-table/lib/interface';
+import { useEffect, useState } from 'react';
+import { Resizable, ResizableProps, ResizeCallbackData } from 'react-resizable';
+import 'react-resizable/css/styles.css';
+import useStyles from './useStyles';
+import { ResultTableColumn, ResultTableViewModel } from './viewModel';
 
 interface ResultTableTitleCellProps {
-  onResize: ResizableProps["onResize"];
+  onResize: ResizableProps['onResize'];
   width?: number;
   className?: string;
-  maxConstraints: ResizableProps["maxConstraints"];
+  maxConstraints: ResizableProps['maxConstraints'];
 }
 
-function ResultTableTitleCell(
-  props: React.PropsWithChildren<ResultTableTitleCellProps>
-) {
-  const { onResize, maxConstraints, width, className, children, ...restProps } =
-    props;
+function ResultTableTitleCell(props: React.PropsWithChildren<ResultTableTitleCellProps>) {
+  const { onResize, maxConstraints, width, className, children, ...restProps } = props;
+  const { classes, cx } = useStyles();
 
-  const headerClassName = classNames(className, "text-left");
-  const contentElemClassName = classNames(
-    "px-5 py-2 font-normal text-base border-r-[1px]",
-    {
-      // for resize handler
-      "mr-[-8px]": !!width,
-    }
-  );
+  const headerClassName = cx(classes.titleCellHeader, className);
+  const contentElemClassName = cx(classes.titleCellContent, {
+    [classes.titleCellContentWithWidth]: !!width,
+  });
 
   const contentElem = <div className={contentElemClassName}>{children}</div>;
 
@@ -52,7 +46,7 @@ function ResultTableTitleCell(
       onResize={onResize}
       maxConstraints={maxConstraints}
       axis="x"
-      resizeHandles={["e"]}
+      resizeHandles={['e']}
     >
       <th {...restProps} className={headerClassName}>
         {contentElem}
@@ -63,8 +57,9 @@ function ResultTableTitleCell(
 
 function ResultTableTitleRow(props: { className?: string }) {
   const { className, ...restProps } = props;
+  const { classes, cx } = useStyles();
 
-  const titleRowClassName = classNames(className, "border-b-[1px]");
+  const titleRowClassName = cx(classes.titleRow, className);
 
   return <tr {...restProps} className={titleRowClassName} />;
 }
@@ -77,8 +72,9 @@ interface ResultTableCellProps {
 
 function ResultTableCell(props: React.PropsWithChildren<ResultTableCellProps>) {
   const { maxWidth, className, isData, children, ...restProps } = props;
+  const { classes, cx } = useStyles();
 
-  const cellClassName = classNames(className, "text-left");
+  const cellClassName = cx(classes.cell, className);
 
   if (!isData) {
     return (
@@ -88,16 +84,9 @@ function ResultTableCell(props: React.PropsWithChildren<ResultTableCellProps>) {
     );
   }
 
-  const contentElemClassName = classNames(
-    "px-5 py-2 font-normal text-base",
-    "text-ellipsis",
-    "whitespace-nowrap",
-    "overflow-hidden"
-  );
-
   return (
     <td {...restProps} className={cellClassName}>
-      <div className={contentElemClassName} style={{ maxWidth }}>
+      <div className={classes.cellContent} style={{ maxWidth }}>
         {children}
       </div>
     </td>
@@ -106,16 +95,18 @@ function ResultTableCell(props: React.PropsWithChildren<ResultTableCellProps>) {
 
 function ResultTableCellRow(props: { className?: string }) {
   const { className, ...restProps } = props;
+  const { classes, cx } = useStyles();
 
-  const cellRowClassName = classNames(className, "border-b-[1px]");
+  const cellRowClassName = cx(classes.cellRow, className);
 
   return <tr {...restProps} className={cellRowClassName} />;
 }
 
 function ResultTableTable(props: { className?: string }) {
   const { className, ...restProps } = props;
+  const { classes, cx } = useStyles();
 
-  const tableClassName = classNames(className, "w-full");
+  const tableClassName = cx(classes.table, className);
 
   return <table {...restProps} className={tableClassName} />;
 }
@@ -134,7 +125,7 @@ function ResultTableExpandedEditor(props: ResultTableExpandedEditorProps) {
   const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     fontSize: 14,
     readOnly: true,
-    wordWrap: "on",
+    wordWrap: 'on',
     minimap: { enabled: false },
   };
 
@@ -143,7 +134,7 @@ function ResultTableExpandedEditor(props: ResultTableExpandedEditorProps) {
       width={0}
       height={editorHeight}
       axis="y"
-      resizeHandles={["s"]}
+      resizeHandles={['s']}
       onResize={(e: React.SyntheticEvent, resizeData: ResizeCallbackData) => {
         if (resizeData.size.height) {
           setEditorHeight(resizeData.size.height);
@@ -162,12 +153,11 @@ export interface ResultTableProps {
   viewModel: ResultTableViewModel;
 }
 
-export default function ResultTable(props: ResultTableProps) {
+export function ResultTable(props: ResultTableProps) {
+  const { classes, cx } = useStyles();
   const { viewWidth, viewModel } = props;
 
-  const [columns, setColumns] = useState<ResultTableColumn[]>(
-    () => viewModel.columns
-  );
+  const [columns, setColumns] = useState<ResultTableColumn[]>(() => viewModel.columns);
 
   useEffect(() => {
     // divide evenly on initial load
@@ -185,8 +175,7 @@ export default function ResultTable(props: ResultTableProps) {
   }, [viewModel.columns]);
 
   const [expandedColumnIdx, setExpandedColumnIdx] = useState(0);
-  const [expandedRowIdx, setExpandedRowIdx] =
-    useState<number | undefined>(undefined);
+  const [expandedRowIdx, setExpandedRowIdx] = useState<number | undefined>(undefined);
 
   // reset expand state on data reload
   useEffect(() => {
@@ -213,54 +202,45 @@ export default function ResultTable(props: ResultTableProps) {
     };
   };
 
-  const tableColumns: ColumnType<DefaultRecordType>[] = columns.map(
-    (column, colIdx) => {
-      return {
-        ...column,
-        onHeaderCell: (column: ColumnType<DefaultRecordType>) => ({
-          width: column.width,
-          maxConstraints: [viewWidth, Infinity],
-          onResize: ((
-            e: React.SyntheticEvent,
-            resizeData: ResizeCallbackData
-          ) => {
-            setColumns((prevColumns) => {
-              const nextColumns = [...prevColumns];
+  const tableColumns: ColumnType<DefaultRecordType>[] = columns.map((column, colIdx) => {
+    return {
+      ...column,
+      onHeaderCell: (column: ColumnType<DefaultRecordType>) => ({
+        width: column.width,
+        maxConstraints: [viewWidth, Infinity],
+        onResize: ((e: React.SyntheticEvent, resizeData: ResizeCallbackData) => {
+          setColumns((prevColumns) => {
+            const nextColumns = [...prevColumns];
 
-              nextColumns[colIdx] = {
-                ...nextColumns[colIdx],
-                width: resizeData.size.width,
-              };
+            nextColumns[colIdx] = {
+              ...nextColumns[colIdx],
+              width: resizeData.size.width,
+            };
 
-              return nextColumns;
-            });
-          }) as any,
-        }),
-        onCell: (data: DefaultRecordType, rowIdx?: number) => {
-          const rv = {
-            ...data,
-            onClick: () => {
-              setExpandedColumnIdx(colIdx);
-              setExpandedRowIdx(rowIdx);
-            },
+            return nextColumns;
+          });
+        }) as any,
+      }),
+      onCell: (data: DefaultRecordType, rowIdx?: number) => {
+        const rv = {
+          ...data,
+          onClick: () => {
+            setExpandedColumnIdx(colIdx);
+            setExpandedRowIdx(rowIdx);
+          },
 
-            // ref: ResultTableCellProps
-            isData: true,
-            maxWidth: columns[colIdx].width,
-          };
+          // ref: ResultTableCellProps
+          isData: true,
+          maxWidth: columns[colIdx].width,
+        };
 
-          // FIXME: force casting to allow passing maxWidth to cell
-          return rv as React.HTMLAttributes<DefaultRecordType>;
-        },
-      };
-    }
-  );
+        // FIXME: force casting to allow passing maxWidth to cell
+        return rv as React.HTMLAttributes<DefaultRecordType>;
+      },
+    };
+  });
 
-  const tableColumnsWithControlColumns = [
-    controlColumn(),
-    ...tableColumns,
-    controlColumn(),
-  ];
+  const tableColumnsWithControlColumns = [controlColumn(), ...tableColumns, controlColumn()];
 
   const tableComponents: TableComponents<DefaultRecordType> = {
     header: {
@@ -278,7 +258,7 @@ export default function ResultTable(props: ResultTableProps) {
   }
 
   const tableWidth = tableColumns.reduce((acc, column) => {
-    if (typeof column.width !== "number") {
+    if (typeof column.width !== 'number') {
       return acc;
     }
 
@@ -300,7 +280,7 @@ export default function ResultTable(props: ResultTableProps) {
           if (column.key) {
             values.push(`"${column.key}": ${record[column.key]}`);
           } else {
-            values.push("");
+            values.push('');
           }
         });
       } else if (expandedColumnIdx >= 0 && expandedColumnIdx < columns.length) {
@@ -308,11 +288,11 @@ export default function ResultTable(props: ResultTableProps) {
         if (selectedColumn.key) {
           values.push(record[selectedColumn.key]);
         } else {
-          values.push("");
+          values.push('');
         }
       }
 
-      return <ResultTableExpandedEditor value={values.join("\n")} />;
+      return <ResultTableExpandedEditor value={values.join('\n')} />;
     },
   };
   if (expandedRowIdx !== undefined) {
@@ -320,7 +300,7 @@ export default function ResultTable(props: ResultTableProps) {
   }
 
   return (
-    <div className="w-full h-full overflow-scroll overflow-scroll-noscrollbar">
+    <div className={cx(classes.tableWrapper, 'overflow-scroll-noscrollbar')}>
       <Table
         tableLayout="auto"
         components={tableComponents}
@@ -328,7 +308,7 @@ export default function ResultTable(props: ResultTableProps) {
         data={viewModel.data}
         style={{
           width: Math.max(tableWidth, viewWidth),
-          height: "100%",
+          height: '100%',
         }}
         expandable={tableExpand}
         emptyText={() => <></>}
