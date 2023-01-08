@@ -3,7 +3,7 @@ module github.com/b4fun/ku/server
 go 1.18
 
 require (
-	github.com/alecthomas/kong v0.6.1
+	github.com/alecthomas/kong v0.7.1
 	github.com/b4fun/ku/protos v0.0.0-00010101000000-000000000000
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
