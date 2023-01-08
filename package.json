@@ -4,6 +4,7 @@
   "workspaces": [
     "ui/",
     "browser-ui/",
+    "prql-browser",
     "kql/",
     "protos/"
   ],
