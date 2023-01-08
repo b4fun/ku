@@ -1,21 +1,33 @@
 import { toSQL } from "@b4fun/kql";
 import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
+import {
+  NewParsedTableDrawer,
+  ResultTable,
+  useNewParsedTableDrawerAction,
+} from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
-import { showNotification } from '@mantine/notifications';
+import { showNotification } from "@mantine/notifications";
 import { Monaco } from "@monaco-editor/react";
-import { IconLayoutSidebarRightCollapse, IconPlayerPlay, IconTransform } from '@tabler/icons';
+import {
+  IconLayoutSidebarRightCollapse,
+  IconPlayerPlay,
+  IconTransform,
+} from "@tabler/icons";
 import { Allotment } from "allotment";
 import classNames from "classnames";
 import { editor } from "monaco-editor";
 import React, { useEffect } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
-import { sessionHash } from "../../atom/sessionAtom";
+import { sessionHash, useUpdateSession } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
-import NewParsedTableDrawer, { useNewParsedTableDrawerAction } from "../NewParsedTableDrawer";
 import { sessionToKustoSchema } from "./kusto";
 import KustoEditor from "./KustoEditor";
-import ResultTable from "./ResultTable";
-import { ResultTableViewModel, RunQueryViewModel, useResultTableViewModel, useRunQueryAction } from "./viewModel";
+import {
+  ResultTableViewModel,
+  RunQueryViewModel,
+  useResultTableViewModel,
+  useRunQueryAction,
+} from "./viewModel";
 
 interface EditorHeaderProps {
   editorNavVisible: boolean;
@@ -36,16 +48,17 @@ function EditorHeader(props: EditorHeaderProps) {
   } = props;
 
   const cs = classNames(
-    'h-[var(--header-height)]',
-    'border-b-[1px] border-[color:var(--border-color-light)]',
-    'p-2',
-    'text-justify',
+    "h-[var(--header-height)]",
+    "border-b-[1px] border-[color:var(--border-color-light)]",
+    "p-2",
+    "text-justify"
   );
 
-  const buttonClassName = 'mr-2'
+  const buttonClassName = "mr-2";
 
   // need to run at least 1 time before creating table from current query
-  const canNewTable = !runQueryViewModel.requesting && !!runQueryViewModel.response;
+  const canNewTable =
+    !runQueryViewModel.requesting && !!runQueryViewModel.response;
 
   let toggleNavBar: React.ReactNode;
   if (!editorNavVisible) {
@@ -53,7 +66,7 @@ function EditorHeader(props: EditorHeaderProps) {
       <Button
         className={buttonClassName}
         variant="default"
-        size='xs'
+        size="xs"
         disabled={runQueryViewModel.requesting}
         title="Show sidebar"
         onClick={showEditorNav}
@@ -70,7 +83,7 @@ function EditorHeader(props: EditorHeaderProps) {
       <Button
         className={buttonClassName}
         variant="default"
-        size='xs'
+        size="xs"
         leftIcon={<IconPlayerPlay size={12} />}
         disabled={runQueryViewModel.requesting}
         onClick={onRunQuery}
@@ -81,7 +94,7 @@ function EditorHeader(props: EditorHeaderProps) {
       <Button
         className={buttonClassName}
         variant="default"
-        size='xs'
+        size="xs"
         leftIcon={<IconTransform size={12} />}
         disabled={!canNewTable}
         title="New table from current query"
@@ -100,25 +113,23 @@ interface EditorBodyProps {
 }
 
 function EditorBody(props: EditorBodyProps) {
-  const {
-    editorWidth,
-    editorValue,
-    resultViewModel,
-  } = props;
+  const { editorWidth, editorValue, resultViewModel } = props;
 
   const [editorHeight, setEditorHeight] = React.useState(200);
 
   return (
     <div className="flex-1">
-      <Allotment className="w-full flex" vertical onChange={(sizes) => {
-        if (sizes.length === 2) {
-          setEditorHeight(sizes[0]);
-        }
-      }}>
+      <Allotment
+        className="w-full flex"
+        vertical
+        onChange={(sizes) => {
+          if (sizes.length === 2) {
+            setEditorHeight(sizes[0]);
+          }
+        }}
+      >
         <div style={{ height: editorHeight }}>
-          <KustoEditor
-            editorValue={editorValue}
-          />
+          <KustoEditor editorValue={editorValue} />
         </div>
         <ResultTable viewWidth={editorWidth} viewModel={resultViewModel} />
       </Allotment>
@@ -140,7 +151,7 @@ function getEditorLineNumber(
   editorModel: editor.ITextModel,
   startLine: number,
   nextLine: (n: number) => number,
-  pred: (s: string) => boolean,
+  pred: (s: string) => boolean
 ): number {
   const maxLine = editorModel.getLineCount();
 
@@ -175,23 +186,21 @@ export default function EditorPane(props: EditorPaneProps) {
 
   const [editorValue, editorLoaded] = useLoadedEditor();
 
-  useEffect(
-    () => {
-      if (!editorLoaded) {
-        return;
-      }
+  useEffect(() => {
+    if (!editorLoaded) {
+      return;
+    }
 
-      setSchemas(editorValue.editor, editorValue.monaco, session, table);
-    },
-    [editorLoaded, sessionHash(session, [table])],
-  );
+    setSchemas(editorValue.editor, editorValue.monaco, session, table);
+  }, [editorLoaded, sessionHash(session, [table])]);
 
   const runQueryAction = useRunQueryAction();
   const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
+  const updateSession = useUpdateSession();
 
   const getUserInputInner = (): UserInput => {
     if (!editorLoaded) {
-      throw new Error('editor not loaded');
+      throw new Error("editor not loaded");
     }
 
     let queryInput: string;
@@ -204,13 +213,13 @@ export default function EditorPane(props: EditorPaneProps) {
           editorModel,
           selection.startLineNumber,
           (n) => n - 1,
-          (l) => !!l.trim(),
+          (l) => !!l.trim()
         );
         const regionEndLine = getEditorLineNumber(
           editorModel,
           selection.startLineNumber,
           (n) => n + 1,
-          (l) => !!l.trim(),
+          (l) => !!l.trim()
         );
         queryInput = editorModel.getValueInRange({
           startLineNumber: regionStartLine,
@@ -225,18 +234,15 @@ export default function EditorPane(props: EditorPaneProps) {
 
     queryInput = queryInput.trim();
 
-    const query = toSQL(
-      queryInput,
-      {
-        tableName: table.id,
-        debug: {
-          logUnknown: (msg: string, ...args: any[]) => {
-            console.warn(msg, ...args);
-            throw new Error(msg);
-          },
+    const query = toSQL(queryInput, {
+      tableName: table.id,
+      debug: {
+        logUnknown: (msg: string, ...args: any[]) => {
+          console.warn(msg, ...args);
+          throw new Error(msg);
         },
       },
-    );
+    });
 
     return {
       queryInput,
@@ -249,9 +255,9 @@ export default function EditorPane(props: EditorPaneProps) {
       return getUserInputInner();
     } catch (e) {
       showNotification({
-        title: '😱 Query Error',
+        title: "😱 Query Error",
         message: `${e}`,
-        color: 'red',
+        color: "red",
       });
       return;
     }
@@ -267,7 +273,7 @@ export default function EditorPane(props: EditorPaneProps) {
 
     const userInput = getUserInput();
     if (!userInput) {
-      console.error('no valid user input');
+      console.error("no valid user input");
       return;
     }
 
@@ -278,8 +284,9 @@ export default function EditorPane(props: EditorPaneProps) {
 
     runQueryAction.setRequesting(true);
 
-    grpcClient().queryTable({ sql }).
-      then((resp) => {
+    grpcClient()
+      .queryTable({ sql })
+      .then((resp) => {
         const result: ResultTableViewModel = {
           columns: [],
           data: [],
@@ -292,8 +299,8 @@ export default function EditorPane(props: EditorPaneProps) {
         }));
         const tableValueEncoder = new TableValueEncoder(resp.response.columns);
 
-        console.log('rows', resp.response.rows);
-        console.log('columns', resp.response.columns);
+        console.log("rows", resp.response.rows);
+        console.log("columns", resp.response.columns);
         result.data = resp.response.rows.map((row, idx) => {
           const rowData = tableValueEncoder.encodeRow(row);
           rowData.key = `${idx}`;
@@ -304,24 +311,21 @@ export default function EditorPane(props: EditorPaneProps) {
         runQueryAction.setResponse(resp.response);
 
         setResultViewModel(result);
-      }).
-      catch((err) => {
+      })
+      .catch((err) => {
         console.error(err);
 
         runQueryAction.setRequesting(false);
 
         showNotification({
-          color: 'red',
-          title: '😱 Query Error',
+          color: "red",
+          title: "😱 Query Error",
           message: `${err}`,
         });
       });
   };
 
-  const cs = classNames(
-    'flex flex-col',
-    className,
-  )
+  const cs = classNames("flex flex-col", className);
 
   return (
     <div className={cs}>
@@ -333,13 +337,12 @@ export default function EditorPane(props: EditorPaneProps) {
         onNewParsedTable={() => {
           const userInput = getUserInput();
           if (!userInput) {
-            console.error('no valid user input');
+            console.error("no valid user input");
             return;
           }
 
           newParsedTableDrawerAction.showDrawer({
             session,
-            sql: userInput.sql,
             queryInput: userInput.queryInput,
           });
         }}
@@ -354,6 +357,25 @@ ${table.name}
       />
       <NewParsedTableDrawer
         viewModelAction={newParsedTableDrawerAction}
+        onSubmit={async (tableName) => {
+          const userInput = getUserInput();
+          if (!userInput) {
+            console.error("no valid user input");
+            return;
+          }
+
+          const resp = await grpcClient().createParsedTable({
+            sessionId: session.id,
+            tableName,
+            sql: userInput.sql,
+          });
+          const updatedSession = resp.response.session;
+          if (!updatedSession) {
+            return;
+          }
+
+          updateSession(updatedSession);
+        }}
       />
     </div>
   );
@@ -363,13 +385,13 @@ async function setSchemas(
   editor: editor.IStandaloneCodeEditor,
   monaco: Monaco,
   session: Session,
-  table: TableSchema,
+  table: TableSchema
 ) {
   const kusto = (monaco.languages as any).kusto as any;
   const workerAccessor = await kusto.getKustoWorker();
   const model = editor.getModel();
   if (!model) {
-    throw new Error('no model');
+    throw new Error("no model");
   }
   const worker = await workerAccessor(model.uri);
 
@@ -377,14 +399,12 @@ async function setSchemas(
 
   await worker.setSchemaFromShowSchema(
     {
-      Plugins: [
-        { Name: 'pivot' },
-      ],
+      Plugins: [{ Name: "pivot" }],
       Databases: {
         [kustoSessionDatabaseSchema.Name]: kustoSessionDatabaseSchema,
       },
     },
     "https://demo.example.com",
-    kustoSessionDatabaseSchema.Name,
+    kustoSessionDatabaseSchema.Name
   );
 }

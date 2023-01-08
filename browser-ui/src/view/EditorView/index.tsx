@@ -1,22 +1,43 @@
 import { Session } from "@b4fun/ku-protos";
-import { Card, Code, Group, LoadingOverlay, Navbar, Skeleton, Text } from "@mantine/core";
+import {
+  Card,
+  Code,
+  Group,
+  LoadingOverlay,
+  Navbar,
+  Skeleton,
+  Text,
+} from "@mantine/core";
 import { Allotment, AllotmentHandle } from "allotment";
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
+import {
+  KuLogo,
+  SessionNav,
+  SessionNavLink,
+  SessionNavLinkGroup,
+  SessionNavLinkGroupProps,
+  SessionNavLinkProps,
+  SessionSettingsDrawer,
+  useSessionSettingsDrawerAction,
+} from "@b4fun/ku-ui";
 import { useEditorLoaded } from "../../atom/editorAtom";
-import { isSelectedTable, useSelectedTable, useSelectTable, useSessions } from "../../atom/sessionAtom";
+import {
+  isSelectedTable,
+  useSelectedTable,
+  useSelectTable,
+  useSessions,
+  useUpdateSession,
+} from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import EditorPane from "../../component/Editor/EditorPane";
-import KuLogo from "../../component/KuLogo";
-import SessionNav, { SessionNavLinkGroupProps, SessionNavLinkProps } from "../../component/SessionNav";
-import SessionSettingsDrawer, { useSessionSettingsDrawerAction } from "../../component/SessionSettingsDrawer";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
 async function bootstrap(): Promise<Session[]> {
   const resp = await grpcClient().listSessions({});
 
   return resp.response.sessions;
-};
+}
 
 // FIXME: responsive
 const EditorNavBarMinSizePixel = 300;
@@ -26,73 +47,81 @@ interface EditorNavBarProps {
 }
 
 function EditorNavBar(props: EditorNavBarProps) {
-  const {
-    viewModel,
-  } = props;
+  const { viewModel } = props;
 
   const [sessions] = useSessions();
+  const updateSession = useUpdateSession();
   const [selectedTable, hasSelected] = useSelectedTable();
   const selectTable = useSelectTable();
   const sessionSettingsDrawerAction = useSessionSettingsDrawerAction();
 
   let sessionNav: React.ReactNode;
   if (viewModel.loading) {
-    sessionNav = (<Skeleton height={35} />);
+    sessionNav = <Skeleton height={35} />;
   } else {
-    const sessionItems: React.ReactElement<SessionNavLinkGroupProps>[] = sessions.map(session => {
-      const tableItems: React.ReactElement<SessionNavLinkProps>[] = session.tables.map(table => {
-        let isActive = false;
-        if (hasSelected && isSelectedTable(selectedTable, table)) {
-          isActive = true;
-        }
+    const sessionItems: React.ReactElement<SessionNavLinkGroupProps>[] =
+      sessions.map((session) => {
+        const tableItems: React.ReactElement<SessionNavLinkProps>[] =
+          session.tables.map((table) => {
+            let isActive = false;
+            if (hasSelected && isSelectedTable(selectedTable, table)) {
+              isActive = true;
+            }
+
+            return (
+              <SessionNavLink
+                key={table.id}
+                active={isActive}
+                onClick={() => {
+                  selectTable(table);
+                }}
+              >
+                <Text>{table.name}</Text>
+              </SessionNavLink>
+            );
+          });
 
         return (
-          <SessionNav.Link
-            key={table.id}
-            active={isActive}
-            onClick={() => {
-              selectTable(table);
+          <SessionNavLinkGroup
+            name={session.name}
+            onActionIconClick={() => {
+              sessionSettingsDrawerAction.showDrawer({ session });
             }}
+            key={session.id}
           >
-            <Text>{table.name}</Text>
-          </SessionNav.Link>
+            {tableItems}
+          </SessionNavLinkGroup>
         );
       });
 
-      return (
-        <SessionNav.LinkGroup
-          name={session.name}
-          onActionIconClick={() => {
-            sessionSettingsDrawerAction.showDrawer({ session });
-          }}
-          key={session.id}
-        >
-          {tableItems}
-        </SessionNav.LinkGroup>
-      );
-    });
-
-    sessionNav = (
-      <SessionNav>
-        {sessionItems}
-      </SessionNav>
-    );
+    sessionNav = <SessionNav>{sessionItems}</SessionNav>;
   }
 
   return (
-    <Navbar
-      height='100%'
-      className='border-r-[0px]'
-    >
-      <SessionSettingsDrawer viewModelAction={sessionSettingsDrawerAction} />
+    <Navbar height="100%" className="border-r-[0px]">
+      <SessionSettingsDrawer
+        viewModelAction={sessionSettingsDrawerAction}
+        onSubmit={async (session) => {
+          const resp = await grpcClient().updateSession({ session });
+          const updatedSession = resp.response.session;
+          if (!updatedSession) {
+            return;
+          }
+          updateSession(updatedSession);
+        }}
+      />
       <Navbar.Section>
-        <div className='h-[var(--header-height)]'>
+        <div className="h-[var(--header-height)]">
           <a href="#">
             <KuLogo />
           </a>
         </div>
       </Navbar.Section>
-      <Navbar.Section grow mt='md' className="h-full overflow-scroll overflow-scroll-noscrollbar">
+      <Navbar.Section
+        grow
+        mt="md"
+        className="h-full overflow-scroll overflow-scroll-noscrollbar"
+      >
         {sessionNav}
       </Navbar.Section>
     </Navbar>
@@ -100,17 +129,28 @@ function EditorNavBar(props: EditorNavBarProps) {
 }
 
 const supportedKeywords = [
-  'project', 'where', 'take', 'order by', 'parse', 'count', 'distinct',
-  'and', 'or', '>/>=/</<=/==/!=', 'contains', '!contains',
+  "project",
+  "where",
+  "take",
+  "order by",
+  "parse",
+  "count",
+  "distinct",
+  "and",
+  "or",
+  ">/>=/</<=/==/!=",
+  "contains",
+  "!contains",
 ];
 
 const supportedDataTypes = [
-  'boolean', 'string', 'integer/long', 'real/float/double',
+  "boolean",
+  "string",
+  "integer/long",
+  "real/float/double",
 ];
 
-const partialSupportedDataTypes = [
-  'datetime', 'timespan', 'dynamic',
-];
+const partialSupportedDataTypes = ["datetime", "timespan", "dynamic"];
 
 function EditorManual() {
   const supportedKeywordsList = supportedKeywords.map((keyword, idx) => {
@@ -129,23 +169,25 @@ function EditorManual() {
     );
   });
 
-  const partialSupportedDataTypesList = partialSupportedDataTypes.map((dataType, idx) => {
-    return (
-      <Code color="yellow" key={`${idx}`}>
-        {dataType}
-      </Code>
-    );
-  });
+  const partialSupportedDataTypesList = partialSupportedDataTypes.map(
+    (dataType, idx) => {
+      return (
+        <Code color="yellow" key={`${idx}`}>
+          {dataType}
+        </Code>
+      );
+    }
+  );
 
   return (
     <Card
-      shadow="xs" radius="md" p={0}
+      shadow="xs"
+      radius="md"
+      p={0}
       className="w-[300px] h-full text-sm leading-6 pb-20"
     >
       <Card.Section className="bg-[color:var(--theme-color-orange)] text-white py-2 px-4 mb-2">
-        <h3 className="font-semibold text-base">
-          Manual
-        </h3>
+        <h3 className="font-semibold text-base">Manual</h3>
       </Card.Section>
 
       <div className="h-full overflow-scroll overflow-scroll-noscrollbar pt-2 px-4">
@@ -153,22 +195,41 @@ function EditorManual() {
           <p className="font-semibold">What's KQL?</p>
         </Card.Section>
         <Card.Section className="mb-2">
-          <p>KQL (Kusto Query Language) is a way to explore data with SQL like language.</p>
-          <p>Different than typical SQL, KQL uses ML like syntax, which provides better reading / writing experience.</p>
-          <a href="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/" target="_blank" rel="noreferrer" className="underline">
+          <p>
+            KQL (Kusto Query Language) is a way to explore data with SQL like
+            language.
+          </p>
+          <p>
+            Different than typical SQL, KQL uses ML like syntax, which provides
+            better reading / writing experience.
+          </p>
+          <a
+            href="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/"
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
             Learn more about on Microsoft Docs
           </a>
         </Card.Section>
 
         <Card.Section className="mb-1">
-          <p className="font-semibold">
-            What's Ku?
-          </p>
+          <p className="font-semibold">What's Ku?</p>
         </Card.Section>
         <Card.Section className="mb-3">
-          <p>Ku is a simple tool for collecting and exploring logs using KQL and sqlite.</p>
-          <p>This page is the query UI for Ku, where we can write and execute KQL upon on our data.</p>
-          <a href="https://github.com/b4fun/ku" target="_blank" className="underline">
+          <p>
+            Ku is a simple tool for collecting and exploring logs using KQL and
+            sqlite.
+          </p>
+          <p>
+            This page is the query UI for Ku, where we can write and execute KQL
+            upon on our data.
+          </p>
+          <a
+            href="https://github.com/b4fun/ku"
+            target="_blank"
+            className="underline"
+          >
             Checkout on GitHub
           </a>
         </Card.Section>
@@ -177,27 +238,21 @@ function EditorManual() {
           <p className="font-semibold">Supported KQL Keywords</p>
         </Card.Section>
         <Card.Section className="mb-2">
-          <Group spacing="xs">
-            {supportedKeywordsList}
-          </Group>
+          <Group spacing="xs">{supportedKeywordsList}</Group>
         </Card.Section>
 
         <Card.Section className="mb-1">
           <p className="font-semibold">Supported KQL Data Types</p>
         </Card.Section>
         <Card.Section className="mb-2">
-          <Group spacing="xs">
-            {supportedDataTypesList}
-          </Group>
+          <Group spacing="xs">{supportedDataTypesList}</Group>
         </Card.Section>
 
         <Card.Section className="mb-1">
           <p className="font-semibold">Partial Supported KQL Data Types</p>
         </Card.Section>
         <Card.Section inheritPadding className="mb-2">
-          <Group spacing="xs">
-            {partialSupportedDataTypesList}
-          </Group>
+          <Group spacing="xs">{partialSupportedDataTypesList}</Group>
         </Card.Section>
       </div>
     </Card>
@@ -213,12 +268,12 @@ function EditorView() {
   useEffect(() => {
     viewModelAction.setLoading(true);
 
-    bootstrap().
-      then((sessions: Session[]) => {
+    bootstrap()
+      .then((sessions: Session[]) => {
         setSessions(sessions);
         viewModelAction.setLoading(false);
-      }).
-      catch((err) => {
+      })
+      .catch((err) => {
         console.error(`bootstrap failed ${err}`);
         viewModelAction.setLoadErr(err);
       });
@@ -237,9 +292,13 @@ function EditorView() {
           }
         }}
       >
-        <Allotment.Pane preferredSize={EditorNavBarMinSizePixel + 5} maxSize={EditorNavBarMinSizePixel * 2 + 10} minSize={0}>
-          <div className='flex h-full'>
-            <div className='flex-none'>
+        <Allotment.Pane
+          preferredSize={EditorNavBarMinSizePixel + 5}
+          maxSize={EditorNavBarMinSizePixel * 2 + 10}
+          minSize={0}
+        >
+          <div className="flex h-full">
+            <div className="flex-none">
               <EditorNavBar viewModel={viewModel} />
             </div>
             <div className="grow h-full py-2 pr-2 editor-manual-rotation">
@@ -252,25 +311,26 @@ function EditorView() {
             visible={viewModel.loading || isEditorLoading}
             overlayOpacity={1}
           />
-          {tableSelected ?
-            (<EditorPane
-              editorNavVisible={viewModel.widths[0] > EditorNavBarMinSizePixel - 5}
+          {tableSelected ? (
+            <EditorPane
+              editorNavVisible={
+                viewModel.widths[0] > EditorNavBarMinSizePixel - 5
+              }
               editorWidth={viewModel.widths[1]}
               showEditorNav={() => {
                 allotmentRef.current?.reset();
               }}
-
               table={selectedTable.table}
               session={selectedTable.session}
               className="h-screen"
-            />)
-            :
-            (<></>)
-          }
+            />
+          ) : (
+            <></>
+          )}
         </Allotment.Pane>
       </Allotment>
-    </div >
-  )
+    </div>
+  );
 }
 
 export default EditorView;
