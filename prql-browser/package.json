@@ -9,6 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@b4fun/ku-protos": "^0.0.1",
+    "@b4fun/ku-ui": "^0.0.1",
+    "@mantine/core": "^5.10.0",
+    "allotment": "^1.17.1",
+    "jotai": "^1.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
