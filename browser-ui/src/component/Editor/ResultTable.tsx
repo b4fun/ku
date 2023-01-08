@@ -185,15 +185,33 @@ export default function ResultTable(props: ResultTableProps) {
   }, [viewModel.columns]);
 
   const [expandedColumnIdx, setExpandedColumnIdx] = useState(0);
-  const [expandedRowIdx, setExpandedRowIdx] = useState<number | undefined>(
-    undefined
-  );
+  const [expandedRowIdx, setExpandedRowIdx] =
+    useState<number | undefined>(undefined);
 
   // reset expand state on data reload
   useEffect(() => {
     setExpandedColumnIdx(0);
     setExpandedRowIdx(undefined);
   }, [viewModel]);
+
+  const controlColumn = () => {
+    return {
+      width: 0, // set it to non-resizable
+      onCell: (data: DefaultRecordType, rowIdx?: number) => {
+        return {
+          ...data,
+          onClick: () => {
+            setExpandedColumnIdx(expandColumnIndexAll);
+            if (expandedRowIdx === rowIdx) {
+              setExpandedRowIdx(undefined);
+            } else {
+              setExpandedRowIdx(rowIdx);
+            }
+          },
+        };
+      },
+    };
+  };
 
   const tableColumns: ColumnType<DefaultRecordType>[] = columns.map(
     (column, colIdx) => {
@@ -237,6 +255,12 @@ export default function ResultTable(props: ResultTableProps) {
       };
     }
   );
+
+  const tableColumnsWithControlColumns = [
+    controlColumn(),
+    ...tableColumns,
+    controlColumn(),
+  ];
 
   const tableComponents: TableComponents<DefaultRecordType> = {
     header: {
@@ -300,33 +324,7 @@ export default function ResultTable(props: ResultTableProps) {
       <Table
         tableLayout="auto"
         components={tableComponents}
-        columns={[
-          {
-            width: 0, // set it to non-resizable
-            onCell: (data: DefaultRecordType, rowIdx?: number) => {
-              return {
-                ...data,
-                onClick: () => {
-                  setExpandedColumnIdx(expandColumnIndexAll);
-                  setExpandedRowIdx(rowIdx);
-                },
-              };
-            },
-          },
-          ...tableColumns,
-          {
-            width: 0,
-            onCell: (data: DefaultRecordType, rowIdx?: number) => {
-              return {
-                ...data,
-                onClick: () => {
-                  setExpandedColumnIdx(expandColumnIndexAll);
-                  setExpandedRowIdx(rowIdx);
-                },
-              };
-            },
-          },
-        ]}
+        columns={tableColumnsWithControlColumns}
         data={viewModel.data}
         style={{
           width: Math.max(tableWidth, viewWidth),
