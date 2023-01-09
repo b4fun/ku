@@ -17,5 +17,6 @@ export {
   useSessionSettingsDrawerAction,
 } from './components/SessionSettingsDrawer';
 export type { SessionSettingsDrawerProps } from './components/SessionSettingsDrawer';
+export { remSpacing, themeColors } from './settings';
 
 import './style.css';
