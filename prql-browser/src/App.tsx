@@ -2,14 +2,17 @@ import "@b4fun/ku-ui/style.css";
 import "allotment/dist/style.css";
 import "./App.css";
 
+import { MantineProvider } from "@mantine/core";
 import { Provider } from "jotai";
 import EditorView from "./view/EditorView";
 
 function App() {
   return (
-    <Provider>
-      <EditorView />
-    </Provider>
+    <MantineProvider withNormalizeCSS withGlobalStyles>
+      <Provider>
+        <EditorView />
+      </Provider>
+    </MantineProvider>
   );
 }
 
