@@ -1,3 +1,4 @@
+import { TableSchema } from "@b4fun/ku-protos";
 import { ResultTable } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
 import { IconPlayerPlay } from "@tabler/icons";
@@ -72,11 +73,12 @@ function EditorBody(props: EditorBodyProps) {
 
 export interface EditorPaneProps {
   editorWidth: number;
+  table: TableSchema;
 }
 
 export function EditorPane(props: EditorPaneProps) {
   const { classes } = useStyles();
-  const { editorWidth } = props;
+  const { table, editorWidth } = props;
   const runQueryAction = useRunQueryAction();
   const { viewModel: runQueryViewModel } = runQueryAction;
 
@@ -85,12 +87,12 @@ export function EditorPane(props: EditorPaneProps) {
       <EditorHeader
         runQueryViewModel={runQueryViewModel}
         onRunQuery={() => {
-          runQueryAction.runQuery("FROM raw");
+          runQueryAction.runQuery(`from ${table.id}`);
         }}
       />
       <EditorBody
         editorWidth={editorWidth}
-        editorValue="FROM raw"
+        editorValue="from raw"
         runQueryAction={runQueryAction}
       />
     </div>

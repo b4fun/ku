@@ -15,8 +15,11 @@
     "@tabler/icons": "^1.119.0",
     "allotment": "^1.17.1",
     "jotai": "^1.12.1",
+    "prql-js": "^0.3.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "vite-plugin-top-level-await": "^1.2.2",
+    "vite-plugin-wasm": "^3.1.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",

@@ -1,7 +1,9 @@
+import { TableValueEncoder } from "@b4fun/ku-protos";
 import { ResultTableViewModel } from "@b4fun/ku-ui";
 import { useState } from "react";
 import { useSessions } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
+import { compileToSQL } from "../../client/prql";
 
 export interface ViewModel {
   widths: [number, number];
@@ -76,14 +78,12 @@ export interface RunQueryViewModelAction {
 }
 
 export function useRunQueryAction(): RunQueryViewModelAction {
-  const [resultViewModel, setResultViewModel] = useState<ResultTableViewModel>({
-    columns: [],
-    data: [],
-  });
-
   const [viewModel, setViewModel] = useState<RunQueryViewModel>({
     requesting: false,
-    resultViewModel,
+    resultViewModel: {
+      columns: [],
+      data: [],
+    },
   });
 
   const setRequesting = (requesting: boolean) => {
@@ -93,10 +93,44 @@ export function useRunQueryAction(): RunQueryViewModelAction {
     }));
   };
 
+  const setResultViewModel = (resultViewModel: ResultTableViewModel) => {
+    setViewModel((prev) => ({
+      ...prev,
+      resultViewModel,
+    }));
+  };
+
   const runQuery = async (query: string) => {
     setRequesting(true);
 
-    console.log(query);
+    try {
+      const sql = compileToSQL(query);
+      const resp = await grpcClient().queryTable({ sql });
+      const result: ResultTableViewModel = {
+        columns: [],
+        data: [],
+      };
+
+      result.columns = resp.response.columns.map((columnSchema) => ({
+        title: columnSchema.key,
+        dataIndex: columnSchema.key,
+        key: columnSchema.key,
+      }));
+      const tableValueEncoder = new TableValueEncoder(resp.response.columns);
+
+      console.log("rows", resp.response.rows);
+      console.log("columns", resp.response.columns);
+      result.data = resp.response.rows.map((row, idx) => {
+        const rowData = tableValueEncoder.encodeRow(row);
+        rowData.key = `${idx}`;
+
+        return rowData;
+      });
+
+      setResultViewModel(result);
+    } finally {
+      setRequesting(false);
+    }
   };
 
   return {

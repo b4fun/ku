@@ -144,7 +144,12 @@ export default function EditorView() {
         </Allotment.Pane>
         <Allotment.Pane>
           <LoadingOverlay visible={viewModel.loading} overlayOpacity={1} />
-          {hasSelectedTable && <EditorPane editorWidth={viewModel.widths[1]} />}
+          {hasSelectedTable && (
+            <EditorPane
+              table={selectedTable.table}
+              editorWidth={viewModel.widths[1]}
+            />
+          )}
         </Allotment.Pane>
       </Allotment>
     </div>
