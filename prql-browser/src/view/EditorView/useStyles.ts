@@ -6,4 +6,15 @@ export default createStyles({
     width: "100%",
     position: "relative",
   },
+
+  editorNavbar: {
+    borderRightWidth: 0,
+  },
+  editorNavbarLogo: {
+    height: "var(--header-height)",
+  },
+  editorNavbarSessionsList: {
+    height: "100%",
+    overflow: "scroll",
+  },
 });
