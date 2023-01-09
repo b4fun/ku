@@ -19,6 +19,7 @@ import {
   useUpdateSession,
 } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
+import { EditorPane } from "./EditorPane";
 import useStyles from "./useStyles";
 import { useViewModelAction, ViewModel } from "./viewModel";
 
@@ -118,6 +119,7 @@ export default function EditorView() {
   const allotmentRef = useRef<AllotmentHandle>(null);
   const viewModelAction = useViewModelAction();
   const { viewModel } = viewModelAction;
+  const [selectedTable, hasSelectedTable] = useSelectedTable();
 
   useEffect(() => {
     viewModelAction.bootstrap();
@@ -142,6 +144,7 @@ export default function EditorView() {
         </Allotment.Pane>
         <Allotment.Pane>
           <LoadingOverlay visible={viewModel.loading} overlayOpacity={1} />
+          {hasSelectedTable && <EditorPane editorWidth={viewModel.widths[1]} />}
         </Allotment.Pane>
       </Allotment>
     </div>

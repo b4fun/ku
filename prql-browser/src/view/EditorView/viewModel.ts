@@ -1,3 +1,4 @@
+import { ResultTableViewModel } from "@b4fun/ku-ui";
 import { useState } from "react";
 import { useSessions } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
@@ -60,5 +61,46 @@ export function useViewModelAction(): ViewModelAction {
 
     bootstrap,
     setWidths,
+  };
+}
+
+export interface RunQueryViewModel {
+  requesting: boolean;
+  resultViewModel: ResultTableViewModel;
+}
+
+export interface RunQueryViewModelAction {
+  viewModel: RunQueryViewModel;
+
+  runQuery: (query: string) => Promise<void>;
+}
+
+export function useRunQueryAction(): RunQueryViewModelAction {
+  const [resultViewModel, setResultViewModel] = useState<ResultTableViewModel>({
+    columns: [],
+    data: [],
+  });
+
+  const [viewModel, setViewModel] = useState<RunQueryViewModel>({
+    requesting: false,
+    resultViewModel,
+  });
+
+  const setRequesting = (requesting: boolean) => {
+    setViewModel((prev) => ({
+      ...prev,
+      requesting,
+    }));
+  };
+
+  const runQuery = async (query: string) => {
+    setRequesting(true);
+
+    console.log(query);
+  };
+
+  return {
+    viewModel,
+    runQuery,
   };
 }
