@@ -27,6 +27,6 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "knex": "^2.2.0"
+    "knex": "^2.4.0"
   }
 }
