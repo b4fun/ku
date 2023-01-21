@@ -1,9 +1,13 @@
 import { TableSchema } from "@b4fun/ku-protos";
 import { ResultTable } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
+import { showNotification } from "@mantine/notifications";
 import { IconPlayerPlay } from "@tabler/icons";
 import { Allotment } from "allotment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLoadedEditor } from "../../atom/editorAtom";
+import { getEditorLineNumber, UserInput } from "./monaco";
+import { PRQLEditor } from "./PRQLEditor";
 import useStyles from "./useStyles";
 import {
   RunQueryViewModel,
@@ -64,7 +68,9 @@ function EditorBody(props: EditorBodyProps) {
           }
         }}
       >
-        <div style={{ height: editorHeight }}></div>
+        <div style={{ height: editorHeight }}>
+          <PRQLEditor editorValue={editorValue} />
+        </div>
         <ResultTable viewWidth={editorWidth} viewModel={resultViewModel} />
       </Allotment>
     </div>
@@ -81,14 +87,98 @@ export function EditorPane(props: EditorPaneProps) {
   const { table, editorWidth } = props;
   const runQueryAction = useRunQueryAction();
   const { viewModel: runQueryViewModel } = runQueryAction;
+  const [editorValue, editorLoaded] = useLoadedEditor();
+
+  useEffect(() => {
+    if (!editorLoaded) {
+      return;
+    }
+
+    // TODO: setup table schema
+  }, [editorLoaded]);
+
+  const getUserInputInner = (): UserInput => {
+    if (!editorLoaded) {
+      throw new Error("editor not loaded");
+    }
+
+    let queryInput: string;
+
+    const editorModel = editorValue.editor.getModel();
+    const selection = editorValue.editor.getSelection();
+    if (selection && editorModel) {
+      const regionStartLine = getEditorLineNumber(
+        editorModel,
+        selection.startLineNumber,
+        (n) => n - 1
+      );
+      const regionEndLine = getEditorLineNumber(
+        editorModel,
+        selection.startLineNumber,
+        (n) => n + 1
+      );
+      queryInput = editorModel.getValueInRange({
+        startLineNumber: regionStartLine,
+        startColumn: 0,
+        endLineNumber: regionEndLine + 1,
+        endColumn: 0,
+      });
+    } else {
+      queryInput = editorValue.editor.getValue();
+    }
+
+    return {
+      queryInput: queryInput.trim(),
+    };
+  };
+
+  const getUserInput = (): UserInput | undefined => {
+    try {
+      return getUserInputInner();
+    } catch (e) {
+      showNotification({
+        title: "😱 Query Error",
+        message: `${e}`,
+        color: "red",
+      });
+      return;
+    }
+  };
+
+  const onRunQuery = async () => {
+    if (runQueryAction.viewModel.requesting) {
+      return;
+    }
+    if (!editorLoaded) {
+      return;
+    }
+
+    const userInput = getUserInput();
+    if (!userInput) {
+      console.error("no valid user input");
+      return;
+    }
+
+    const { queryInput } = userInput;
+
+    try {
+      await runQueryAction.runQuery(queryInput);
+    } catch (err) {
+      console.error("run query error", err);
+
+      showNotification({
+        color: "red",
+        title: "😱 Query Error",
+        message: `${err}`,
+      });
+    }
+  };
 
   return (
     <div className={classes.editorPaneWrapper}>
       <EditorHeader
         runQueryViewModel={runQueryViewModel}
-        onRunQuery={() => {
-          runQueryAction.runQuery(`from ${table.id}`);
-        }}
+        onRunQuery={onRunQuery}
       />
       <EditorBody
         editorWidth={editorWidth}

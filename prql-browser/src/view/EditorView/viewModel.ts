@@ -104,7 +104,9 @@ export function useRunQueryAction(): RunQueryViewModelAction {
     setRequesting(true);
 
     try {
+      console.log("query:", query);
       const sql = compileToSQL(query);
+      console.log("sql:", sql);
       const resp = await grpcClient().queryTable({ sql });
       const result: ResultTableViewModel = {
         columns: [],
