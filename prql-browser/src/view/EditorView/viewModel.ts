@@ -1,4 +1,4 @@
-import { TableValueEncoder } from "@b4fun/ku-protos";
+import { Session, TableSchema, TableValueEncoder } from "@b4fun/ku-protos";
 import { ResultTableViewModel } from "@b4fun/ku-ui";
 import { useState } from "react";
 import { useSessions } from "../../atom/sessionAtom";
@@ -71,10 +71,15 @@ export interface RunQueryViewModel {
   resultViewModel: ResultTableViewModel;
 }
 
+export interface RunQueryOptions {
+  tables: TableSchema[];
+  session: Session;
+}
+
 export interface RunQueryViewModelAction {
   viewModel: RunQueryViewModel;
 
-  runQuery: (query: string) => Promise<void>;
+  runQuery: (query: string, opts: RunQueryOptions) => Promise<void>;
 }
 
 export function useRunQueryAction(): RunQueryViewModelAction {
@@ -100,8 +105,13 @@ export function useRunQueryAction(): RunQueryViewModelAction {
     }));
   };
 
-  const runQuery = async (query: string) => {
+  const runQuery = async (query: string, opts: RunQueryOptions) => {
     setRequesting(true);
+
+    // FIXME: implement table names mapping in prql
+    for (const table of opts.tables) {
+      query = query.replaceAll(`from ${table.name}`, `from ${table.id}`);
+    }
 
     try {
       console.log("query:", query);

@@ -1,4 +1,4 @@
-import { TableSchema } from "@b4fun/ku-protos";
+import { Session, TableSchema } from "@b4fun/ku-protos";
 import { ResultTable } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
@@ -6,6 +6,7 @@ import { IconPlayerPlay } from "@tabler/icons";
 import { Allotment } from "allotment";
 import { useEffect, useState } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
+import { sessionHash } from "../../atom/sessionAtom";
 import { getEditorLineNumber, UserInput } from "./monaco";
 import { PRQLEditor } from "./PRQLEditor";
 import useStyles from "./useStyles";
@@ -16,8 +17,6 @@ import {
 } from "./viewModel";
 
 interface EditorHeaderProps {
-  // editorNavVisible: boolean;
-  // showEditorNav: () => void;
   runQueryViewModel: RunQueryViewModel;
   onRunQuery: () => void;
   // onNewParsedTable: () => void;
@@ -80,11 +79,12 @@ function EditorBody(props: EditorBodyProps) {
 export interface EditorPaneProps {
   editorWidth: number;
   table: TableSchema;
+  session: Session;
 }
 
 export function EditorPane(props: EditorPaneProps) {
   const { classes } = useStyles();
-  const { table, editorWidth } = props;
+  const { table, session, editorWidth } = props;
   const runQueryAction = useRunQueryAction();
   const { viewModel: runQueryViewModel } = runQueryAction;
   const [editorValue, editorLoaded] = useLoadedEditor();
@@ -95,7 +95,7 @@ export function EditorPane(props: EditorPaneProps) {
     }
 
     // TODO: setup table schema
-  }, [editorLoaded]);
+  }, [editorLoaded, sessionHash(session, [table])]);
 
   const getUserInputInner = (): UserInput => {
     if (!editorLoaded) {
@@ -162,7 +162,7 @@ export function EditorPane(props: EditorPaneProps) {
     const { queryInput } = userInput;
 
     try {
-      await runQueryAction.runQuery(queryInput);
+      await runQueryAction.runQuery(queryInput, { session, tables: [table] });
     } catch (err) {
       console.error("run query error", err);
 
@@ -182,7 +182,7 @@ export function EditorPane(props: EditorPaneProps) {
       />
       <EditorBody
         editorWidth={editorWidth}
-        editorValue="from raw"
+        editorValue={`from ${table.name}`}
         runQueryAction={runQueryAction}
       />
     </div>

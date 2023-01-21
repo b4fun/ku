@@ -147,6 +147,7 @@ export default function EditorView() {
           {hasSelectedTable && (
             <EditorPane
               table={selectedTable.table}
+              session={selectedTable.session}
               editorWidth={viewModel.widths[1]}
             />
           )}
