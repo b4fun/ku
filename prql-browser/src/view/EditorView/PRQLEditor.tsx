@@ -2,6 +2,7 @@ import { Skeleton } from "@mantine/core";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useEffect, useState } from "react";
 import { useSetEditor } from "../../atom/editorAtom";
+import { languageId, setupPRQL } from "./prql-vscode";
 
 export interface PRQLEditorProps {
   editorValue: string;
@@ -17,7 +18,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
       return;
     }
 
-    // TODO: load prql language
+    setupPRQL(monaco);
 
     setLoading(false);
   }, [monaco]);
@@ -28,7 +29,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
   return (
     <Editor
-      language="prql"
+      language={languageId}
       defaultValue={props.editorValue}
       onMount={setEditor}
       options={{
