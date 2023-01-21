@@ -68,12 +68,26 @@ export function useViewModelAction(): ViewModelAction {
 
 export interface RunQueryViewModel {
   requesting: boolean;
+  lastResponseSucceeded: boolean;
   resultViewModel: ResultTableViewModel;
 }
 
 export interface RunQueryOptions {
   tables: TableSchema[];
   session: Session;
+}
+
+export function compilePRQL(query: string, opts: RunQueryOptions): string {
+  // FIXME: implement table names mapping in prql
+  for (const table of opts.tables) {
+    query = query.replaceAll(`from ${table.name}`, `from ${table.id}`);
+  }
+
+  console.log("query:", query);
+  const sql = compileToSQL(query);
+  console.log("sql:", sql);
+
+  return sql;
 }
 
 export interface RunQueryViewModelAction {
@@ -85,6 +99,7 @@ export interface RunQueryViewModelAction {
 export function useRunQueryAction(): RunQueryViewModelAction {
   const [viewModel, setViewModel] = useState<RunQueryViewModel>({
     requesting: false,
+    lastResponseSucceeded: false,
     resultViewModel: {
       columns: [],
       data: [],
@@ -95,12 +110,14 @@ export function useRunQueryAction(): RunQueryViewModelAction {
     setViewModel((prev) => ({
       ...prev,
       requesting,
+      lastResponseSucceeded: requesting ? false : prev.lastResponseSucceeded,
     }));
   };
 
   const setResultViewModel = (resultViewModel: ResultTableViewModel) => {
     setViewModel((prev) => ({
       ...prev,
+      lastResponseSucceeded: true,
       resultViewModel,
     }));
   };
@@ -108,15 +125,8 @@ export function useRunQueryAction(): RunQueryViewModelAction {
   const runQuery = async (query: string, opts: RunQueryOptions) => {
     setRequesting(true);
 
-    // FIXME: implement table names mapping in prql
-    for (const table of opts.tables) {
-      query = query.replaceAll(`from ${table.name}`, `from ${table.id}`);
-    }
-
     try {
-      console.log("query:", query);
-      const sql = compileToSQL(query);
-      console.log("sql:", sql);
+      const sql = compilePRQL(query, opts);
       const resp = await grpcClient().queryTable({ sql });
       const result: ResultTableViewModel = {
         columns: [],

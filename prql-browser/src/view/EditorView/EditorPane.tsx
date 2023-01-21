@@ -1,16 +1,22 @@
 import { Session, TableSchema } from "@b4fun/ku-protos";
-import { ResultTable } from "@b4fun/ku-ui";
+import {
+  NewParsedTableDrawer,
+  ResultTable,
+  useNewParsedTableDrawerAction,
+} from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import { IconPlayerPlay } from "@tabler/icons";
+import { IconPlayerPlay, IconTransform } from "@tabler/icons";
 import { Allotment } from "allotment";
 import { useEffect, useState } from "react";
 import { useLoadedEditor } from "../../atom/editorAtom";
-import { sessionHash } from "../../atom/sessionAtom";
+import { sessionHash, useUpdateSession } from "../../atom/sessionAtom";
+import { grpcClient } from "../../client/api";
 import { getEditorLineNumber, UserInput } from "./monaco";
 import { PRQLEditor } from "./PRQLEditor";
 import useStyles from "./useStyles";
 import {
+  compilePRQL,
   RunQueryViewModel,
   RunQueryViewModelAction,
   useRunQueryAction,
@@ -19,12 +25,15 @@ import {
 interface EditorHeaderProps {
   runQueryViewModel: RunQueryViewModel;
   onRunQuery: () => void;
-  // onNewParsedTable: () => void;
+  onNewParsedTable: () => void;
 }
 
 function EditorHeader(props: EditorHeaderProps) {
-  const { runQueryViewModel, onRunQuery } = props;
+  const { runQueryViewModel, onRunQuery, onNewParsedTable } = props;
   const { classes } = useStyles();
+
+  // need to run at least 1 time before creating table from current query
+  const canNewTable = runQueryViewModel.lastResponseSucceeded;
 
   return (
     <div className={classes.editorPaneHeader}>
@@ -37,6 +46,17 @@ function EditorHeader(props: EditorHeaderProps) {
         onClick={onRunQuery}
       >
         Run
+      </Button>
+
+      <Button
+        className={classes.editorPaneHeaderButton}
+        variant="default"
+        size="xs"
+        leftIcon={<IconTransform size={12} />}
+        disabled={!canNewTable}
+        onClick={onNewParsedTable}
+      >
+        New
       </Button>
     </div>
   );
@@ -88,6 +108,8 @@ export function EditorPane(props: EditorPaneProps) {
   const runQueryAction = useRunQueryAction();
   const { viewModel: runQueryViewModel } = runQueryAction;
   const [editorValue, editorLoaded] = useLoadedEditor();
+  const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
+  const updateSession = useUpdateSession();
 
   useEffect(() => {
     if (!editorLoaded) {
@@ -179,11 +201,49 @@ export function EditorPane(props: EditorPaneProps) {
       <EditorHeader
         runQueryViewModel={runQueryViewModel}
         onRunQuery={onRunQuery}
+        onNewParsedTable={() => {
+          const userInput = getUserInput();
+          if (!userInput) {
+            console.error("no valid user input");
+            return;
+          }
+
+          newParsedTableDrawerAction.showDrawer({
+            session,
+            queryInput: userInput.queryInput,
+          });
+        }}
       />
       <EditorBody
         editorWidth={editorWidth}
         editorValue={`from ${table.name}`}
         runQueryAction={runQueryAction}
+      />
+      <NewParsedTableDrawer
+        viewModelAction={newParsedTableDrawerAction}
+        onSubmit={async (tableName) => {
+          const userInput = getUserInput();
+          if (!userInput) {
+            console.error("no valid user input");
+            return;
+          }
+          const sql = compilePRQL(userInput.queryInput, {
+            session,
+            tables: [table],
+          });
+
+          const resp = await grpcClient().createParsedTable({
+            sessionId: session.id,
+            tableName,
+            sql,
+          });
+          const updatedSession = resp.response.session;
+          if (!updatedSession) {
+            return;
+          }
+
+          updateSession(updatedSession);
+        }}
       />
     </div>
   );

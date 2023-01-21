@@ -1,3 +1,4 @@
+import { Session } from "@b4fun/ku-protos";
 import {
   KuLogo,
   SessionNav,
@@ -81,7 +82,7 @@ function EditorNavBar({ viewModel }: EditorNavBarProps) {
     <Navbar height="100%" className={classes.editorNavbar}>
       <SessionSettingsDrawer
         viewModelAction={sessionSettingsDrawerAction}
-        onSubmit={async (session) => {
+        onSubmit={async (session: Session) => {
           const resp = await grpcClient().updateSession({ session });
           const updatedSession = resp.response.session;
           if (!updatedSession) {
