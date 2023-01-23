@@ -39,7 +39,7 @@
     "react-resizable": "^3.0.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.7",
+    "@babel/core": "^7.20.12",
     "@faker-js/faker": "^7.6.0",
     "@storybook/addon-actions": "^6.5.15",
     "@storybook/addon-essentials": "^6.5.15",
