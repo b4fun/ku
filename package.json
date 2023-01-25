@@ -6,7 +6,8 @@
     "browser-ui/",
     "prql-browser",
     "kql/",
-    "protos/"
+    "protos/",
+    "prql-js"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
