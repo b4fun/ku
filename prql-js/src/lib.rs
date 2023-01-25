@@ -1,4 +1,7 @@
+mod table;
 mod utils;
+
+use std::collections::HashMap;
 
 use prql_compiler::sql::Options;
 use wasm_bindgen::prelude::*;
@@ -11,16 +14,18 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 pub fn compile(prql_query: &str) -> Option<String> {
+    table::RenameTablesOptions {
+        names: HashMap::from([("a".to_string(), "b".to_string())]),
+    };
+
+    let compile_opts = Options::default()
+        .with_dialect(prql_compiler::sql::Dialect::SQLite)
+        .no_signature()
+        .some();
+
     return_or_throw(
-        prql_compiler::compile(
-            prql_query,
-            Some(Options {
-                format: true,
-                dialect: None,
-                signature_comment: false,
-            }),
-        )
-        .map_err(|e| e.composed("", prql_query, false)),
+        prql_compiler::compile(prql_query, compile_opts)
+            .map_err(|e| e.composed("", prql_query, false)),
     )
 }
 
