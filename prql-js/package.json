@@ -1,5 +1,5 @@
 {
-  "name": "@b4fun-ku/prql-js",
+  "name": "@b4fun/ku-prql-js",
   "version": "0.4.1",
   "main": "dist/node/prql_js.js",
   "browser": "dist/web/prql_js.js",
