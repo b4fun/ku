@@ -2,7 +2,7 @@ import { Session, TableSchema } from "@b4fun/ku-protos";
 import {
   NewParsedTableDrawer,
   ResultTable,
-  useNewParsedTableDrawerAction,
+  useNewParsedTableDrawerAction
 } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
@@ -19,7 +19,7 @@ import {
   compilePRQL,
   RunQueryViewModel,
   RunQueryViewModelAction,
-  useRunQueryAction,
+  useRunQueryAction
 } from "./viewModel";
 
 interface EditorHeaderProps {
@@ -65,12 +65,14 @@ function EditorHeader(props: EditorHeaderProps) {
 interface EditorBodyProps {
   editorWidth: number;
   editorValue: string;
+  session: Session;
+  table: TableSchema;
   runQueryAction: RunQueryViewModelAction;
 }
 
 function EditorBody(props: EditorBodyProps) {
   const { classes } = useStyles();
-  const { editorWidth, editorValue, runQueryAction } = props;
+  const { editorWidth, editorValue, runQueryAction, session, table } = props;
   const { viewModel: runQueryViewModel } = runQueryAction;
   const { resultViewModel } = runQueryViewModel;
 
@@ -88,7 +90,7 @@ function EditorBody(props: EditorBodyProps) {
         }}
       >
         <div style={{ height: editorHeight }}>
-          <PRQLEditor editorValue={editorValue} />
+          <PRQLEditor editorValue={editorValue} session={session} table={table} />
         </div>
         <ResultTable viewWidth={editorWidth} viewModel={resultViewModel} />
       </Allotment>
@@ -218,6 +220,8 @@ export function EditorPane(props: EditorPaneProps) {
         editorWidth={editorWidth}
         editorValue={`from ${table.name}`}
         runQueryAction={runQueryAction}
+        session={session}
+        table={table}
       />
       <NewParsedTableDrawer
         viewModelAction={newParsedTableDrawerAction}
