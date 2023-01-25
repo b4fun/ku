@@ -78,13 +78,13 @@ export interface RunQueryOptions {
 }
 
 export function compilePRQL(query: string, opts: RunQueryOptions): string {
-  // FIXME: implement table names mapping in prql
-  for (const table of opts.tables) {
-    query = query.replaceAll(`from ${table.name}`, `from ${table.id}`);
-  }
-
   console.log("query:", query);
-  const sql = compileToSQL(query);
+  const sql = compileToSQL(query, {
+    names: opts.tables.reduce((acc, table) => ({
+      ...acc,
+      [table.name]: table.id,
+    }), {}),
+  });
   console.log("sql:", sql);
 
   return sql;
