@@ -8,15 +8,22 @@ export const languageId = "prql";
 const sortTextGroupValue = 'a';
 const sortTextGroupLanguage = 'b';
 
+const extendedPRQLSyntax = {
+  ...prqlSyntax,
+} as any as monaco.languages.IMonarchLanguage;
+
 export function setupPRQL(
   monaco: Monaco,
   session: Session,
   currentTable: TableSchema,
 ): () => void {
   monaco.languages.register({ id: languageId, extensions: ["prql"] });
-  const disposeTokensProvider = monaco.languages.setMonarchTokensProvider(languageId, prqlSyntax as any);
+  const disposeTokensProvider = monaco.languages.setMonarchTokensProvider(
+    languageId, extendedPRQLSyntax,
+  );
 
-  // TODO: completion
+  // TODO: compute with background workers
+
   const disposeCompletionItemProvider = monaco.languages.registerCompletionItemProvider(languageId, {
     async provideCompletionItems(model, position, context, token) {
       const suggestions = [] as any as monaco.languages.CompletionItem[];
@@ -63,7 +70,7 @@ export function setupPRQL(
           // TODO: documentation
         });
       }
-      prqlSyntax.keywords.forEach(keyword => {
+      extendedPRQLSyntax.keywords.forEach(keyword => {
         if (keyword.startsWith(lastToken)) {
           suggestions.push({
             label: keyword,
@@ -75,7 +82,7 @@ export function setupPRQL(
         }
       });
       // TODO: seems like operators won't trigger completion
-      prqlSyntax.operators.forEach(op => {
+      extendedPRQLSyntax.operators.forEach(op => {
         if (op.startsWith(lastToken)) {
           suggestions.push({
             label: op,
@@ -91,7 +98,47 @@ export function setupPRQL(
     },
   });
 
+  // TODO(hbc): parse with prql-lezer
+  //            We should take Query / List as folding region
+  // References:
+  //   - https://github.com/PRQL/prql/blob/main/prql-lezer/src/prql.grammar
+  //   - https://github.com/microsoft/vscode-css-languageservice/blob/main/src/services/cssFolding.ts
+  const disposeFoldingRangeProvider = monaco.languages.registerFoldingRangeProvider(languageId, {
+    async provideFoldingRanges(model, context, token) {
+      const value = model.getValue();
+      const lines = value.split('\n');
+
+      const foldingRanges: monaco.languages.FoldingRange[] = [];
+      let regionStart: number | undefined;
+      lines.forEach((line, lineIdx) => {
+        line = line.trim();
+        if (line === '') {
+          if (regionStart) {
+            foldingRanges.push({
+              start: regionStart,
+              end: lineIdx,
+              kind: monaco.languages.FoldingRangeKind.Region,
+            });
+            regionStart = undefined;
+          }
+        } else if (!regionStart) {
+          regionStart = lineIdx + 1;
+        }
+      });
+      if (regionStart) {
+        foldingRanges.push({
+          start: regionStart,
+          end: lines.length,
+          kind: monaco.languages.FoldingRangeKind.Region,
+        });
+      }
+
+      return foldingRanges;
+    },
+  });
+
   return () => {
+    disposeFoldingRangeProvider.dispose();
     disposeCompletionItemProvider.dispose();
     disposeTokensProvider.dispose();
   };
