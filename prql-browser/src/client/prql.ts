@@ -1,12 +1,10 @@
 import { compile, Dialect, SQLCompileOptions } from "@b4fun/ku-prql-js/dist/bundler";
-// import { compile, Dialect, SQLCompileOptions } from "prql-js/dist/bundler";
 
 export interface RenameTablesOption {
   names: Record<string, string>;
 }
 
 export function compileToSQL(query: string, renameTablesOption: RenameTablesOption): string {
-  console.log(Dialect.SQLite);
   const compileOpts = new SQLCompileOptions();
   compileOpts.dialect = Dialect.SQLite;
   compileOpts.format = true;
