@@ -76,8 +76,8 @@ export default function KustoEditor(props: KustoEditorProps) {
       className='mt-1'
       language='kusto'
       defaultValue={editorValue}
-      onMount={setEditor}
-      options={editorOptions}
+      onMount={setEditor as any}
+      options={editorOptions as any}
     />
   )
 }

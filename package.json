@@ -10,7 +10,9 @@
     "prql-js"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build:base": "npm run build -w protos -w kql -w prql-js -w ui",
+    "build:browser": "npm run build -w browser-ui -w prql-browser",
+    "build": "npm run build:base && npm run build:browser",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {

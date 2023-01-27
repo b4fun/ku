@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "*"
+    - "*"
   workflow_dispatch:
     inputs:
       goReleaserExtraFlags:
@@ -19,34 +19,35 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-      - run: git fetch --force --tags
+    - run: git fetch --force --tags
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ">=1.18"
+    - name: Install Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ">=1.18"
 
-      - name: Login to ghcr.io
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Login to ghcr.io
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release
-        run: |
-          docker login -u bcho -p "$GITHUB_TOKEN" ghcr.io
-          npm ci
-          GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          GO_RELEASER_EXTRA_FLAGS: ${{ github.event.inputs.goReleaserExtraFlags }}
+    - name: Release
+      run: |
+        docker login -u bcho -p "$GITHUB_TOKEN" ghcr.io
+        curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        npm ci
+        GO_RELEASER_EXTRA_FLAGS="${GO_RELEASER_EXTRA_FLAGS}" make release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        GO_RELEASER_EXTRA_FLAGS: ${{ github.event.inputs.goReleaserExtraFlags }}
