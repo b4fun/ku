@@ -1,4 +1,4 @@
-name: Unit Test
+name: Unit Test - Node
 
 on:
   pull_request:
