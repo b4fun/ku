@@ -70,7 +70,7 @@ export function setupPRQL(
           // TODO: documentation
         });
       }
-      extendedPRQLSyntax.keywords.forEach(keyword => {
+      extendedPRQLSyntax.keywords.forEach((keyword: string) => {
         if (keyword.startsWith(lastToken)) {
           suggestions.push({
             label: keyword,
@@ -82,7 +82,7 @@ export function setupPRQL(
         }
       });
       // TODO: seems like operators won't trigger completion
-      extendedPRQLSyntax.operators.forEach(op => {
+      extendedPRQLSyntax.operators.forEach((op: string) => {
         if (op.startsWith(lastToken)) {
           suggestions.push({
             label: op,

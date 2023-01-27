@@ -1,8 +1,8 @@
 import { Monaco } from '@monaco-editor/react';
 import { atom, useAtom } from 'jotai';
-import { editor } from "monaco-editor";
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-export type IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
+export type IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
 
 export interface EditorState {
   editor?: IStandaloneCodeEditor;
