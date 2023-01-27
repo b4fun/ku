@@ -19,5 +19,6 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-    - run: npm ci --workspaces --if-present
-    - run: npm test --workspaces --if-present
+    - run: npm ci
+    - run: npm test
+    - run: npm build
