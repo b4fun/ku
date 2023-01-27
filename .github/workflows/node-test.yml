@@ -3,18 +3,21 @@ name: Unit Test
 on:
   pull_request:
     paths:
-      - "browser-ui/**"
-      - "kql/**"
-      - "protos/**"
+    - "browser-ui/**"
+    - "kql/**"
+    - "ui/**"
+    - "prql-ui/**"
+    - "prql-browser/**"
+    - "protos/**"
 
 jobs:
   unit-test:
     name: Unit Test - Node
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm ci
-      - run: npm test
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - run: npm ci --workspaces --if-present
+    - run: npm test --workspaces --if-present
