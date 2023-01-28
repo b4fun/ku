@@ -9,7 +9,7 @@ import { showNotification } from "@mantine/notifications";
 import { IconPlayerPlay, IconTransform } from "@tabler/icons";
 import { Allotment } from "allotment";
 import { useEffect, useState } from "react";
-import { useLoadedEditor } from "../../atom/editorAtom";
+import { useEditorContent, useLoadedEditor } from "../../atom/editorAtom";
 import { sessionHash, useUpdateSession } from "../../atom/sessionAtom";
 import { grpcClient } from "../../client/api";
 import { getEditorLineNumber, UserInput } from "./monaco";
@@ -112,6 +112,7 @@ export function EditorPane(props: EditorPaneProps) {
   const [editorValue, editorLoaded] = useLoadedEditor();
   const newParsedTableDrawerAction = useNewParsedTableDrawerAction();
   const updateSession = useUpdateSession();
+  const [editorContent] = useEditorContent(session, table);
 
   useEffect(() => {
     if (!editorLoaded) {
@@ -218,7 +219,7 @@ export function EditorPane(props: EditorPaneProps) {
       />
       <EditorBody
         editorWidth={editorWidth}
-        editorValue={`from ${table.name}`}
+        editorValue={editorContent.value}
         runQueryAction={runQueryAction}
         session={session}
         table={table}
