@@ -6,7 +6,7 @@ interface APISettings {
 }
 
 var globalAPISettings: APISettings = {
-  grpcBaseURL: 'http://localhost:4000/',
+  grpcBaseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:4000/',
 };
 
 const paramsKeyGRPCBaseURL = '_grpcBaseURL';

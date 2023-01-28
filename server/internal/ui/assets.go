@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-//go:generate cp -r ../../../browser-ui/dist .
+//go:generate sh -c "rm -rf ./dist/* && cp -r ../../../prql-browser/dist ."
 
 //go:embed dist/*
 var assets embed.FS

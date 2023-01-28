@@ -14,7 +14,7 @@ import (
 
 type CLI struct {
 	Ku struct {
-		DBPath     string `required:"" help:"path to the logs db" default:"./db.sqlite" type:"path"`
+		DBPath     string `optional:"" help:"path to the logs db. Empty value opens an in-memory connection" default:""`
 		ServerAddr string `required:"" help:"server listen address" default:"127.0.0.1:4000"`
 		Readonly   bool   `help:"set to true to serve without reading logs from cli"`
 	} `embed:"" prefix:"ku-"`
@@ -45,11 +45,22 @@ func (c *CLI) validateCommand() error {
 	return nil
 }
 
+const dbPathInMemory = ""
+
+func (c *CLI) resolveDBPath() string {
+	if c.Ku.DBPath == dbPathInMemory {
+		applog.Setup.Info("using transient in-memory db. All data will be lost after process restart!")
+		return ":memory:"
+	}
+
+	return kong.ExpandPath(c.Ku.DBPath)
+}
+
 func (c *CLI) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	dbProvider, err := db.NewSqliteProvider(c.Ku.DBPath)
+	dbProvider, err := db.NewSqliteProvider(c.resolveDBPath())
 	if err != nil {
 		applog.Setup.Error(err, "create db")
 		return err
@@ -77,6 +88,7 @@ func (c *CLI) Run() error {
 
 	svcOpts := &svc.Options{
 		Logger:       logger,
+		HTTPAddr:     c.Ku.ServerAddr,
 		DBProvider:   dbProvider,
 		QueryService: queryService,
 		SessionRepo:  sessionRepo,
