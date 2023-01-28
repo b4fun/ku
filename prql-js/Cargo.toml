@@ -22,7 +22,7 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
 wee_alloc = { version = "0.4.5", optional = true }
-prql-compiler = "0.4.1"
+prql-compiler = { git = "https://github.com/bcho/prql", rev = "d8c58f70ff5e34043bfdb5559d9291f8d58baa38" }
 anyhow = "1.0.68"
 serde = "1.0.152"
 js-sys = "0.3.60"

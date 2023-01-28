@@ -23,13 +23,6 @@
       "label": "npm: dev - prql-browser",
     },
     {
-      "type": "npm",
-      "script": "dev",
-      "path": "browser-ui",
-      "problemMatcher": [],
-      "label": "npm: dev - browser-ui",
-    },
-    {
       "type": "shell",
       "command": "make",
       "args": [

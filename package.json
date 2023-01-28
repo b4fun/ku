@@ -3,15 +3,13 @@
   "version": "0.0.1",
   "workspaces": [
     "ui/",
-    "browser-ui/",
     "prql-browser",
-    "kql/",
     "protos/",
     "prql-js"
   ],
   "scripts": {
-    "build:base": "npm run build -w protos -w kql -w prql-js -w ui",
-    "build:browser": "npm run build -w browser-ui -w prql-browser",
+    "build:base": "npm run build -w protos -w prql-js -w ui",
+    "build:browser": "npm run build -w prql-browser",
     "build": "npm run build:base && npm run build:browser",
     "test": "npm run test --workspaces --if-present"
   },

@@ -203,6 +203,7 @@ impl RqFold for RenameTables {
 
                     fold_relation_kind(self, new_rel_kind)
                 }
+                _ => fold_relation_kind(self, rel_kind),
             },
             _ => fold_relation_kind(self, rel_kind),
         }

@@ -13,7 +13,7 @@ Currently only manual installation is supported. Download a release based on you
 The simplest way to run Ku is to put it in the beginning of your command:
 
 ```
-$ ku sh -c 'echo hello, world'
+$ ku --ku-db-path=./db.sqlite sh -c 'echo hello, world'
 hello, world
 ```
 
@@ -29,8 +29,8 @@ By default, Ku blocks until we stop the process. To stop previous run, press `Ct
 To revisit the logs without running the sub-command again, we can run Ku in readonly mode:
 
 ```
-$ ku --ku-readonly
-2022-09-11T14:19:15.877+0800	INFO	http-server	svc/grpcweb.go:73	server started	{"http.addr": ":4000"}
+$ ku --ku-db-path=./db.sqlite --ku-readonly
+2023-01-28T14:21:16.451+0800	INFO	http-server	svc/grpcweb.go:73	server started	{"http.addr": "127.0.0.1:4000"}
 ```
 
 Under this mode, ku reads the previous saved logs and starts the web server. Now we can open the browser and navigate to `http://localhost:4000` again. We should see the same result as the previous run.
