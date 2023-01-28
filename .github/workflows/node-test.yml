@@ -3,11 +3,12 @@ name: Unit Test - Node
 on:
   pull_request:
     paths:
-    - "kql/**"
     - "ui/**"
-    - "prql-ui/**"
+    - "prql-js/**"
     - "prql-browser/**"
     - "protos/**"
+    - "package-lock.json"
+    - "package.json"
 
 jobs:
   unit-test:
