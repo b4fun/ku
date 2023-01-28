@@ -1,8 +1,9 @@
 import { Session, TableSchema } from "@b4fun/ku-protos";
 import { Skeleton } from "@mantine/core";
 import Editor, { useMonaco } from "@monaco-editor/react";
+import { debounce } from "lodash";
 import { useEffect, useState } from "react";
-import { useSetEditor } from "../../atom/editorAtom";
+import { useEditorContent, useSetEditor } from "../../atom/editorAtom";
 import { sessionHash } from "../../atom/sessionAtom";
 import { languageId, setupPRQL } from "./prql-vscode";
 
@@ -17,6 +18,8 @@ export function PRQLEditor(props: PRQLEditorProps) {
   const monaco = useMonaco();
   const [loading, setLoading] = useState(true);
   const setEditor = useSetEditor();
+  const key = sessionHash(session, [table]);
+  const [, setEditorContent] = useEditorContent(session, table);
 
   useEffect(() => {
     if (!monaco) {
@@ -28,7 +31,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
     setLoading(false);
 
     return uninstallPRQL;
-  }, [monaco, sessionHash(session, [table])]);
+  }, [monaco, key]);
 
   if (loading) {
     return <Skeleton height={50} />;
@@ -36,9 +39,13 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
   return (
     <Editor
+      key={key}
       language={languageId}
       defaultValue={editorValue}
       onMount={setEditor}
+      onChange={debounce(
+        (value) => setEditorContent(value || '')
+      )}
       options={{
         fontSize: 14,
         minimap: { enabled: false },
