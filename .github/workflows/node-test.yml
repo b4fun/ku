@@ -3,7 +3,6 @@ name: Unit Test - Node
 on:
   pull_request:
     paths:
-    - "browser-ui/**"
     - "kql/**"
     - "ui/**"
     - "prql-ui/**"
