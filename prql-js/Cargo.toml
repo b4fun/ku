@@ -18,10 +18,6 @@ wasm-bindgen = "0.2.63"
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.6", optional = true }
 
-# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
-# compared to the default allocator's ~10K. It is slower than the default
-# allocator, however.
-wee_alloc = { version = "0.4.5", optional = true }
 prql-compiler = { git = "https://github.com/bcho/prql", rev = "d8c58f70ff5e34043bfdb5559d9291f8d58baa38" }
 anyhow = "1.0.68"
 serde = "1.0.152"
