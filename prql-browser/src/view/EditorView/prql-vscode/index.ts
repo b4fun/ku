@@ -1,6 +1,7 @@
 import { Session, TableSchema } from "@b4fun/ku-protos";
 import { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import { CloseAction, ErrorAction, MessageTransports, MonacoLanguageClient } from "monaco-languageclient/.";
 import prqlSyntax from "./prql-syntax";
 
 export const languageId = "prql";
@@ -142,4 +143,32 @@ export function setupPRQL(
     disposeCompletionItemProvider.dispose();
     disposeTokensProvider.dispose();
   };
+}
+
+export function createLanguageClient(transports: MessageTransports): MonacoLanguageClient {
+  return new MonacoLanguageClient({
+    name: 'prql',
+    clientOptions: {
+      documentSelector: [
+        { language: languageId },
+      ],
+      errorHandler: {
+        error: (e) => {
+          console.log('language client error', e);
+
+          return { action: ErrorAction.Continue };
+        },
+        closed: () => {
+          console.log('language client closed');
+
+          return { action: CloseAction.DoNotRestart };
+        },
+      },
+    },
+    connectionProvider: {
+      get: () => {
+        return Promise.resolve(transports);
+      }
+    },
+  })
 }
