@@ -64,7 +64,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
     languageClient.start();
 
-    const modelUri = monaco.Uri.parse('inmemory://query.prql');
+    const modelUri = monaco.Uri.parse(`inmemory://${key}.prql`);
     let model = monaco.editor.getModel(modelUri);
     if (!model) {
       model = monaco.editor.createModel(editorValue, languageId, modelUri);
@@ -96,7 +96,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
       worker.terminate();
       reader.dispose();
     };
-  }, [ref.current]);
+  }, [ref.current, key]);
 
   return (
     <div
