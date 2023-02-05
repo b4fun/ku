@@ -180,3 +180,5 @@ export function sessionHash(session: Session, tables: TableSchema[]): string {
 
   return `${session.id}_${hashStr}`;
 }
+
+export const documentUriParamsSessionId = 'sessionId';

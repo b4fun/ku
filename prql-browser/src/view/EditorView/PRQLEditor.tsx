@@ -17,12 +17,22 @@ import { BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserve
 import getMessageServiceOverride from 'vscode/service-override/messages';
 import { StandaloneServices } from 'vscode/services';
 import { useEditorContent, useSetEditor } from "../../atom/editorAtom";
-import { sessionHash } from "../../atom/sessionAtom";
+import { documentUriParamsSessionId, sessionHash } from "../../atom/sessionAtom";
 import { createLanguageClient, languageId, setupPRQL } from "./prql-vscode";
 
 StandaloneServices.initialize({
   ...getMessageServiceOverride(document.body)
 });
+
+function documentUri(session: Session, tables: TableSchema[]): monaco.Uri {
+  const params = new URLSearchParams();
+  params.set(documentUriParamsSessionId, session.id);
+
+  const uri = monaco.Uri.parse(`inmemory://${sessionHash(session, tables)}.prql`);
+  return uri.with({
+    query: params.toString(),
+  });
+}
 
 export interface PRQLEditorProps {
   editorValue: string;
@@ -56,8 +66,6 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
     languageClient.start();
 
-    worker.postMessage('foobar');
-
     return () => {
       uninstallPRQL();
       worker.terminate();
@@ -70,10 +78,11 @@ export function PRQLEditor(props: PRQLEditorProps) {
       return;
     }
 
-    const modelUri = monaco.Uri.parse(`inmemory://${key}.prql`);
+    const modelUri = documentUri(session, [table]);
     let model = monaco.editor.getModel(modelUri);
     if (!model) {
       model = monaco.editor.createModel(editorValue, languageId, modelUri);
+      console.log(model);
     }
 
     editorRef.current = monaco.editor.create(
