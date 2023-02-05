@@ -1,4 +1,3 @@
-import { Session, TableSchema } from "@b4fun/ku-protos";
 import { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import { CloseAction, ErrorAction, MessageTransports, MonacoLanguageClient } from "monaco-languageclient/.";
@@ -15,8 +14,6 @@ const extendedPRQLSyntax = {
 
 export function setupPRQL(
   monaco: Monaco,
-  session: Session,
-  currentTable: TableSchema,
 ): () => void {
   monaco.languages.register({ id: languageId, extensions: ["prql"] });
   const disposeTokensProvider = monaco.languages.setMonarchTokensProvider(

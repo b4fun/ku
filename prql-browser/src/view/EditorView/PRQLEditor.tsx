@@ -39,14 +39,9 @@ export function PRQLEditor(props: PRQLEditorProps) {
   const [, setEditorContent] = useEditorContent(session, table);
 
   useEffect(() => {
-    if (ref.current === null) {
-      return;
-    }
-
-    const uninstallPRQL = setupPRQL(monaco, session, table);
+    const uninstallPRQL = setupPRQL(monaco);
 
     const workerSource = process.env.NODE_ENV === 'production' ? '/sw.js' : './src/sw.ts';
-
     const worker = new Worker(
       new URL(workerSource, window.location.href).href,
       { type: 'module' },
@@ -54,15 +49,26 @@ export function PRQLEditor(props: PRQLEditorProps) {
     worker.onerror = (e) => {
       console.log('worker error', e);
     };
-    worker.onmessage = (m) => {
-      console.log(m);
-    }
     const reader = new BrowserMessageReader(worker);
     const writer = new BrowserMessageWriter(worker);
     const languageClient = createLanguageClient({ reader, writer });
     reader.onClose(() => languageClient.stop());
 
     languageClient.start();
+
+    worker.postMessage('foobar');
+
+    return () => {
+      uninstallPRQL();
+      worker.terminate();
+      reader.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (ref.current === null) {
+      return;
+    }
 
     const modelUri = monaco.Uri.parse(`inmemory://${key}.prql`);
     let model = monaco.editor.getModel(modelUri);
@@ -74,10 +80,6 @@ export function PRQLEditor(props: PRQLEditorProps) {
       ref.current!,
       {
         model,
-        glyphMargin: false,
-        lightbulb: {
-          enabled: true
-        },
         fontSize: 14,
         minimap: { enabled: false },
       },
@@ -91,10 +93,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
     setEditor(editorRef.current, monaco);
 
     return () => {
-      uninstallPRQL();
       editorRef.current?.dispose();
-      worker.terminate();
-      reader.dispose();
     };
   }, [ref.current, key]);
 
