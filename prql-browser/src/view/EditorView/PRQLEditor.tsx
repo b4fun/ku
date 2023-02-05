@@ -1,3 +1,4 @@
+import 'monaco-editor/esm/vs/editor/editor.all.js';
 import 'monaco-editor/esm/vs/editor/standalone/browser/accessibilityHelp/accessibilityHelp.js';
 import 'monaco-editor/esm/vs/editor/standalone/browser/inspectTokens/inspectTokens.js';
 import 'monaco-editor/esm/vs/editor/standalone/browser/iPadShowKeyboard/iPadShowKeyboard.js';
@@ -120,8 +121,8 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
     console.log('install start');
 
-    // const uninstallPRQL = setupPRQL(monaco, session, table);
-    monaco.languages.register({ id: languageId, extensions: ["prql"] });
+    const uninstallPRQL = setupPRQL(monaco, session, table);
+    // monaco.languages.register({ id: languageId, extensions: ["prql"] });
 
     const modelUri = monaco.Uri.parse('inmemory://query.prql');
     let model = monaco.editor.getModel(modelUri);
@@ -164,7 +165,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
     languageClient.start();
 
     return () => {
-      // uninstallPRQL();
+      uninstallPRQL();
       editorRef.current?.dispose();
       worker.terminate();
       reader.dispose();
