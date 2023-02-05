@@ -25,6 +25,7 @@ export function setupPRQL(
 
   // TODO: compute with background workers
 
+  /*
   const disposeCompletionItemProvider = monaco.languages.registerCompletionItemProvider(languageId, {
     async provideCompletionItems(model, position, context, token) {
       const suggestions = [] as any as monaco.languages.CompletionItem[];
@@ -98,6 +99,7 @@ export function setupPRQL(
       return { suggestions, incomplete: false };
     },
   });
+  */
 
   // TODO(hbc): parse with prql-lezer
   //            We should take Query / List as folding region
@@ -140,7 +142,7 @@ export function setupPRQL(
 
   return () => {
     disposeFoldingRangeProvider.dispose();
-    disposeCompletionItemProvider.dispose();
+    // disposeCompletionItemProvider.dispose();
     disposeTokensProvider.dispose();
   };
 }

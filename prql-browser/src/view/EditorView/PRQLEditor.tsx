@@ -11,16 +11,12 @@ import 'monaco-editor/esm/vs/editor/standalone/browser/referenceSearch/standalon
 import 'monaco-editor/esm/vs/editor/standalone/browser/toggleHighContrast/toggleHighContrast.js';
 
 import { Session, TableSchema } from "@b4fun/ku-protos";
-import { Skeleton } from "@mantine/core";
-import Editor, { useMonaco } from "@monaco-editor/react";
-import { debounce } from "lodash";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { MonacoServices } from "monaco-languageclient/.";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserver-protocol/browser.js';
 import getMessageServiceOverride from 'vscode/service-override/messages';
 import { StandaloneServices } from 'vscode/services';
-import { useEditorContent, useLoadedEditor, useSetEditor } from "../../atom/editorAtom";
+import { useEditorContent, useSetEditor } from "../../atom/editorAtom";
 import { sessionHash } from "../../atom/sessionAtom";
 import { createLanguageClient, languageId, setupPRQL } from "./prql-vscode";
 
@@ -34,33 +30,20 @@ export interface PRQLEditorProps {
   session: Session;
 }
 
-export function PRQLEditor2(props: PRQLEditorProps) {
+export function PRQLEditor(props: PRQLEditorProps) {
   const { editorValue, table, session } = props;
-  const monaco = useMonaco();
-  const [loading, setLoading] = useState(true);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>();
+  const ref = useRef<HTMLDivElement>(null);
   const setEditor = useSetEditor();
-  const [loadedEditor] = useLoadedEditor();
   const key = sessionHash(session, [table]);
   const [, setEditorContent] = useEditorContent(session, table);
 
   useEffect(() => {
-    if (!monaco) {
+    if (ref.current === null) {
       return;
     }
 
     const uninstallPRQL = setupPRQL(monaco, session, table);
-
-    setLoading(false);
-
-    return uninstallPRQL;
-  }, [monaco, key]);
-
-  useEffect(() => {
-    if (!monaco) {
-      return;
-    }
-
-    MonacoServices.install();
 
     const workerSource = process.env.NODE_ENV === 'production' ? '/sw.js' : './src/sw.ts';
 
@@ -80,49 +63,6 @@ export function PRQLEditor2(props: PRQLEditorProps) {
     reader.onClose(() => languageClient.stop());
 
     languageClient.start();
-
-    return () => {
-      worker.terminate();
-      reader.dispose();
-    };
-  }, [monaco]);
-
-
-  if (loading) {
-    return <Skeleton height={50} />;
-  }
-
-  return (
-    <Editor
-      key={key}
-      language={languageId}
-      defaultValue={editorValue}
-      onMount={setEditor}
-      onChange={debounce(
-        (value) => setEditorContent(value || '')
-      )}
-      options={{
-        fontSize: 14,
-        minimap: { enabled: false },
-      }}
-    />
-  );
-}
-
-export function PRQLEditor(props: PRQLEditorProps) {
-  const { editorValue, table, session } = props;
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>();
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current === null) {
-      return;
-    }
-
-    console.log('install start');
-
-    const uninstallPRQL = setupPRQL(monaco, session, table);
-    // monaco.languages.register({ id: languageId, extensions: ["prql"] });
 
     const modelUri = monaco.Uri.parse('inmemory://query.prql');
     let model = monaco.editor.getModel(modelUri);
@@ -142,27 +82,13 @@ export function PRQLEditor(props: PRQLEditorProps) {
         minimap: { enabled: false },
       },
     );
+    editorRef.current.onDidChangeModelContent(e => {
+      if (editorRef.current) {
+        setEditorContent(editorRef.current.getValue());
+      }
+    });
 
-    MonacoServices.install();
-
-    const workerSource = process.env.NODE_ENV === 'production' ? '/sw.js' : './src/sw.ts';
-
-    const worker = new Worker(
-      new URL(workerSource, window.location.href).href,
-      { type: 'module' },
-    );
-    worker.onerror = (e) => {
-      console.log('worker error', e);
-    };
-    worker.onmessage = (m) => {
-      console.log(m);
-    }
-    const reader = new BrowserMessageReader(worker);
-    const writer = new BrowserMessageWriter(worker);
-    const languageClient = createLanguageClient({ reader, writer });
-    reader.onClose(() => languageClient.stop());
-
-    languageClient.start();
+    setEditor(editorRef.current, monaco);
 
     return () => {
       uninstallPRQL();
@@ -174,6 +100,7 @@ export function PRQLEditor(props: PRQLEditorProps) {
 
   return (
     <div
+      key={key}
       ref={ref}
       style={{ height: '100%' }}
     >
