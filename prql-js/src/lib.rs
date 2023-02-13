@@ -295,3 +295,49 @@ impl From<Dialect> for prql_compiler::sql::Dialect {
         }
     }
 }
+
+#[test]
+fn foo_test() {
+    let pl = prql_compiler::prql_to_pl(
+        r#"from f
+        sele x
+"#,
+    );
+    assert!(pl.is_ok());
+    println!("{:#?}", pl);
+    for ele in pl.clone().unwrap() {
+        match ele.span {
+            Some(span) => {
+                println!("span: {}, {}", span.start, span.end);
+            }
+            None => {}
+        }
+    }
+
+    let std_ctx = prql_compiler::semantic::load_std_lib();
+    println!(
+        "resolve only: {:#?}",
+        prql_compiler::semantic::resolve_only(pl.clone().unwrap(), Some(std_ctx))
+    );
+
+    let rl = prql_compiler::semantic::resolve(pl.clone().unwrap());
+    match rl {
+        Ok(query) => {
+            println!("{:#?}", query);
+        }
+        Err(err) => {
+            println!("err {:#?}", err);
+        }
+    }
+}
+
+// completion idea:
+// 1. send the whole model text for parsing (don't cache document for now)
+// 2. provide namings context (keyword names, available table names, function names etc)
+// 3. get the parent / previous / next expr item in the requested position
+// 4. generate completions
+
+// diagnostic idea:
+// 1. send the whole model text
+// 2. split into blocks for parsing, then semantic resolve
+// 3. emit notifications for parse failure

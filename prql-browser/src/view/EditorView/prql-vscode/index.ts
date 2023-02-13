@@ -94,7 +94,7 @@ export function setupPRQL(
         }
       });
 
-      return { suggestions, incomplete: false };
+      return { suggestions, incomplete: true };
     },
   });
 
