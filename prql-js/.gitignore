@@ -5,3 +5,6 @@ bin/
 pkg/
 dist/
 wasm-pack.log
+
+# insta
+*.pending-snap
