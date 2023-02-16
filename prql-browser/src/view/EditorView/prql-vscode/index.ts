@@ -1,4 +1,5 @@
 import { Session, TableSchema } from "@b4fun/ku-protos";
+import { lsp_folding_ranges } from "@b4fun/ku-prql-js/dist/bundler";
 import { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import prqlSyntax from "./prql-syntax";
@@ -107,6 +108,8 @@ export function setupPRQL(
     async provideFoldingRanges(model, context, token) {
       const value = model.getValue();
       const lines = value.split('\n');
+
+      console.log(lsp_folding_ranges(value));
 
       const foldingRanges: monaco.languages.FoldingRange[] = [];
       let regionStart: number | undefined;

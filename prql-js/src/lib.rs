@@ -1,3 +1,4 @@
+mod lsp;
 mod rename_table;
 mod utils;
 
@@ -128,6 +129,11 @@ impl From<Dialect> for prql_compiler::sql::Dialect {
             Dialect::DuckDb => D::DuckDb,
         }
     }
+}
+
+#[wasm_bindgen]
+pub fn lsp_folding_ranges(prql_query: &str) -> Option<String> {
+    return_or_throw(Ok("result".to_string()))
 }
 
 #[test]
