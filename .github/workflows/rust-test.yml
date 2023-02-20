@@ -1,0 +1,20 @@
+name: Unit Test - Rust
+
+on:
+  pull_request:
+    paths:
+    - "prql-js/**"
+
+jobs:
+  unit-test:
+    name: Unit Test - Rust
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --manifest-path prql-js/Cargo.toml
