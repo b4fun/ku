@@ -1,4 +1,6 @@
-use prql_compiler::ast::pl::fold;
+use anyhow::Result;
+use prql_compiler::ast::pl::fold::{fold_pipeline, AstFold};
+use prql_compiler::ast::pl::{Expr, ExprKind, Pipeline};
 use serde::{Deserialize, Serialize};
 
 use super::source::Source;
@@ -6,6 +8,8 @@ use super::source::Source;
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub enum FoldingRangeKind {
     Comment,
+    List,
+    Parentheses,
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -54,7 +58,49 @@ pub(crate) fn folding_ranges(source: &Source) -> Vec<FoldingRange> {
         }
     }
 
+    let mut folder = FoldingRangesFolder {
+        source,
+        folding_ranges: vec![],
+    };
+
+    if let Ok(ref stmts) = source.pl {
+        _ = folder.fold_stmts(stmts.clone());
+    }
+
+    rv.append(&mut folder.folding_ranges);
+
     return rv;
+}
+
+struct FoldingRangesFolder<'a> {
+    source: &'a Source,
+    folding_ranges: Vec<FoldingRange>,
+}
+
+impl AstFold for FoldingRangesFolder<'_> {
+    fn fold_expr(&mut self, mut expr: Expr) -> Result<Expr> {
+        expr.kind = self.fold_expr_kind(expr.kind)?;
+
+        // TODO: fold parentheses
+        match expr.kind {
+            ExprKind::List(_) => {
+                if let Some(span) = expr.span {
+                    let span_start_line = self.source.span_pos_to_line(span.start);
+                    let span_end_line = self.source.span_pos_to_line(span.end);
+                    if span_start_line != span_end_line {
+                        self.folding_ranges.push(FoldingRange {
+                            start: span_start_line as u32,
+                            end: span_end_line as u32,
+                            kind: FoldingRangeKind::List,
+                        });
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        Ok(expr)
+    }
 }
 
 #[cfg(test)]
@@ -99,7 +145,7 @@ from table_name # comment line 3
                 );
 
         assert_folding_ranges_match!(
-                    @r###"
+                            @r###"
 # foo
 # bar
 # foobar
@@ -115,7 +161,7 @@ from table_name
 # bar
 ## foo
 "###,
-        @r###"---
+                @r###"---
 - start: 2
   end: 5
   kind: Comment
@@ -126,6 +172,47 @@ from table_name
   end: 15
   kind: Comment
 "###
+        );
+    }
+
+    #[test]
+    fn examples_test() {
+        assert_folding_ranges_match!(
+                    @r###"
+from invoices
+filter invoice_date >= @1970-01-16
+derive [
+  transaction_fees = 0.8,
+  income = total - transaction_fees
+]
+filter income > 1
+group customer_id (
+  aggregate [
+    average total,
+    sum_income = sum income,
+    ct = count,
+  ]
+)
+sort [-sum_income]
+take 10
+join c=customers [==customer_id]
+derive name = f"{c.last_name}, {c.first_name}"
+select [
+  c.customer_id, name, sum_income
+]
+derive db_version = s"version()"
+"###,
+        @r###"---
+- start: 4
+  end: 7
+  kind: List
+- start: 10
+  end: 14
+  kind: List
+- start: 20
+  end: 22
+  kind: List
+        "###
                 );
     }
 }
