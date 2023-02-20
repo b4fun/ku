@@ -140,6 +140,9 @@ function lspFoldingRangesToMonacoFoldingRanges(
 
 function lspFoldingRanges(s: string): monaco.languages.FoldingRange[] {
   const lspFoldingRangesEncoded = lsp_folding_ranges(s);
+  if (!lspFoldingRangesEncoded) {
+    return [];
+  }
   const lspFoldingRanges: LSPFoldingRanges[] = JSON.parse(lspFoldingRangesEncoded);
   return lspFoldingRangesToMonacoFoldingRanges(lspFoldingRanges);
 }
