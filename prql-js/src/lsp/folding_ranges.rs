@@ -1,6 +1,6 @@
 use anyhow::Result;
-use prql_compiler::ast::pl::fold::{fold_pipeline, AstFold};
-use prql_compiler::ast::pl::{Expr, ExprKind, Pipeline};
+use prql_compiler::ast::pl::fold::AstFold;
+use prql_compiler::ast::pl::{Expr, ExprKind};
 use serde::{Deserialize, Serialize};
 
 use super::source::Source;
