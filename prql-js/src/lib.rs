@@ -3,6 +3,8 @@ mod rename_table;
 mod utils;
 
 use anyhow::Result;
+use lsp::source::Source;
+use lsp::Analysis;
 use prql_compiler::ast::rq::RqFold;
 use prql_compiler::sql;
 use rename_table::{BookkeepTables, RenameTables};
@@ -133,7 +135,14 @@ impl From<Dialect> for prql_compiler::sql::Dialect {
 
 #[wasm_bindgen]
 pub fn lsp_folding_ranges(prql_query: &str) -> Option<String> {
-    return_or_throw(Ok("result".to_string()))
+    let analysis = Analysis {};
+    let source = Source::from(prql_query);
+
+    let folding_ranges = analysis.folding_ranges(&source);
+    match serde_json::to_string(&folding_ranges) {
+        Ok(json) => Some(json),
+        Err(e) => wasm_bindgen::throw_str(&e.to_string()),
+    }
 }
 
 #[test]

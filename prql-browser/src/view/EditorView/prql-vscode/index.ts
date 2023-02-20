@@ -99,44 +99,9 @@ export function setupPRQL(
     },
   });
 
-  // TODO(hbc): parse with prql-lezer
-  //            We should take Query / List as folding region
-  // References:
-  //   - https://github.com/PRQL/prql/blob/main/prql-lezer/src/prql.grammar
-  //   - https://github.com/microsoft/vscode-css-languageservice/blob/main/src/services/cssFolding.ts
   const disposeFoldingRangeProvider = monaco.languages.registerFoldingRangeProvider(languageId, {
     async provideFoldingRanges(model, context, token) {
-      const value = model.getValue();
-      const lines = value.split('\n');
-
-      console.log(lsp_folding_ranges(value));
-
-      const foldingRanges: monaco.languages.FoldingRange[] = [];
-      let regionStart: number | undefined;
-      lines.forEach((line, lineIdx) => {
-        line = line.trim();
-        if (line === '') {
-          if (regionStart) {
-            foldingRanges.push({
-              start: regionStart,
-              end: lineIdx,
-              kind: monaco.languages.FoldingRangeKind.Region,
-            });
-            regionStart = undefined;
-          }
-        } else if (!regionStart) {
-          regionStart = lineIdx + 1;
-        }
-      });
-      if (regionStart) {
-        foldingRanges.push({
-          start: regionStart,
-          end: lines.length,
-          kind: monaco.languages.FoldingRangeKind.Region,
-        });
-      }
-
-      return foldingRanges;
+      return lspFoldingRanges(model.getValue());
     },
   });
 
@@ -145,4 +110,36 @@ export function setupPRQL(
     disposeCompletionItemProvider.dispose();
     disposeTokensProvider.dispose();
   };
+}
+
+// TODO: export types from prql-js
+type LSPFoldingRanges = {
+  start: number;
+  end: number;
+  kind: string;
+};
+
+function lspFoldingRangeKindToMonacoFoldingRangeKind(k: string): monaco.languages.FoldingRangeKind {
+  switch (k) {
+    case "Comment":
+      return monaco.languages.FoldingRangeKind.Comment;
+    default:
+      return monaco.languages.FoldingRangeKind.Region;
+  }
+}
+
+function lspFoldingRangesToMonacoFoldingRanges(
+  lspFoldingRanges: LSPFoldingRanges[],
+): monaco.languages.FoldingRange[] {
+  return lspFoldingRanges.map(lspFoldingRange => ({
+    start: lspFoldingRange.start,
+    end: lspFoldingRange.end,
+    kind: lspFoldingRangeKindToMonacoFoldingRangeKind(lspFoldingRange.kind),
+  }));
+}
+
+function lspFoldingRanges(s: string): monaco.languages.FoldingRange[] {
+  const lspFoldingRangesEncoded = lsp_folding_ranges(s);
+  const lspFoldingRanges: LSPFoldingRanges[] = JSON.parse(lspFoldingRangesEncoded);
+  return lspFoldingRangesToMonacoFoldingRanges(lspFoldingRanges);
 }
