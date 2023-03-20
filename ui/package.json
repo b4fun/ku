@@ -31,7 +31,7 @@
     "@mantine/form": "^5.10.0",
     "@mantine/hooks": "^5.9.6",
     "@monaco-editor/react": "^4.4.6",
-    "@tabler/icons": "^1.119.0",
+    "@tabler/icons": "^2.11.0",
     "monaco-editor": "^0.34.1",
     "rc-table": "^7.30.3",
     "react": "^18.2.0",
