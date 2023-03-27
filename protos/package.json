@@ -16,7 +16,7 @@
     ]
   },
   "dependencies": {
-    "@protobuf-ts/grpcweb-transport": "^2.7.0",
+    "@protobuf-ts/grpcweb-transport": "^2.8.3",
     "@protobuf-ts/runtime": "^2.8.2",
     "@protobuf-ts/runtime-rpc": "^2.8.2"
   },
