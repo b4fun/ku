@@ -1,5 +1,5 @@
 import { ActionIcon, UnstyledButton } from '@mantine/core';
-import { IconTableOptions } from '@tabler/icons';
+import { IconTableOptions } from '@tabler/icons-react';
 import { useState } from 'react';
 import useStyles from './useStyles';
 
