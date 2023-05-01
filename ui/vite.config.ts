@@ -20,7 +20,7 @@ export default defineConfig({
         "@mantine/core",
         "@mantine/react",
         "@mantine/react",
-        "@tabler/icons",
+        "@tabler/icons-react",
       ],
       output: {
         globals: {

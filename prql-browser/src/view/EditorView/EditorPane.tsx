@@ -6,7 +6,7 @@ import {
 } from "@b4fun/ku-ui";
 import { Button } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import { IconPlayerPlay, IconTransform } from "@tabler/icons";
+import { IconPlayerPlay, IconTransform } from "@tabler/icons-react";
 import { Allotment } from "allotment";
 import { useEffect, useState } from "react";
 import { useEditorContent, useLoadedEditor } from "../../atom/editorAtom";
