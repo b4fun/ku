@@ -10,7 +10,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lithammer/shortuuid v3.0.0+incompatible
-	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/rs/cors v1.9.0
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
