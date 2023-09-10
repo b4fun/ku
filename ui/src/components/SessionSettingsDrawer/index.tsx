@@ -18,9 +18,11 @@ export function SessionSettingsDrawer(props: SessionSettingsDrawerProps) {
       padding="sm"
       title="Session Settings"
       position="left"
-      overlayColor="#909296"
-      overlayOpacity={0.1}
-      overlayBlur={1}
+      overlayProps={{
+        color: '#909296',
+        opacity: 0.1,
+        blur: 1,
+      }}
       onClose={() => {
         viewModelAction.hideDrawer();
       }}
