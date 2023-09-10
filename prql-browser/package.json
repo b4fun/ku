@@ -12,7 +12,7 @@
     "@b4fun/ku-protos": "^0.0.1",
     "@b4fun/ku-prql-js": "0.4.1",
     "@b4fun/ku-ui": "^0.0.1",
-    "@mantine/core": "^5.10.5",
+    "@mantine/core": "^6.0.20",
     "@mantine/notifications": "^5.10.1",
     "@tabler/icons": "^2.17.0",
     "@tabler/icons-react": "^2.17.0",
