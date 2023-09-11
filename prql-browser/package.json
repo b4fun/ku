@@ -16,7 +16,7 @@
     "@mantine/notifications": "^5.10.1",
     "@tabler/icons": "^2.17.0",
     "@tabler/icons-react": "^2.17.0",
-    "allotment": "^1.17.1",
+    "allotment": "^1.19.3",
     "jotai": "^1.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
