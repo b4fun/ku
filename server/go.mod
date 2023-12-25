@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/kong v0.8.0
 	github.com/b4fun/ku/protos v0.0.0-00010101000000-000000000000
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.2.4
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jmoiron/sqlx v1.3.5
